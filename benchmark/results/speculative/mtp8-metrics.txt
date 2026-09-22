@@ -1,0 +1,38 @@
+# HELP vllm:spec_decode_num_drafts_total Number of spec decoding drafts.
+# TYPE vllm:spec_decode_num_drafts_total counter
+vllm:spec_decode_num_drafts_total{engine="0",model_name="Qwen3.5-4B-FP8"} 846.0
+# HELP vllm:spec_decode_num_drafts_created Number of spec decoding drafts.
+# TYPE vllm:spec_decode_num_drafts_created gauge
+vllm:spec_decode_num_drafts_created{engine="0",model_name="Qwen3.5-4B-FP8"} 1.7894638358347569e+09
+# HELP vllm:spec_decode_num_draft_tokens_total Number of draft tokens.
+# TYPE vllm:spec_decode_num_draft_tokens_total counter
+vllm:spec_decode_num_draft_tokens_total{engine="0",model_name="Qwen3.5-4B-FP8"} 6768.0
+# HELP vllm:spec_decode_num_draft_tokens_created Number of draft tokens.
+# TYPE vllm:spec_decode_num_draft_tokens_created gauge
+vllm:spec_decode_num_draft_tokens_created{engine="0",model_name="Qwen3.5-4B-FP8"} 1.7894638358347788e+09
+# HELP vllm:spec_decode_num_accepted_tokens_total Number of accepted tokens.
+# TYPE vllm:spec_decode_num_accepted_tokens_total counter
+vllm:spec_decode_num_accepted_tokens_total{engine="0",model_name="Qwen3.5-4B-FP8"} 5374.0
+# HELP vllm:spec_decode_num_accepted_tokens_created Number of accepted tokens.
+# TYPE vllm:spec_decode_num_accepted_tokens_created gauge
+vllm:spec_decode_num_accepted_tokens_created{engine="0",model_name="Qwen3.5-4B-FP8"} 1.789463835834791e+09
+# HELP vllm:spec_decode_num_accepted_tokens_per_pos_total Accepted tokens per draft position.
+# TYPE vllm:spec_decode_num_accepted_tokens_per_pos_total counter
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="Qwen3.5-4B-FP8",position="0"} 796.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="Qwen3.5-4B-FP8",position="1"} 783.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="Qwen3.5-4B-FP8",position="2"} 777.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="Qwen3.5-4B-FP8",position="3"} 774.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="Qwen3.5-4B-FP8",position="4"} 768.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="Qwen3.5-4B-FP8",position="5"} 592.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="Qwen3.5-4B-FP8",position="6"} 466.0
+vllm:spec_decode_num_accepted_tokens_per_pos_total{engine="0",model_name="Qwen3.5-4B-FP8",position="7"} 418.0
+# HELP vllm:spec_decode_num_accepted_tokens_per_pos_created Accepted tokens per draft position.
+# TYPE vllm:spec_decode_num_accepted_tokens_per_pos_created gauge
+vllm:spec_decode_num_accepted_tokens_per_pos_created{engine="0",model_name="Qwen3.5-4B-FP8",position="0"} 1.7894638358348086e+09
+vllm:spec_decode_num_accepted_tokens_per_pos_created{engine="0",model_name="Qwen3.5-4B-FP8",position="1"} 1.789463835834813e+09
+vllm:spec_decode_num_accepted_tokens_per_pos_created{engine="0",model_name="Qwen3.5-4B-FP8",position="2"} 1.7894638358348176e+09
+vllm:spec_decode_num_accepted_tokens_per_pos_created{engine="0",model_name="Qwen3.5-4B-FP8",position="3"} 1.7894638358348215e+09
+vllm:spec_decode_num_accepted_tokens_per_pos_created{engine="0",model_name="Qwen3.5-4B-FP8",position="4"} 1.7894638358348267e+09
+vllm:spec_decode_num_accepted_tokens_per_pos_created{engine="0",model_name="Qwen3.5-4B-FP8",position="5"} 1.7894638358348303e+09
+vllm:spec_decode_num_accepted_tokens_per_pos_created{engine="0",model_name="Qwen3.5-4B-FP8",position="6"} 1.7894638358348336e+09
+vllm:spec_decode_num_accepted_tokens_per_pos_created{engine="0",model_name="Qwen3.5-4B-FP8",position="7"} 1.7894638358348374e+09

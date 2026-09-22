@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*.log
+.env
+.git/
+.venv/
+admission_load_test.py
+smoke_test.py

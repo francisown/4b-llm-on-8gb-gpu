@@ -1,0 +1,39 @@
+# 模型权重与数据集：体积大、可重新下载，不入库
+models/
+datasets/
+*.safetensors
+*.bin
+*.gguf
+*.pt
+*.pth
+
+# 镜像与打包产物
+*.tar
+*.tar.gz
+*.whl
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# 运行时产物
+logs/
+records/
+*.tmp
+
+# 注意：这里刻意不排除 *.log。
+# benchmark/results/ 下的服务端日志是证据，不是噪声——例如
+# runner-verify/v2runner-server.log 里有 "Using V2 Model Runner" 这一行，
+# 是 V2 runner 可用性的直接证据，文档引用了它。把它们排除掉会让文档失去可验证性。
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

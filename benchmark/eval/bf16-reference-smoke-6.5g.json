@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "label": "bf16-reference-smoke-6.5g",
+  "model": "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b",
+  "backend": "transformers-device-map-auto",
+  "gpu_memory_limit": "6.5GiB",
+  "cpu_memory_limit": "12GiB",
+  "latency_comparable": false,
+  "manifest": "benchmark/eval/ceval-val-200.json",
+  "cases_sha256": "8df8746b0c0f164212e8dd821f55cb6cbaacb31d3a73cd82db39b74dfd41c941",
+  "results": [
+    {
+      "case_id": "high_school_biology:13",
+      "subject": "high_school_biology",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D\n",
+      "latency_seconds": 11.00789,
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 4,
+        "total_tokens": 139
+      }
+    },
+    {
+      "case_id": "environmental_impact_assessment_engineer:0",
+      "subject": "environmental_impact_assessment_engineer",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B\n",
+      "latency_seconds": 1.486378,
+      "usage": {
+        "prompt_tokens": 124,
+        "completion_tokens": 4,
+        "total_tokens": 128
+      }
+    },
+    {
+      "case_id": "professional_tour_guide:4",
+      "subject": "professional_tour_guide",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A\n",
+      "latency_seconds": 1.485516,
+      "usage": {
+        "prompt_tokens": 149,
+        "completion_tokens": 4,
+        "total_tokens": 153
+      }
+    }
+  ],
+  "summary": {
+    "attempted": 3,
+    "valid_predictions": 3,
+    "correct": 3,
+    "accuracy": 1.0,
+    "invalid_prediction_rate": 0.0,
+    "mean_latency_seconds": 4.659928,
+    "by_subject": {
+      "high_school_biology": {
+        "attempted": 1,
+        "valid": 1,
+        "correct": 1
+      },
+      "environmental_impact_assessment_engineer": {
+        "attempted": 1,
+        "valid": 1,
+        "correct": 1
+      },
+      "professional_tour_guide": {
+        "attempted": 1,
+        "valid": 1,
+        "correct": 1
+      }
+    }
+  }
+}

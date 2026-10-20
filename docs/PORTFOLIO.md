@@ -14,7 +14,7 @@ measurement, Kubernetes, observability, failure handling, and delivery.
 
 | Repository / artifact | What it proves |
 |---|---|
-| [`ai-inference-lab`](https://github.com/francisown/ai-inference-lab) | Quantization on an 8 GB card, quality deltas, vLLM serving, FastAPI gateway, Docker, Kubernetes, Prometheus, rollout/rollback, measured TTFT/throughput |
+| [`8gb-llm-inference-delivery`](https://github.com/francisown/8gb-llm-inference-delivery) | Quantization on an 8 GB card, quality deltas, vLLM serving, FastAPI gateway, Docker, Kubernetes, Prometheus, rollout/rollback, measured TTFT/throughput |
 | [`qwen3.5-fp8-cuda`](https://github.com/francisown/qwen3.5-fp8-cuda) | Hand-written CUDA kernels, FP8 inference, memory/throughput tuning at the engine level |
 | [`filingcopilot`](https://github.com/francisown/filingcopilot) | FastAPI, RAG/SQLite, LangGraph, MCP, financial data, traceable evidence |
 | `rgb-to-depth` (local) | TensorRT, CUDA Graph, CMake, prebuilt wheels, video batching, real deployment delivery |

@@ -1,5 +1,5 @@
 <p align="right">
-  <a href="https://github.com/francisown/ai-inference-lab/actions/workflows/ci.yml"><img src="https://github.com/francisown/ai-inference-lab/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/francisown/8gb-llm-inference-delivery/actions/workflows/ci.yml"><img src="https://github.com/francisown/8gb-llm-inference-delivery/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Language-English-555?style=flat-square" alt="Language: English">
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-2f81f7?style=flat-square" alt="Read in Simplified Chinese"></a>
 </p>

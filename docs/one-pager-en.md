@@ -1,6 +1,6 @@
-# One-pager · LLM inference engineering on a single 8 GB GPU
+# One-pager · 8GB LLM inference delivery
 
-**In one sentence.** I built an end-to-end inference engineering pipeline on one RTX 5060 with 8 GB of VRAM — quantization, quality evaluation, scheduling tuning, service packaging, and offline delivery — and kept reproducible raw data at every step.
+**In one sentence.** I built an end-to-end LLM inference delivery pipeline on one RTX 5060 with 8 GB of VRAM — quantization, quality evaluation, scheduling tuning, service packaging, and offline delivery — and kept reproducible raw data at every step.
 
 ---
 

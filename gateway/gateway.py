@@ -33,6 +33,10 @@ UPSTREAM_TIMEOUT_SECONDS = float(os.getenv("UPSTREAM_TIMEOUT_SECONDS", "60"))
 MAX_CONCURRENT_REQUESTS = int(os.getenv("GATEWAY_MAX_CONCURRENT", "4"))
 MAX_QUEUED_REQUESTS = int(os.getenv("GATEWAY_MAX_QUEUE", "4"))
 QUEUE_TIMEOUT_SECONDS = float(os.getenv("GATEWAY_QUEUE_TIMEOUT_SECONDS", "10"))
+HEALTH_TIMEOUT_SECONDS = float(os.getenv("HEALTH_TIMEOUT_SECONDS", "3"))
+UPSTREAM_CONNECT_RETRIES = max(0, int(os.getenv("UPSTREAM_CONNECT_RETRIES", "1")))
+POD_NAME = os.getenv("POD_NAME", "local")
+GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.0")
 APP_DIR = Path(__file__).resolve().parent
 
 LOG_FIELDS = (
@@ -128,6 +132,16 @@ CLIENT_DISCONNECTS_TOTAL = Counter(
     "inference_gateway_client_disconnects_total",
     "Streaming clients that disconnected before completion.",
 )
+UPSTREAM_HEALTHY = Gauge(
+    "inference_gateway_upstream_healthy",
+    "Whether the last /health probe could reach the vLLM upstream.",
+)
+GATEWAY_INFO = Gauge(
+    "inference_gateway_info",
+    "Static gateway identity labels.",
+    ("version", "pod"),
+)
+GATEWAY_INFO.labels(version=GATEWAY_VERSION, pod=POD_NAME).set(1)
 
 
 class ChatMessage(BaseModel):
@@ -314,21 +328,47 @@ async def lifespan(app: FastAPI):
         write=10.0,
         pool=5.0,
     )
+    health_timeout = httpx.Timeout(
+        connect=1.0,
+        read=HEALTH_TIMEOUT_SECONDS,
+        write=2.0,
+        pool=2.0,
+    )
     app.state.http = httpx.AsyncClient(timeout=timeout)
+    app.state.health_http = httpx.AsyncClient(
+        timeout=health_timeout,
+        limits=httpx.Limits(max_connections=4, max_keepalive_connections=0),
+    )
     app.state.admission = AdmissionController(
         MAX_CONCURRENT_REQUESTS,
         MAX_QUEUED_REQUESTS,
         QUEUE_TIMEOUT_SECONDS,
     )
+    log_event(
+        logging.INFO,
+        "gateway_start",
+        model=MODEL_NAME,
+        outcome="started",
+    )
     yield
+    await app.state.health_http.aclose()
     await app.state.http.aclose()
 
 
 app = FastAPI(
     title="AI Inference Gateway",
-    version="0.1.0",
+    version=GATEWAY_VERSION,
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def gateway_identity_headers(request: Request, call_next):
+    """Attach the serving pod and build version to every response."""
+    response = await call_next(request)
+    response.headers["X-Gateway-Pod"] = POD_NAME
+    response.headers["X-Gateway-Version"] = GATEWAY_VERSION
+    return response
 
 
 @app.get("/", include_in_schema=False)
@@ -339,16 +379,20 @@ async def index() -> FileResponse:
 @app.get("/live")
 async def live() -> dict[str, str]:
     """Liveness: this process is running, independent of the model server."""
-    return {"status": "ok"}
+    return {"status": "ok", "pod": POD_NAME, "version": GATEWAY_VERSION}
 
 
 @app.get("/health")
 async def health() -> JSONResponse:
     """The gateway is healthy only when its vLLM upstream is reachable."""
     try:
-        response = await app.state.http.get(f"{VLLM_BASE_URL}/health")
+        response = await app.state.health_http.get(
+            f"{VLLM_BASE_URL}/health",
+            headers={"Connection": "close"},
+        )
         response.raise_for_status()
     except (httpx.HTTPError, httpx.TimeoutException) as exc:
+        UPSTREAM_HEALTHY.set(0)
         log_event(
             logging.WARNING,
             "health_check_failed",
@@ -358,19 +402,86 @@ async def health() -> JSONResponse:
         )
         return JSONResponse(
             status_code=503,
-            content={"status": "unhealthy", "vllm": "unreachable", "error": str(exc)},
+            content={
+                "status": "unhealthy",
+                "vllm": "unreachable",
+                "error": str(exc)[:200],
+                "pod": POD_NAME,
+            },
         )
-    return JSONResponse(content={"status": "ok", "vllm": "ok"})
+    UPSTREAM_HEALTHY.set(1)
+    return JSONResponse(
+        content={
+            "status": "ok",
+            "vllm": "ok",
+            "pod": POD_NAME,
+            "version": GATEWAY_VERSION,
+        }
+    )
 
 
 @app.get("/gateway/status")
-async def gateway_status() -> dict[str, int | float]:
-    return await app.state.admission.snapshot()
+async def gateway_status() -> dict[str, int | float | str]:
+    snapshot = await app.state.admission.snapshot()
+    return {**snapshot, "pod": POD_NAME, "version": GATEWAY_VERSION}
 
 
 @app.get("/metrics", include_in_schema=False)
 async def metrics() -> Response:
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+async def post_with_connect_retry(
+    client: httpx.AsyncClient,
+    url: str,
+    *,
+    json: dict[str, Any],
+    headers: dict[str, str],
+    request_id: str,
+) -> httpx.Response:
+    """Retry only pre-send connection failures; never replay a read timeout."""
+    for attempt in range(UPSTREAM_CONNECT_RETRIES + 1):
+        try:
+            return await client.post(url, json=json, headers=headers)
+        except httpx.ConnectError:
+            if attempt >= UPSTREAM_CONNECT_RETRIES:
+                raise
+            log_event(
+                logging.WARNING,
+                "upstream_connect_retry",
+                request_id=request_id,
+                outcome="retry",
+                error_type="ConnectError",
+            )
+            await asyncio.sleep(0.1 * (2**attempt))
+    raise RuntimeError("unreachable retry loop")
+
+
+async def send_stream_with_connect_retry(
+    client: httpx.AsyncClient,
+    url: str,
+    *,
+    json: dict[str, Any],
+    headers: dict[str, str],
+    request_id: str,
+) -> httpx.Response:
+    """Build a fresh streaming request for each pre-send connection attempt."""
+    for attempt in range(UPSTREAM_CONNECT_RETRIES + 1):
+        request = client.build_request("POST", url, json=json, headers=headers)
+        try:
+            return await client.send(request, stream=True)
+        except httpx.ConnectError:
+            if attempt >= UPSTREAM_CONNECT_RETRIES:
+                raise
+            log_event(
+                logging.WARNING,
+                "upstream_connect_retry",
+                request_id=request_id,
+                outcome="retry",
+                error_type="ConnectError",
+            )
+            await asyncio.sleep(0.1 * (2**attempt))
+    raise RuntimeError("unreachable retry loop")
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -388,10 +499,12 @@ async def chat(
         raise
     try:
         try:
-            upstream = await app.state.http.post(
+            upstream = await post_with_connect_retry(
+                app.state.http,
                 f"{VLLM_BASE_URL}/v1/chat/completions",
                 json=payload,
                 headers={"X-Request-ID": request_id},
+                request_id=request_id,
             )
         except httpx.TimeoutException as exc:
             REQUESTS_TOTAL.labels(mode="non_stream", outcome="timeout").inc()
@@ -484,14 +597,14 @@ async def chat_stream(
     except HTTPException:
         REQUESTS_TOTAL.labels(mode="stream", outcome="rejected").inc()
         raise
-    upstream_request = app.state.http.build_request(
-        "POST",
-        f"{VLLM_BASE_URL}/v1/chat/completions",
-        json=payload,
-        headers={"X-Request-ID": request_id},
-    )
     try:
-        upstream = await app.state.http.send(upstream_request, stream=True)
+        upstream = await send_stream_with_connect_retry(
+            app.state.http,
+            f"{VLLM_BASE_URL}/v1/chat/completions",
+            json=payload,
+            headers={"X-Request-ID": request_id},
+            request_id=request_id,
+        )
     except httpx.TimeoutException as exc:
         await lease.release()
         REQUESTS_TOTAL.labels(mode="stream", outcome="timeout").inc()

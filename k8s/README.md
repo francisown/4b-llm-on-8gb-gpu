@@ -1,101 +1,180 @@
-# Kubernetes 第一课：部署轻量推理网关
+# Kubernetes 部署：网关层已实测，GPU 调度未验证
 
-这一阶段只把 FastAPI 网关交给 Kubernetes 管理，不把 4B 模型放进集群。目标是先分清 Pod、Deployment、Service、ConfigMap 和探针各自解决的问题。
+这份 README 记录 **2026-10-21** 在本机 Docker Desktop Kubernetes 上真实跑过的结果，
+不是“清单写好了”的同义词。
 
-## 对象关系
+## 结论先行
+
+| 项目 | 结果 |
+|---|---|
+| 集群 | Docker Desktop 4.91.0，Kubernetes v1.36.1，单节点 `desktop-control-plane` |
+| 网关 | `ai-inference-gateway:v0.2.0`，2 副本，全部 Ready |
+| 模型服务 | vLLM 0.29.0 + Qwen3.5-4B-INT4-AWQ，**在集群外**的宿主 Docker 中运行 |
+| 集群内 Service 压测 | 100 请求 / 并发 4，**0 错误，326.53 tok/s**，两个 Pod 分别收到 25 / 75 请求 |
+| 压测中强杀 1 个 Pod | 300 请求 / 并发 4，**0 错误，315.46 tok/s** |
+| Pod 强杀恢复 | 替换 Pod **7.6 秒**后 Ready，Service endpoints 自动更新 |
+| 坏版本回滚 | 新 Pod `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 后恢复 |
+| Prometheus | 两个网关 Pod 均 `up`，`upstream_healthy=1`，按 Pod 抓取 |
+| HPA | 清单存在，但集群无 metrics-server，`cpu: <unknown>/70%`，**未生效** |
+| K8s 调度 GPU | `nvidia.com/gpu: 1` 探针一直 Pending：`Insufficient nvidia.com/gpu`，**未验证** |
+
+完整原始结果与限制见 [`../docs/K8S_VERIFICATION.md`](../docs/K8S_VERIFICATION.md)。
+
+## 为什么模型不放进集群
+
+本机是 Windows/WSL2 + 单张 RTX 5060。Docker Desktop 的 Kubernetes 节点没有
+NVIDIA device plugin，也不会广告 `nvidia.com/gpu` 资源；把 vLLM 放进去只会
+Pending。因此当前拓扑是：
 
 ```text
-浏览器
-  │  本机端口转发 localhost:9001
-  ▼
-Service/inference-gateway（稳定入口）
-  │  按标签选择 Pod
-  ▼
-Deployment/inference-gateway（期望副本数 = 2）
-  │  创建和替换
-  ▼
-Pod/gateway（运行 ai-inference-gateway:v1）
-  │
-  ├─ 从 ConfigMap 读取模型名、上游地址和并发参数
-  └─ /live 接受 startup、readiness、liveness 探测
+浏览器 / 压测 Job
+        │
+        ▼
+Service/inference-gateway (ClusterIP:9000)
+        │
+        ▼
+Deployment/inference-gateway (2 Pods)
+        │  http://host.docker.internal:8000
+        ▼
+宿主 Docker: vLLM 0.29.0 + Qwen3.5-4B-INT4-AWQ + RTX 5060
 ```
 
-- **Pod** 是 Kubernetes 最小调度单位，这里装一个网关容器。Pod 被替换后名字和 IP 都可能改变。
-- **Deployment** 保存“我要 2 个这样的 Pod”这个期望状态，并负责扩缩容、重建与滚动更新。
-- **Service** 根据标签找到当前 Pod，提供不随 Pod 更换而改变的集群内地址。
-- **ConfigMap** 保存非敏感配置；以后修改参数无需重做镜像。
-- **Probe** 让 Kubernetes 知道容器是否已启动、是否可接流量、是否需要重启。
-
-## 为什么暂时不把模型放进来
-
-4B 模型会同时引入 GPU device plugin、显存、镜像/模型制品、启动时间和调度问题。第一课若全部一起上，任何失败都很难判断是 Kubernetes 还是 CUDA/vLLM。先用轻量网关镜像把控制面概念跑通，下一阶段再接模型。
+Kubernetes 管理的是**无状态网关层**：副本、Service 发现、探针、滚动更新、
+PDB、指标抓取。它不是 GPU 调度层。
 
 ## 前置条件
 
-1. Docker Desktop 正在运行。
-2. Docker Desktop 中已创建并启动一个单节点 Kubernetes 集群。
-3. `kubectl config current-context` 输出 `docker-desktop`，且 `kubectl get nodes` 显示 `Ready`。
-4. 本机已有镜像 `ai-inference-gateway:v1`。
+1. Docker Desktop 已启动，Kubernetes 已启用。
+2. `kubectl config current-context` 为 `docker-desktop`，`kubectl get nodes` 为 Ready。
+3. 宿主已启动 vLLM，端口 8000 可访问。
+4. 已构建网关镜像。
 
-当前清单使用 `imagePullPolicy: Never`，故意禁止从网络拉取同名镜像：它只允许使用本机已经验收过的镜像，也能暴露“集群是否看得到本地镜像”这一问题。
+## 构建并导入镜像
 
-Docker Desktop 当前创建的是 kind 集群。宿主 Docker 中存在镜像，不代表 kind 节点自己的 containerd 中也存在它。首次部署前可在 PowerShell 里直接导入镜像流：
+Docker Desktop 的 Kubernetes 节点使用自己的 containerd，宿主 Docker 里的镜像
+不会自动出现。用 `cmd` 管道导入，避免 PowerShell 破坏 tar 二进制：
 
 ```powershell
-docker save ai-inference-gateway:v1 | docker exec -i desktop-control-plane ctr -n k8s.io images import -
+docker build -t ai-inference-gateway:v0.2.0 .\gateway
+cmd /c "docker save ai-inference-gateway:v0.2.0 | docker exec -i desktop-control-plane ctr -n k8s.io images import -"
 docker exec desktop-control-plane ctr -n k8s.io images list | Select-String ai-inference-gateway
 ```
 
-这里直接传输字节流，不再先 `docker cp` 到节点的 `/tmp`；后者在当前 Docker Desktop 版本中曾出现“复制报告成功但节点内找不到文件”的情况。
+Deployment 使用 `imagePullPolicy: IfNotPresent`。本地节点已有镜像时不会联网；
+如果镜像不存在，Pod 会进入 `ErrImagePull`，这时应检查导入命令，而不是盲目改
+成 `Always`。
 
-## 部署与观察
-
-在 Windows PowerShell 中运行：
+## 部署
 
 ```powershell
-cd E:\AI-Inference-Lab
 kubectl apply -k .\k8s
-kubectl rollout status deployment/inference-gateway -n ai-inference --timeout=120s
-kubectl get pods,deploy,svc -n ai-inference -o wide
+kubectl rollout status deployment/inference-gateway -n ai-inference --timeout=180s
+kubectl get pods,deploy,svc,pdb -n ai-inference -o wide
 ```
 
-然后启动端口转发（这个窗口需要保持打开）：
+清单包含：
+
+- 2 副本，`maxUnavailable: 0`、`maxSurge: 1`；
+- startup `/live`、readiness `/health`、liveness `/live`；
+- `terminationGracePeriodSeconds: 30` + `preStop sleep 5`；
+- 非 root、只读根文件系统、`/tmp` emptyDir；
+- CPU/内存 requests 与 limits；
+- PDB `minAvailable: 1`；
+- HPA 清单（需要 metrics-server 才生效）；
+- Prometheus 抓取注解与按 Pod 抓取配置。
+
+## 验证
 
 ```powershell
 kubectl port-forward service/inference-gateway 9001:9000 -n ai-inference
 ```
 
-浏览器打开 <http://localhost:9001/>。这里使用 9001，是因为 Docker Compose 版网关已经占用本机 9000；Kubernetes Service 内部仍监听 9000。此时网页和 `/live` 应可访问；如果宿主机没有启动 vLLM，真正发送对话会提示上游不可用，这是当前阶段的预期现象。
-
-当前 Deployment 使用两个网关副本。Service 根据标签把新连接转发到其中一个健康 Pod。两个网关仍然共用宿主机上同一个 vLLM，因此这里增加的是网关层的可用性和入口处理能力，不是 GPU 推理算力。另需注意，`kubectl port-forward service/...` 会选中一个后端 Pod 建立调试通道，不适合用来验证 Service 的负载分配；负载分配测试应从集群内部访问 Service。
-
-另开一个 PowerShell 观察自动恢复：
+另开一个窗口：
 
 ```powershell
-kubectl get pods -n ai-inference -w
+curl.exe --noproxy "*" http://127.0.0.1:9001/live
+curl.exe --noproxy "*" http://127.0.0.1:9001/health
 ```
 
-记下当前 Pod 名称，再删除它：
+`/live` 只表示进程活着；`/health` 还会检查 vLLM 上游。响应头会带
+`X-Gateway-Pod` 和 `X-Gateway-Version`。
+
+## 集群内压测
+
+压测客户端必须从集群内部访问 Service，`port-forward` 只会选中一个 Pod，不能
+用来验证 Service 分流。
+
+```powershell
+kubectl create configmap loadgen-script `
+  --from-file=benchmark/k8s_load_test.py -n ai-inference `
+  --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl delete job gateway-loadgen -n ai-inference --ignore-not-found
+kubectl apply -f k8s/benchmark/loadgen-job.yaml
+kubectl wait --for=condition=complete job/gateway-loadgen -n ai-inference --timeout=300s
+kubectl logs job/gateway-loadgen -n ai-inference
+```
+
+本机实测输出（`benchmark/results/k8s/service-load-c4.json`）：
+
+```text
+100 requests, concurrency 4, 12.556 s
+0 errors, 7.964 req/s, 326.53 tok/s
+p50 500.30 ms, p95 513.81 ms
+pods: 25 / 75
+```
+
+## 故障与回滚
+
+删除一个 Pod，观察 Deployment 补回：
 
 ```powershell
 kubectl delete pod -n ai-inference -l app.kubernetes.io/name=inference-gateway
+kubectl get pods -n ai-inference -w
 ```
 
-Deployment 会自动创建新 Pod，使副本数重新回到 2。这不是“旧容器复活”，而是控制器发现实际状态少于期望状态后创建了替代品。
-
-## 常用诊断
+坏版本回滚：
 
 ```powershell
-kubectl describe pod -n ai-inference -l app.kubernetes.io/name=inference-gateway
-kubectl logs -n ai-inference deployment/inference-gateway
-kubectl get events -n ai-inference --sort-by=.lastTimestamp
+kubectl set image deployment/inference-gateway gateway=ai-inference-gateway:v2 -n ai-inference
+kubectl rollout status deployment/inference-gateway -n ai-inference --timeout=20s
+kubectl rollout undo deployment/inference-gateway -n ai-inference
+kubectl rollout status deployment/inference-gateway -n ai-inference --timeout=120s
 ```
 
-若状态是 `ErrImageNeverPull`，表示 Kubernetes 节点看不到 Docker 引擎里的本地镜像；不要把 `imagePullPolicy` 改成盲目联网拉取。对当前单节点学习环境，使用上面的字节流导入命令即可；实际多节点环境通常通过镜像仓库分发。
+实测：坏镜像 Pod 停在 `ImagePullBackOff`，两个旧副本保持 Ready；undo 后恢复。
 
-## 本课验收
+## Prometheus
 
-- 能用自己的话解释 Pod、Deployment、Service 的区别。
-- 删除 Pod 后能看到 Deployment 自动补回一个新 Pod。
-- 能从 `describe`、`logs`、`events` 三类证据定位一次失败。
-- 能解释为什么当前 readiness 使用 `/live`，以及完整推理服务接入后为什么应考虑切换到检查上游的 `/health`。
+```powershell
+kubectl apply -k .\k8s\observability
+kubectl rollout status deployment/prometheus -n ai-inference --timeout=240s
+kubectl port-forward svc/prometheus 9090:9090 -n ai-inference
+```
+
+Prometheus 使用 Kubernetes pod discovery，直接抓每个网关 Pod，而不是抓
+Service。这样 `inference_gateway_upstream_healthy`、请求数、TTFT 直方图都能
+按 Pod 区分。原始查询结果在 [`../benchmark/results/k8s/`](../benchmark/results/k8s/)。
+
+## 已知边界
+
+- HPA 未生效：集群没有 metrics-server，`ScalingActive=False`。
+- GPU 未由 Kubernetes 调度：没有 NVIDIA device plugin。
+- vLLM 仍是单实例，模型服务本身没有高可用。
+- 没有 TLS、认证、NetworkPolicy、租户配额。
+- 没有长时间 soak test、内存泄漏分析或持续负载 p99。
+- TensorRT-LLM 未测量，见 [`../docs/RUNTIME_COMPARISON.md`](../docs/RUNTIME_COMPARISON.md)。
+
+## 文件
+
+| 文件 | 作用 |
+|---|---|
+| `namespace.yaml` | 命名空间 |
+| `configmap.yaml` | 模型名、上游地址、并发/超时/重试参数 |
+| `deployment.yaml` | 2 副本、探针、滚动策略、安全上下文 |
+| `service.yaml` | ClusterIP 入口 |
+| `pdb.yaml` | `minAvailable: 1` |
+| `hpa.yaml` | CPU HPA 清单（未生效） |
+| `observability/prometheus.yaml` | Prometheus、RBAC、按 Pod 抓取 |
+| `benchmark/loadgen-job.yaml` | 100 请求 / 并发 4 Service 压测 |
+| `benchmark/loadgen-kill-job.yaml` | 压测中强杀 Pod 的 300 请求测试 |

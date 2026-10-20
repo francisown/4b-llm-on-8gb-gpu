@@ -7,6 +7,8 @@
 
 这是一个从模型到服务的完整推理工程项目：在**单张 RTX 5060 8GB** 上，把 Qwen3.5-4B 从量化、质量评测一路做到服务化、调优和离线交付，并留下足以解释每个取舍的测量数据和原始证据。
 
+**定位：AI Systems / Inference Engineer** —— 让模型适配硬件，再把它做成可观测、可验证的服务。证据地图与明确不声称的内容见 [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md)。
+
 `vLLM 服务 → 并发压测 → 量化（FP8 / INT4-AWQ）→ 质量评测 → KV Cache 与调度调优 → 推测解码 → FastAPI 生产网关 → Docker 离线交付 → Kubernetes`
 
 这里交付的最小单位是一个**可以交给别人运行的推理服务**：模型要装得进显存，质量变化要测得出来，服务上限要看得见，运行方式要能复现。
@@ -41,6 +43,20 @@
 | Qwen3-0.6B（测试负载，非交付模型，见附录 A） | 引擎的批处理上限 | 并发 64 时 **5,693 tok/s**（并发 1 → 64 吞吐涨 21.4 倍） | [`benchmark_summary.csv`](benchmark/benchmark_summary.csv) |
 
 第二行是这份工作里最容易被忽略、但最值钱的一条：**四个模型总分相同，不代表它们等价。** 200 题单选题不足以证明模型等价（Wilson 95% 区间 63.84%–76.39%），而 INT4 有 26 道题的选择与 BF16 不同。这个区分决定了你敢不敢在业务里换量化方案。
+
+---
+
+## 2026-10-21 实测：部署到了哪一层
+
+| 路径 | 状态 | 证据 |
+|---|---|---|
+| **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.0` + 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
+| **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
+| **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
+| **Kubernetes 调度 GPU** | 未验证 | `nvidia.com/gpu: 1` 探针一直 Pending：`Insufficient nvidia.com/gpu`（Docker Desktop 无 device plugin） |
+| **TensorRT-LLM 对比** | 未测量 | 只记录方法和 harness，不声称结果；见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
+
+完整命令、原始结果和限制见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md)。这台机器上 GPU 推理容器仍在集群外，Kubernetes 管理的是无状态网关层。
 
 ---
 
@@ -107,12 +123,16 @@ flowchart LR
 - 请求 ID 贯穿、Pydantic 校验、Unicode 清理
 - 连接/读/写/连接池四类独立超时；上游错误转换；客户端断开时取消上游
 - 有界并发与队列，超限返回 HTTP 429 背压
+- 仅对“发送前的连接失败”重试；读超时绝不重放
 - `/live`（进程）与 `/health`（上游依赖）分离；`/gateway/status` 观测在途与排队
-- Prometheus 计数器、Gauge、延迟直方图；单行 JSON 应用日志
-- **9 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时
-- 非 root Docker 镜像 + Compose
+- 健康检查使用 `Connection: close` 且禁用 keep-alive 复用（这是 K8s 实测中真实修复的 `RemoteProtocolError` 抖动）
+- Prometheus 计数器、Gauge、延迟直方图；`X-Gateway-Pod` / `X-Gateway-Version` 响应头；单行 JSON 应用日志
+- **12 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试与探针身份
+- 非 root Docker 镜像 + Compose；Kubernetes 2 副本、PDB、零停机滚动、按 Pod 的 Prometheus 抓取
 
 离线交付包把模型、vLLM/PyTorch/CUDA 用户态环境、网关、Compose、一键脚本和 SHA-256 校验打在一起，**已在全新的 Docker Desktop 环境中完成镜像导入、GPU 检查、模型启动和网页对话验证**。
+
+Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4，**0 错误、326.53 tok/s**；压测中强杀 1 个网关 Pod，300 请求 **0 错误**；坏镜像回滚后两个旧副本始终可用。GPU 本身没有被该集群调度。详见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md)。
 
 ---
 
@@ -144,16 +164,19 @@ flowchart LR
 ## 5 分钟复现路径
 
 ```bash
-# 1. 质量评测协议可离线自测（不需要 GPU 和模型）
-cd gateway
-python -m pip install -r requirements-dev.txt
-python -m pytest -q                     # 预期 9 passed
-cd ..
+# 1. 确定性自测（不需要 GPU、模型或 API Key）
+python -m pip install -r gateway/requirements-dev.txt pyyaml
+python scripts/verify_local.py          # 预期：5 个成本测试 + 12 个网关测试
+python scripts/validate_manifests.py    # 预期：12 个 Kubernetes 文档
 
 # 2. 从原始 JSON 复算吞吐与成本（在仓库根执行）
 python tools/cost_calculator.py \
   --benchmark-json benchmark/results/qwen35-int4-awq-self-compiled-c4.json \
   --gpu-hour-price 1 --currency CNY
+
+# 3. Kubernetes 路径（需要集群；完整命令见 docs/K8S_VERIFICATION.md）
+kubectl apply -k k8s
+kubectl apply -k k8s/observability
 ```
 
 要跑完整链路（需要 GPU + WSL2 + vLLM）见 [docs/project-notes.md](docs/project-notes.md) 的「可复现环境」一节。四份逐题的量化评测原始结果在 [`benchmark/eval/`](benchmark/eval/)，性能原始 JSON 在 [`benchmark/results/`](benchmark/results/)。
@@ -170,10 +193,16 @@ python tools/cost_calculator.py \
 | [`docs/one-pager-zh.md`](docs/one-pager-zh.md) · [`docs/one-pager-en.md`](docs/one-pager-en.md) | 一页纸项目说明（中英），对外沟通用 |
 | [`docs/parameter-decisions.md`](docs/parameter-decisions.md) | 每个推理参数为什么取这个值，以及哪些数字可对外引用 |
 | [`docs/project-notes.md`](docs/project-notes.md) | 主文档：模块状态、可复现环境、量化与推测解码细节 |
+| [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) | Kubernetes 实测记录：部署、压测、Pod 强杀、回滚、Prometheus 与 GPU 调度边界 |
+| [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) | vLLM / TensorRT-LLM / 自研 CUDA 的对比状态与不可比原因 |
+| [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | 一句话定位、证据地图、不声称的内容、未来 6–12 周计划 |
+| [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | 当前旗舰计划与验证清单 |
 | [`benchmark/eval/`](benchmark/eval/) | 冻结的 200 题清单、四个模型的逐题原始结果、三向总表 |
 | [`benchmark/results/`](benchmark/results/) | 全部性能原始 JSON（并发 sweep、长上下文、推测解码、真实多轮对话） |
+| [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | 集群内/端口转发压测脚本：TTFT、延迟分位、错误率、Pod 分布 |
 | [`gateway/`](gateway/) | FastAPI 网关、网页、Dockerfile、离线 pytest |
-| [`k8s/`](k8s/) | 网关的 Deployment / Service / ConfigMap / 探针清单 |
+| [`k8s/`](k8s/) | 网关 Deployment / Service / ConfigMap / 探针 / PDB / HPA / Prometheus / 压测 Job |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 测试、清单校验、Kustomize 渲染与 Docker 构建 |
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK 量化脚本 |
 | [`quantize_int4_awq.py`](quantize_int4_awq.py) | W4A16 INT4-AWQ 量化脚本（C-Eval 校准、逐层校准、CPU offload） |
 | [`ceval_quality_eval.py`](ceval_quality_eval.py) | 评测入口：固定题集、断点续跑、逐题原子保存 |
@@ -265,7 +294,11 @@ python tools/cost_calculator.py \
 | 模块 | 状态 |
 |---|---|
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
-| Kubernetes | 进行中：网关 Deployment / Service / ConfigMap / 探针清单已完成，待本地集群实机验收 |
-| 可观测性与 SRE、CI/CD 与模型注册表、云与治理 | 未开始 |
+| Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
+| Kubernetes 调度 GPU | **未验证**：Docker Desktop 没有 NVIDIA device plugin，`nvidia.com/gpu` 探针一直 Pending |
+| 可观测性与 SRE | 部分完成：Prometheus 抓取与按 Pod 指标；HPA 清单存在但因无 metrics-server 未生效；尚无 Grafana/OpenTelemetry/SLO |
+| CI/CD | 已加 CI（测试、清单校验、Kustomize 渲染、Docker 构建）；尚无镜像签名与自动部署 |
+| TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
+| 云与治理 | 未开始 |
 
-正式转交外部使用前，还需把最近的结构化日志改动重建进网关镜像并刷新离线包校验值。
+网关镜像 `v0.2.0` 已重建并对着真实模型验证。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。

@@ -1,0 +1,13 @@
+=== GPU scheduling probe 2026-10-21T00:37:24.8979578+08:00 ===
+pod/gpu-probe created
+NAME        READY   STATUS    RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES
+gpu-probe   0/1     Pending   0          5s    <none>   <none>   <none>           <none>
+>       nvidia.com/gpu:  1
+      Requests:
+>       nvidia.com/gpu:  1
+      Environment:       <none>
+      Mounts:
+> Events:
+    Type     Reason            Age   From               Message
+    ----     ------            ----  ----               -------
+>   Warning  FailedScheduling  5s    default-scheduler  0/1 nodes are available: 1 Insufficient nvidia.com/gpu. no new claims to deallocate, preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling.

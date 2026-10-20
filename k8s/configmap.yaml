@@ -5,10 +5,14 @@ metadata:
   namespace: ai-inference
 data:
   MODEL_NAME: Qwen3.5-4B-INT4-AWQ-self
+  # Docker Desktop can reach a host-published vLLM through this name.
+  # On a Linux cluster, replace it with a Service/Endpoint for the model server.
   VLLM_BASE_URL: http://host.docker.internal:8000
   GATEWAY_MAX_CONCURRENT: "4"
   GATEWAY_MAX_QUEUE: "4"
   GATEWAY_QUEUE_TIMEOUT_SECONDS: "10"
   UPSTREAM_TIMEOUT_SECONDS: "60"
+  HEALTH_TIMEOUT_SECONDS: "3"
+  UPSTREAM_CONNECT_RETRIES: "1"
+  GATEWAY_VERSION: "0.2.0"
   LOG_LEVEL: INFO
-

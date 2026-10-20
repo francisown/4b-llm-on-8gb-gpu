@@ -1,0 +1,27 @@
+﻿{
+  "url": "http://inference-gateway.ai-inference.svc.cluster.local:9000/chat",
+  "stream": false,
+  "requests": 100,
+  "concurrency": 4,
+  "max_tokens": 64,
+  "warmup": 2,
+  "duration_s": 12.556,
+  "success": 100,
+  "errors": 0,
+  "error_rate": 0.0,
+  "throughput_rps": 7.964,
+  "completion_tokens": 4100,
+  "tokens_per_second": 326.53,
+  "latency_ms": {
+    "mean": 501.85,
+    "p50": 500.3,
+    "p95": 513.81,
+    "p99": 523.28
+  },
+  "ttft_ms": null,
+  "pods": {
+    "inference-gateway-5446fbc789-wg2xc": 25,
+    "inference-gateway-5446fbc789-jqrs2": 75
+  },
+  "error_samples": []
+}

@@ -20,11 +20,11 @@
 | FP8 / INT4-AWQ 量化 | 完成 | 两个量化脚本、自制模型、`INT4-AWQ实验记录.md` |
 | 量化质量评测 | 完成 | C-Eval `val` 200 题、四模型逐题结果、精度 × 体积 × 吞吐总表 |
 | KV Cache、调度与推测解码 | 完成 | 参数 sweep、Prefix Cache、Chunked Prefill、MTP/N-gram 报告 |
-| Python 生产网关 | 完成 | SSE、超时、错误、探针、背压、指标、JSON 日志、9 个 pytest |
+| Python 生产网关 | 完成 | SSE、超时、错误、探针、背压、指标、JSON 日志、12 个 pytest |
 | Docker 离线交付 | 完成并实机验收 | 模型、两个镜像、Compose、一键脚本、SHA-256 校验 |
 | 成本模型 | 完成 | `tools/cost_calculator.py` + 5 个单元测试 |
-| 正式网关测试、结构化日志 | 完成 | 9 个离线 pytest；关键应用事件为单行 JSON |
-| Kubernetes | 第一课进行中 | 网关 Deployment、Service、ConfigMap、探针清单已完成；待启动本地集群实机部署 |
+| 正式网关测试、结构化日志 | 完成 | 12 个离线 pytest；关键应用事件为单行 JSON |
+| Kubernetes 网关层 | 2026-10-21 已验证 | 2 副本、探针、PDB、零停机滚动/回滚、Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误；GPU 调度未验证 |
 
 ## 关键结果
 
@@ -101,7 +101,7 @@
 - `/live`、`/health`、`/gateway/status`；
 - Prometheus `/metrics`；
 - 单行 JSON 应用日志；
-- 9 个不依赖真实模型的 pytest，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝和排队超时；
+- 12 个不依赖真实模型的 pytest，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试与探针身份；
 - 非 root Docker 镜像与 Compose。
 
 详见 [网关 README](gateway/README.md)。
@@ -177,6 +177,6 @@ python tools/cost_calculator.py \
 
 ## 下一阶段
 
-第 1–6 模块已经完成验收，第 7 模块 Kubernetes 已开始：轻量网关的 Deployment、Service、ConfigMap、探针和资源限制清单已经完成，待 Docker Desktop 本地集群启用后实机部署；随后再进入 Secret、Helm、升级回滚和 GPU 调度。
+第 1–6 模块已经完成验收，第 7 模块的**网关层**已于 2026-10-21 在 Docker Desktop Kubernetes 上实测：2 副本、Service、探针、PDB、零停机滚动/回滚、Prometheus 按 Pod 抓取；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。GPU 调度未验证——`nvidia.com/gpu` 探针因集群没有 device plugin 而 Pending。完整证据见 [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md)。
 
-正式交付给同事前，还应将结构化日志等最近改动重建进网关 Docker 镜像并刷新离线包校验值；这是交付包维护事项，不阻塞 Kubernetes 学习。
+下一步是 Linux GPU 节点 + NVIDIA device plugin，把 vLLM 放进集群并验证 GPU 调度；然后补 TensorRT-LLM 同协议对比、Grafana/OpenTelemetry、SLO 和 soak test。网关镜像 `v0.2.0` 已重建并验证；若重新发布离线包，需要刷新镜像与 SHA-256 校验值。

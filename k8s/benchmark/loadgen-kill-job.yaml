@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gateway-loadgen-kill
+  namespace: ai-inference
+  labels:
+    app.kubernetes.io/name: gateway-loadgen-kill
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gateway-loadgen-kill
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: loadgen
+          image: ai-inference-gateway:v0.2.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/scripts/k8s_load_test.py"]
+          args:
+            - --url
+            - http://inference-gateway.ai-inference.svc.cluster.local:9000/chat
+            - --requests
+            - "300"
+            - --concurrency
+            - "4"
+            - --max-tokens
+            - "32"
+            - --warmup
+            - "2"
+            - --output
+            - /tmp/loadgen-kill.json
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: loadgen-script

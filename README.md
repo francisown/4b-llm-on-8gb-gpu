@@ -1,4 +1,5 @@
 <p align="right">
+  <a href="https://github.com/francisown/ai-inference-lab/actions/workflows/ci.yml"><img src="https://github.com/francisown/ai-inference-lab/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Language-English-555?style=flat-square" alt="Language: English">
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-2f81f7?style=flat-square" alt="Read in Simplified Chinese"></a>
 </p>
@@ -6,6 +7,8 @@
 # 8GB LLM Inference Delivery
 
 Quantize, benchmark, serve, and package a 4B model on a **single RTX 5060 with 8 GB**. This project turns model weights into a measured, runnable inference service: the model fits the memory budget, quality changes are evaluated, serving limits are exposed, and the delivery bundle can be run by someone else.
+
+**Profile target: AI Systems / Inference Engineer** — make the model fit the hardware, then ship it as an observable, verifiable service. See [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) for the evidence map and explicit non-claims.
 
 `vLLM serving → concurrency benchmarking → quantization (FP8 / INT4-AWQ) → quality evaluation → KV cache & scheduling tuning → speculative decoding → FastAPI gateway → Docker offline delivery → Kubernetes`
 
@@ -38,6 +41,23 @@ Quantize, benchmark, serve, and package a 4B model on a **single RTX 5060 with 8
 | Qwen3-0.6B (test load, not the delivery model — see Appendix A) | Engine batching ceiling | **5,693 tok/s** at concurrency 64 (21.4× from concurrency 1) | [`benchmark_summary.csv`](benchmark/benchmark_summary.csv) |
 
 The second row is the most valuable thing this project produced: **four models scoring the same does not make them equivalent.** 200 multiple-choice questions cannot establish equivalence anyway (Wilson 95% interval 63.84%–76.39%), and INT4 picks a different option on 26 of them. That distinction is what decides whether you dare swap a quantization scheme in production.
+
+---
+
+## Verified deployment paths (2026-10-21)
+
+| Path | Status | Evidence |
+|---|---|---|
+| **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.0`, real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
+| **Kubernetes gateway, 2 replicas + Prometheus** | Verified | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods |
+| **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
+| **GPU scheduled by Kubernetes** | Not verified | A `nvidia.com/gpu: 1` probe stayed `Pending`: `Insufficient nvidia.com/gpu` (no device plugin on Docker Desktop) |
+| **TensorRT-LLM comparison** | Not measured | Harness and protocol documented; no result claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
+
+The detailed commands, raw results, and limitations are in
+[`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md). The GPU inference
+container still runs outside the cluster on this host; what Kubernetes manages
+is the stateless gateway layer.
 
 ---
 
@@ -106,12 +126,21 @@ That conclusion is itself a result: **the optimal configuration and the shippabl
 - Request-ID propagation, Pydantic validation, Unicode sanitization
 - Four independent timeout classes (connect / read / write / pool); upstream error translation; upstream cancellation when the client disconnects
 - Bounded concurrency and queueing with **HTTP 429 backpressure**
+- Connect-only upstream retry: a failed pre-send connection is retried, a read timeout is never replayed
 - Split `/live` (process) and `/health` (upstream dependency); `/gateway/status` for in-flight and queued counts
-- Prometheus counters, gauges, and latency histograms; single-line JSON application logs
-- **9 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, and queue timeout
-- Non-root Docker image + Compose
+- Health checks use `Connection: close` and disable keep-alive reuse, after a real `RemoteProtocolError` flap found on Kubernetes
+- Prometheus counters, gauges, and latency histograms; `X-Gateway-Pod` / `X-Gateway-Version` response headers; single-line JSON logs
+- **12 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, and probe identity
+- Non-root Docker image + Compose; Kubernetes Deployment with 2 replicas, PDB, zero-downtime rollout, and per-pod Prometheus scraping
 
 The offline bundle packs the model, the vLLM/PyTorch/CUDA userspace environment, the gateway, Compose, one-click scripts, and SHA-256 manifests into **7.49 GiB**, and was verified end to end on a clean Docker Desktop install: image import, GPU check, model startup, browser chat.
+
+The Kubernetes path was verified separately on 2026-10-21: 100 in-cluster
+requests at concurrency 4 completed with **0 errors** and **326.53 tok/s**;
+300 requests during a deliberate pod kill completed with **0 errors**; a bad
+image tag left both old replicas serving and `rollout undo` recovered. The GPU
+itself was not schedulable by that cluster. See
+[`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md).
 
 ---
 
@@ -143,16 +172,19 @@ That conclusion is independent of the model generation, and it is the only thing
 ## Reproduce in 5 minutes
 
 ```bash
-# 1. The evaluation protocol self-tests offline (no GPU, no model)
-cd gateway
-python -m pip install -r requirements-dev.txt
-python -m pytest -q                     # expect: 9 passed
-cd ..
+# 1. Deterministic checks (no GPU, no model, no API key)
+python -m pip install -r gateway/requirements-dev.txt pyyaml
+python scripts/verify_local.py          # expect: 5 cost tests + 12 gateway tests
+python scripts/validate_manifests.py    # expect: 12 Kubernetes documents
 
 # 2. Recompute throughput and cost from the raw JSON (run at repo root)
 python tools/cost_calculator.py \
   --benchmark-json benchmark/results/qwen35-int4-awq-self-compiled-c4.json \
   --gpu-hour-price 1 --currency CNY
+
+# 3. Kubernetes path (needs a cluster; full commands in docs/K8S_VERIFICATION.md)
+kubectl apply -k k8s
+kubectl apply -k k8s/observability
 ```
 
 The full pipeline (needs a GPU + WSL2 + vLLM) is documented in the "Reproducible environment" section of [`docs/project-notes.md`](docs/project-notes.md). The four per-question quantization result files live in [`benchmark/eval/`](benchmark/eval/); all raw performance JSON is in [`benchmark/results/`](benchmark/results/).
@@ -170,10 +202,16 @@ The full pipeline (needs a GPU + WSL2 + vLLM) is documented in the "Reproducible
 | [`docs/parameter-decisions.md`](docs/parameter-decisions.md) | Why each inference parameter has the value it has, and which numbers are safe to quote |
 | [`docs/wsl2-runner-verification.md`](docs/wsl2-runner-verification.md) | Full investigation log: the WSL2 model-runner question and the cross-batch reproducibility finding |
 | [`docs/project-notes.md`](docs/project-notes.md) | Detailed project notes: module status, reproducible environment, quantization and speculative-decoding detail |
+| [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) | What was actually deployed and measured on Kubernetes, including the GPU-scheduling boundary |
+| [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) | vLLM / TensorRT-LLM / custom-CUDA comparison status and why some rows are not comparable |
+| [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | One-line positioning, evidence map, non-claims, and the next 6–12 weeks |
+| [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | Current flagship plan and verification checklist |
 | [`benchmark/eval/`](benchmark/eval/) | Frozen 200-question set, per-question results for four models, combined comparison table |
 | [`benchmark/results/`](benchmark/results/) | All raw performance JSON (concurrency sweeps, long context, speculative decoding, repeat comparisons) |
+| [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | In-cluster / port-forward load generator with TTFT, latency percentiles, error rate, and per-pod counts |
 | [`gateway/`](gateway/) | FastAPI gateway, web UI, Dockerfile, offline pytest suite |
-| [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probe manifests |
+| [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probes / PDB / HPA / Prometheus / load-test Job |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Tests, manifest validation, Kustomize render, and Docker build |
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK quantization script |
 | [`quantize_int4_awq.py`](quantize_int4_awq.py) | W4A16 INT4-AWQ quantization (C-Eval calibration, per-layer calibration, CPU offload) |
 | [`ceval_quality_eval.py`](ceval_quality_eval.py) | Evaluation entry point: frozen question set, resume support, atomic per-question saving |
@@ -265,7 +303,11 @@ Model weights and datasets are not committed (see `.gitignore`).
 | Area | Status |
 |---|---|
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
-| Kubernetes | In progress: gateway Deployment / Service / ConfigMap / probe manifests are written, awaiting on-cluster verification |
-| Observability & SRE, CI/CD & model registry, cloud & governance | Not started |
+| Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
+| Kubernetes GPU scheduling | **Not verified**: Docker Desktop has no NVIDIA device plugin; a `nvidia.com/gpu` probe stayed Pending |
+| Observability & SRE | Partial: Prometheus scraping and per-pod metrics; HPA manifest present but inactive without metrics-server; no Grafana/OpenTelemetry/SLO yet |
+| CI/CD | CI workflow added (tests, manifest validation, Kustomize render, Docker build); no registry signing or automated deployment yet |
+| TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
+| Cloud & governance | Not started |
 
-Before handing this to anyone outside, the most recent structured-logging change still needs to be rebuilt into the gateway image and the offline bundle checksums refreshed.
+The gateway image `v0.2.0` is rebuilt and verified against the real model. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.

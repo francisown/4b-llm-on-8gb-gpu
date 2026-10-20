@@ -3,13 +3,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ai-inference-gateway:v1
+    image: ai-inference-gateway:v0.2.0
     ports:
       - "9000:9000"
     environment:
       VLLM_BASE_URL: "${VLLM_BASE_URL:-http://host.docker.internal:8000}"
       MODEL_NAME: "${MODEL_NAME:-Qwen3.5-4B-INT4-AWQ-self}"
       UPSTREAM_TIMEOUT_SECONDS: "${UPSTREAM_TIMEOUT_SECONDS:-60}"
+      HEALTH_TIMEOUT_SECONDS: "${HEALTH_TIMEOUT_SECONDS:-3}"
+      UPSTREAM_CONNECT_RETRIES: "${UPSTREAM_CONNECT_RETRIES:-1}"
+      GATEWAY_VERSION: "${GATEWAY_VERSION:-0.2.0}"
+      POD_NAME: "${POD_NAME:-local}"
       GATEWAY_MAX_CONCURRENT: "${GATEWAY_MAX_CONCURRENT:-4}"
       GATEWAY_MAX_QUEUE: "${GATEWAY_MAX_QUEUE:-4}"
       GATEWAY_QUEUE_TIMEOUT_SECONDS: "${GATEWAY_QUEUE_TIMEOUT_SECONDS:-10}"

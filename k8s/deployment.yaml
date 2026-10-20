@@ -5,8 +5,14 @@ metadata:
   namespace: ai-inference
   labels:
     app.kubernetes.io/name: inference-gateway
+    app.kubernetes.io/version: "0.2.0"
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: inference-gateway
@@ -14,14 +20,28 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: inference-gateway
+        app.kubernetes.io/version: "0.2.0"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9000"
+        prometheus.io/path: /metrics
     spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: gateway
-          image: ai-inference-gateway:v1
-          imagePullPolicy: Never
+          image: ai-inference-gateway:v0.2.0
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: inference-gateway-config
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: 9000
@@ -38,23 +58,38 @@ spec:
               path: /live
               port: http
             periodSeconds: 2
+            timeoutSeconds: 2
             failureThreshold: 30
           readinessProbe:
             httpGet:
-              path: /live
+              path: /health
               port: http
             periodSeconds: 5
-            failureThreshold: 3
+            timeoutSeconds: 3
+            failureThreshold: 2
           livenessProbe:
             httpGet:
               path: /live
               port: http
             periodSeconds: 10
+            timeoutSeconds: 2
             failureThreshold: 3
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "5"]
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
             runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

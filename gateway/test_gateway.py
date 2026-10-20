@@ -15,10 +15,18 @@ import gateway
 class FakeUpstream:
     def __init__(self) -> None:
         self.behavior = "success"
+        self.connect_failures_remaining = 0
         self.post_calls: list[dict[str, Any]] = []
+        self.health_calls: list[dict[str, str]] = []
 
-    async def get(self, url: str) -> httpx.Response:
+    async def get(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response:
         request = httpx.Request("GET", url)
+        self.health_calls.append(headers or {})
         if self.behavior == "connect_error":
             raise httpx.ConnectError("connection refused", request=request)
         return httpx.Response(200, request=request)
@@ -32,6 +40,9 @@ class FakeUpstream:
     ) -> httpx.Response:
         request = httpx.Request("POST", url)
         self.post_calls.append({"url": url, "json": json, "headers": headers})
+        if self.connect_failures_remaining > 0:
+            self.connect_failures_remaining -= 1
+            raise httpx.ConnectError("connection refused", request=request)
         if self.behavior == "timeout":
             raise httpx.ReadTimeout("upstream timed out", request=request)
         if self.behavior == "connect_error":
@@ -62,13 +73,16 @@ def gateway_client() -> tuple[TestClient, FakeUpstream]:
     client = TestClient(gateway.app)
     with client:
         original_http = gateway.app.state.http
+        original_health_http = gateway.app.state.health_http
         fake = FakeUpstream()
         gateway.app.state.http = fake
+        gateway.app.state.health_http = fake
         gateway.app.state.admission = gateway.AdmissionController(4, 4, 0.1)
         try:
             yield client, fake
         finally:
             gateway.app.state.http = original_http
+            gateway.app.state.health_http = original_health_http
 
 
 def request_body() -> dict[str, Any]:
@@ -84,8 +98,36 @@ def test_live_and_healthy_upstream(
     gateway_client: tuple[TestClient, FakeUpstream],
 ) -> None:
     client, _ = gateway_client
-    assert client.get("/live").json() == {"status": "ok"}
-    assert client.get("/health").json() == {"status": "ok", "vllm": "ok"}
+    assert client.get("/live").json()["status"] == "ok"
+    assert client.get("/health").json()["status"] == "ok"
+
+
+def test_response_carries_gateway_identity_headers(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, _ = gateway_client
+    response = client.get("/live")
+    assert response.headers["X-Gateway-Pod"] == gateway.POD_NAME
+    assert response.headers["X-Gateway-Version"] == gateway.GATEWAY_VERSION
+
+
+def test_connect_failure_is_retried_before_failing(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.connect_failures_remaining = 1
+    response = client.post("/chat", json=request_body())
+    assert response.status_code == 200
+    assert response.json()["answer"] == "测试成功"
+    assert len(fake.post_calls) == 2
+
+
+def test_health_probe_disables_connection_reuse(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    assert client.get("/health").status_code == 200
+    assert fake.health_calls[-1]["Connection"] == "close"
 
 
 def test_chat_success_and_request_id_propagation(

@@ -9,6 +9,7 @@ directory that already exists.
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 from pathlib import Path
 

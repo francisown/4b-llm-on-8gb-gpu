@@ -45,9 +45,9 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 - Rate limit on v0.2.4: auth disabled, rotating `X-API-Key` no longer creates a
   new bucket (same direct IP); auth enabled, tenant A 5×200 then 429 while
   tenant B remains 200.
-- Existing HPA/soak evidence is unchanged: HPA used CPU metrics + mock upstream;
-  the 10-minute soak used the mock upstream. Neither is a model-throughput claim.
-- CI: run 38 (`main`) and run 39 (`v0.2.4`) succeeded.
+- HPA and soak results use a mock upstream; they validate gateway mechanics,
+  not model throughput.
+- CI: runs 38, 39, 40, and 41 succeeded.
 - Release workflow: run 4 succeeded; GitHub Release published
   `2026-10-21T06:01:37Z`.
 - GHCR: `docker pull ...:v0.2.4` succeeded; digest

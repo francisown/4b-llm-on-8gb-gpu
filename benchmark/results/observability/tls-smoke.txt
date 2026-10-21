@@ -1,0 +1,7 @@
+﻿date=2026-10-21T11:53:02.8132372+08:00
+https_health={"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.1"}
+https_chat_status=200
+https_chat_body={"request_id":"6a296af2-1d1e-4ac1-9f0a-ef1cfb35bfd5","model":"mock-qwen","answer":"Mock response from the observability stack.","usage":{"prompt_tokens":3,"completion_tokens":8,"total_tokens":11},"latency_ms":152.5}
+certificate=subject=CN = localhost | issuer=CN = localhost | notBefore=Oct 21 03:51:54 2026 GMT | notAfter=Oct 21 03:51:54 2027 GMT
+prometheus_rule_groups=1
+prometheus_rules=GatewayUpstreamUnhealthy, GatewayErrorRateHigh, GatewayTTFTP95High, GatewayQueueWaitP95High, GatewayNoSuccessfulRequests

@@ -50,8 +50,9 @@ Out of scope:
 
 ## Known limitations
 
-- The reference stack does not terminate TLS by default; put it behind a
-  trusted ingress/reverse proxy for any non-local deployment.
+- The demo includes a self-signed Nginx TLS terminator
+  (`deploy/observability/nginx/`). It is for local validation only; production
+  must use a trusted ingress/ACME certificate. See `docs/TLS.md`.
 - API-key authentication is optional and disabled when `GATEWAY_API_KEY` is
   empty; health and metrics endpoints are intentionally unauthenticated for
   probes and Prometheus.

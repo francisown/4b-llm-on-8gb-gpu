@@ -121,6 +121,11 @@ The CPU-only Compose stack was started and exercised end to end:
 - Grafana 11.2.0 health was `ok`;
 - the provisioned datasource was `Prometheus` (`uid=prometheus`, `url=http://prometheus:9090`);
 - the provisioned dashboard was `Inference Gateway` (`uid=inference-gateway`).
+- HTTPS `/health` through the Nginx TLS terminator returned 200 for gateway
+  `0.2.1`; HTTPS `/chat` returned 200.
+- Prometheus loaded five alert rules (`GatewayUpstreamUnhealthy`,
+  `GatewayErrorRateHigh`, `GatewayTTFTP95High`, `GatewayQueueWaitP95High`,
+  `GatewayNoSuccessfulRequests`).
 
 ### Soak validation
 

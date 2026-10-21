@@ -211,9 +211,11 @@ kubectl apply -k k8s/observability
 CPU-only 栈用 mock OpenAI 兼容上游，不需要模型权重就能验证指标链路：
 
 ```bash
+bash deploy/observability/generate-certs.sh
 docker compose -f deploy/observability/compose.yaml up -d --build
 # Grafana:    http://localhost:3000  (admin/admin)
 # Prometheus: http://localhost:9090
+# HTTPS:      https://localhost:9443  (自签证书；curl -k)
 # Gateway:    http://localhost:9000
 ```
 
@@ -255,6 +257,8 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`benchmark/soak_test.py`](benchmark/soak_test.py) | 闭环 gateway soak：延迟分位、错误率、active/waiting 归零检查 |
 | [`gateway/`](gateway/) | FastAPI 网关、网页、Dockerfile、离线 pytest |
 | [`docs/SLO.md`](docs/SLO.md) | SLO 目标、PromQL、错误预算策略与 dashboard 链接 |
+| [`docs/TLS.md`](docs/TLS.md) | 本地 TLS 终止、验证与生产建议 |
+| [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus 告警规则、验证与 runbook |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.1 tag、GHCR 镜像/digest、发布验证与部署说明 |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | 可选的推理运维 Agent 实验，不属于已验证交付路径 |

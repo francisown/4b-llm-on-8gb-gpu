@@ -225,9 +225,11 @@ The K8s benchmark below was measured on **v0.2.0**; v0.2.1 adds optional API-key
 The CPU-only stack uses a mock OpenAI-compatible upstream, so it validates the metric pipeline without model weights:
 
 ```bash
+bash deploy/observability/generate-certs.sh
 docker compose -f deploy/observability/compose.yaml up -d --build
 # Grafana:    http://localhost:3000  (admin/admin)
 # Prometheus: http://localhost:9090
+# HTTPS:      https://localhost:9443  (self-signed; curl -k)
 # Gateway:    http://localhost:9000
 ```
 
@@ -271,6 +273,8 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`gateway/`](gateway/) | FastAPI gateway, web UI, Dockerfile, offline pytest suite |
 | [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probes / PDB / HPA / Prometheus / load-test Job |
 | [`docs/SLO.md`](docs/SLO.md) | SLO targets, PromQL queries, error-budget policy, and dashboard link |
+| [`docs/TLS.md`](docs/TLS.md) | Local TLS terminator, verification, and production guidance |
+| [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus alert rules, verification, and runbook |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.1 tag, GHCR image/digest, release verification, and deployment notes |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | Optional inference-ops agent experiment; not part of the validated delivery path |

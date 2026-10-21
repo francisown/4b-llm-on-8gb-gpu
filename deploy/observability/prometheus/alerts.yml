@@ -1,0 +1,61 @@
+groups:
+  - name: inference-gateway
+    rules:
+      - alert: GatewayUpstreamUnhealthy
+        expr: min(inference_gateway_upstream_healthy) < 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Gateway cannot reach vLLM"
+          description: "At least one gateway replica reports upstream_healthy=0 for 1 minute."
+
+      - alert: GatewayErrorRateHigh
+        expr: |
+          sum(rate(inference_gateway_requests_total{
+            outcome=~"timeout|unavailable|upstream_error|stream_error|rejected"
+          }[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Gateway error rate is elevated"
+          description: "Error/rejection rate is above 0.05 req/s for 2 minutes."
+
+      - alert: GatewayTTFTP95High
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(inference_gateway_ttft_seconds_bucket[5m]))
+          ) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Gateway TTFT p95 is above 300 ms"
+          description: "Review vLLM load, queue wait, and GPU saturation."
+
+      - alert: GatewayQueueWaitP95High
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(inference_gateway_queue_wait_seconds_bucket[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Gateway queue wait p95 is above 100 ms"
+          description: "Check admission concurrency and upstream latency."
+
+      - alert: GatewayNoSuccessfulRequests
+        expr: |
+          sum(rate(inference_gateway_requests_total{outcome="success"}[10m])) == 0
+          and
+          sum(rate(inference_gateway_requests_total[10m])) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Gateway is receiving traffic but no successful requests"
+          description: "All recent requests are failing or being rejected."

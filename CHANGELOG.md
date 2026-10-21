@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add a local Nginx TLS terminator with a self-signed certificate and HTTPS
+  health/chat verification.
+- Add five Prometheus alert rules (upstream health, error rate, TTFT p95,
+  queue-wait p95, no-successful-requests) and a runbook.
+
 ## 0.2.1 — 2026-10-21
 
 - Add optional `Authorization: Bearer` / `X-API-Key` authentication for chat

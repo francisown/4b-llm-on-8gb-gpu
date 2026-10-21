@@ -115,8 +115,8 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Grafana demo | Datasource `Prometheus`; dashboard `Inference Gateway`; 20 non-stream + 5 stream smoke requests; health ok |
 | TLS | HTTPS `/health` and `/chat` returned 200 through Nginx with a self-signed cert |
 | Alert rules | 5 rules loaded in Prometheus (upstream, errors, TTFT, queue wait, no-success) |
-| Alertmanager | Ready on 9093; Prometheus reports it as an active Alertmanager; null receiver (routing connectivity only) |
-| OTel/Jaeger | `inference-gateway` service; 5 traces; first trace 4 spans; no export errors |
+| Alertmanager | Ready on 9093; Prometheus reports it as active; a synthetic alert fired end-to-end; null receiver (no external delivery) |
+| OTel/Jaeger | `inference-gateway` service; 5 traces; first trace 4 spans; no export errors; badger volume survives a Jaeger restart |
 | Gateway soak (mock upstream) | v0.2.4 120 s: 2,329 requests, 0 errors, 19.389 req/s, p95 215.82 ms; v0.2.4 600 s: 11,717 requests, 0 errors, p95 213.62 ms; v0.2.4 7200 s: 140,178 requests, 0 errors, 19.469 req/s, p95 214.82 ms; gauges 0 after drain |
 | Backpressure (c=16) | 621 success / 6,544 clean 429 / 0 other errors; gauges 0 after drain |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |

@@ -27,8 +27,9 @@ GatewayUpstreamUnhealthy, GatewayErrorRateHigh, GatewayTTFTP95High,
 GatewayQueueWaitP95High, GatewayNoSuccessfulRequests
 ```
 
-Evidence: [`benchmark/results/observability/prometheus-rules.json`](../benchmark/results/observability/prometheus-rules.json)
-and [`alertmanager-smoke.txt`](../benchmark/results/observability/alertmanager-smoke.txt).
+Evidence: [`benchmark/results/observability/prometheus-rules.json`](../benchmark/results/observability/prometheus-rules.json),
+[`alertmanager-smoke.txt`](../benchmark/results/observability/alertmanager-smoke.txt), and
+[`alertmanager-firing.txt`](../benchmark/results/observability/alertmanager-firing.txt).
 
 The test verified **rule loading**, not a fired page. To exercise an alert,
 stop the mock upstream for more than one minute and query
@@ -50,10 +51,11 @@ stop the mock upstream for more than one minute and query
 
 ## Production notes
 
-- The Compose demo now wires Prometheus to a local Alertmanager
-  (`prom/alertmanager:v0.28.1`, port 9093) with a null receiver. This proves
-  routing connectivity, not notification delivery. Add a Slack/PagerDuty/
-  webhook receiver for real paging.
+- The Compose demo wires Prometheus to a local Alertmanager
+  (`prom/alertmanager:v0.28.1`, port 9093) with a null receiver. A temporary
+  `GatewaySyntheticRoutingTest` alert fired and appeared in Alertmanager, then
+  the rule was removed. This proves end-to-end routing, not external
+  notification delivery. Add a Slack/PagerDuty/webhook receiver for paging.
 - The thresholds are reference-workload starting points, not universal SLOs.
 - The 429 alerts should exclude synthetic load tests; the backpressure test is
   expected to produce 429s.

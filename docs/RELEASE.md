@@ -48,8 +48,8 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
   replicas, 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s; host
   path 327.51 tok/s / p95 513 ms. Short functional validation only; the node
   later became `NotReady` (flannel/PLEG), so no long-run claim.
-- Alertmanager ready on 9093; Prometheus reports it as an active Alertmanager
-  (null receiver, routing connectivity only).
+- Alertmanager ready on 9093; Prometheus reports it as an active Alertmanager,
+  and a synthetic alert fired end-to-end (null receiver; no external delivery).
 - Rate limit on v0.2.4: auth disabled, rotating `X-API-Key` no longer creates a
   new bucket (same direct IP); auth enabled, tenant A 5×200 then 429 while
   tenant B remains 200.
@@ -86,7 +86,8 @@ docker tag ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4 \
 - HPA and soak results use a mock upstream; they validate gateway mechanics,
   not model performance.
 - The self-signed TLS certificate is not public-production ready.
-- Jaeger all-in-one uses in-memory storage; traces are not durable.
+- Jaeger uses a local badger volume; a trace survives a Jaeger restart in the
+  Compose demo, but this is not a production trace backend.
 - The 7.49 GiB offline bundle's weights/image archive are not published;
   checksums and contents are in [`OFFLINE_BUNDLE.md`](OFFLINE_BUNDLE.md).
 - No TensorRT-LLM result is included; the 1.2.1 support matrix does not cover

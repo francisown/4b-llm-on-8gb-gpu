@@ -62,11 +62,14 @@ Observed on 2026-10-21:
 Evidence:
 [`benchmark/results/observability/otel-smoke.txt`](../benchmark/results/observability/otel-smoke.txt),
 [`jaeger-services.json`](../benchmark/results/observability/jaeger-services.json),
-[`jaeger-traces.json`](../benchmark/results/observability/jaeger-traces.json).
+[`jaeger-traces.json`](../benchmark/results/observability/jaeger-traces.json), and
+[`jaeger-persistence.txt`](../benchmark/results/observability/jaeger-persistence.txt).
 
 ## Limits
 
-- Jaeger all-in-one uses in-memory storage; traces are lost on restart.
+- The Compose demo uses Jaeger's badger store on the `jaeger-data` volume. A
+  trace was verified to survive a Jaeger restart, but this is single-node local
+  storage, not a production trace backend.
 - No sampling policy or tail sampling is configured; the demo exports all
   traces. Add a Collector for production sampling and routing.
 - No trace-to-log correlation IDs are injected into the JSON logs.

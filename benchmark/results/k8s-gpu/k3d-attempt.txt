@@ -1,0 +1,7 @@
+﻿date=2026-10-21T23:24:28.5442520+08:00
+cluster=k3d gpu-k3d, k3s v1.35.5
+node_device_request=gpu all
+node_dev_dxg=present
+nested_pod=privileged, hostPath /dev/dxg + /usr/lib/wsl/lib
+nvidia_smi_result=NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver
+conclusion=k3d GPU passthrough not validated; cluster deleted

@@ -383,7 +383,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus、HPA 2→4→2；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes 调度 GPU | **仅短 smoke**：节点广告 `nvidia.com/gpu: 1`；vLLM Pod 服务真实 Qwen3.5-4B-INT4-AWQ；2 个 gateway Pod；100 请求 0 错误、147.17 tok/s、p95 3.02s。约 6 小时后 WSL2 k3s 节点变成 `NotReady`（flannel/PLEG），不声称长稳 GPU serving。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
-| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、Alertmanager 路由、SLO/错误预算文档、2 小时 gateway soak（140,178 请求、0 错误、p95 214.82 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 GPU/K8s soak |
+| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、Alertmanager 路由与 synthetic alert 端到端验证、SLO/错误预算文档、2 小时 gateway soak（140,178 请求、0 错误、p95 214.82 ms）、c=16 背压、OTel/Jaeger tracing（badger 持久化 demo）；尚无多小时 GPU/K8s soak |
 | CI/CD | CI（测试、清单/工作流/文档校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.4 已发布）；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |

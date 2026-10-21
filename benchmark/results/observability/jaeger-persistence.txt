@@ -1,0 +1,4 @@
+﻿date=2026-10-21T23:09:51.5595185+08:00
+trace_id=a3c0b8b5bcd0a12592bb44f1fc4640d5
+spans_before=4
+traces_found_after_restart=1

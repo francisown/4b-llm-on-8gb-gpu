@@ -34,6 +34,14 @@ Evidence: [`loadgen-v0.2.4.json`](loadgen-v0.2.4.json),
 [`pods.txt`](pods.txt), [`gpu-allocatable.txt`](gpu-allocatable.txt),
 [`node.txt`](node.txt), and [`vllm-log.txt`](vllm-log.txt).
 
+## Failed follow-up: k3d GPU passthrough
+
+A second attempt used a k3d cluster on Docker Desktop with `--gpus all`. The
+node container had `/dev/dxg` and the WSL driver libraries, but a privileged
+nested pod still reported `NVIDIA-SMI has failed because it couldn't
+communicate with the NVIDIA driver`. That cluster was deleted; see
+[`k3d-attempt.txt`](k3d-attempt.txt). It is not evidence of working GPU-in-K8s.
+
 ## What was fixed
 
 Kubernetes injects `VLLM_PORT=tcp://<service-ip>:8000` for a Service named

@@ -140,3 +140,11 @@ kubectl get node -o jsonpath='{.status.allocatable.nvidia\.com/gpu}'
 
 Do not run this on a machine you need for other work without planning a cleanup;
 the k3s cluster and containerd state can become unstable.
+
+## Later k3d attempt (failed)
+
+A Docker Desktop k3d cluster with `--gpus all` exposed `/dev/dxg` to the node
+container, but a privileged nested pod could not communicate with the NVIDIA
+driver (`NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA
+driver`). The cluster was deleted. This did not produce a usable GPU-in-K8s
+path; see [`benchmark/results/k8s-gpu/k3d-attempt.txt`](../benchmark/results/k8s-gpu/k3d-attempt.txt).

@@ -36,22 +36,50 @@ totals do not mean equal models.
 
 Raw data: [`benchmark/eval/`](../benchmark/eval/).
 
-## 2. Gateway v0.2.4 real-model smoke (host)
+## 2. Gateway v0.2.4 real-model tests (host)
 
-This is a host-gateway run against the real vLLM server, separate from the
-original v0.2.0 Kubernetes benchmark.
+This is a host-gateway run against the real vLLM server in Docker Desktop,
+separate from the original v0.2.0 Kubernetes benchmark. Three independent
+batches were run per mode.
 
-| Metric | Non-stream | Stream |
+| Metric | Non-stream (3-run mean) | Stream (3-run mean) |
 |---|---:|---:|
-| Requests / concurrency | 20 / 4 | 20 / 4 |
+| Requests / concurrency | 20 / 4 per run | 20 / 4 per run |
 | Errors | 0 | 0 |
-| Output throughput | 327.51 tok/s | 322.19 tok/s |
-| Latency mean / p50 / p95 / p99 | 499.16 / 501.53 / 513.08 / 513.57 ms | 507.23 / 509.81 / 521.39 / 522.12 ms |
-| TTFT p50 / p95 | — | **85.5 / 101.9 ms** |
+| Output throughput | **325.71 tok/s** (324.15–327.87) | **324.91 tok/s** |
+| Latency p50 / p95 | 502.83 / 512.92 ms | 516.11 ms p95 |
+| TTFT p50 / p95 | — | **82.4 / 98.47 ms** |
 
-Raw: [`real-vllm-v0.2.4-c4.json`](../benchmark/results/real-vllm-v0.2.4-c4.json)
-and [`real-vllm-v0.2.4-stream-c4.json`](../benchmark/results/real-vllm-v0.2.4-stream-c4.json).
-This is a single 20-request batch, not a 3-run mean.
+Raw: [`real-vllm-v0.2.4-3runs-summary.json`](../benchmark/results/real-vllm-v0.2.4-3runs-summary.json).
+
+### 10-minute real-vLLM soak
+
+| Metric | Result |
+|---|---:|
+| Duration / concurrency | 600.064 s / 4 |
+| Requests | **5,992** |
+| Errors | **0** |
+| Throughput | 9.986 req/s |
+| Latency mean / p50 / p95 / p99 | 400.57 / 395.83 / 418.49 / 538.67 ms |
+| Health before / after | ok / ok |
+| Active / waiting after drain | **0 / 0** |
+
+Raw: [`real-vllm-docker-soak-c4-600s.json`](../benchmark/results/real-vllm-docker-soak-c4-600s.json).
+This is a real-model gateway soak on one host, not a Kubernetes GPU soak.
+
+### 30-minute real-vLLM soak
+
+| Metric | Result |
+|---|---:|
+| Duration / concurrency | 1800.281 s / 4 |
+| Requests | **17,609** |
+| Errors | **0** |
+| Throughput | 9.781 req/s |
+| Latency mean / p50 / p95 / p99 | 408.94 / 410.99 / 433.79 / 455.82 ms |
+| Health before / after | ok / ok |
+| Active / waiting after drain | **0 / 0** |
+
+Raw: [`real-vllm-docker-soak-c4-1800s.json`](../benchmark/results/real-vllm-docker-soak-c4-1800s.json).
 
 ## 3. Kubernetes gateway performance
 

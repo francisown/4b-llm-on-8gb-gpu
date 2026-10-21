@@ -106,6 +106,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Per-identity rate limit | v0.2.4: auth disabled, tenant A 5×200 then 429 and key rotation stays limited; auth enabled, tenant A 5×200 then 429 while tenant B remains 200 |
 | Cost-calculator tests | 5 passed |
 | Manifest validation | 25 documents passed |
+| Real vLLM gateway (Docker Desktop) | 3 runs × 20 requests, c=4: **325.71 tok/s mean**, p95 512.92 ms, 0 errors; stream TTFT p50 82.4 ms; 30-min soak 17,609 requests, 0 errors, p95 433.79 ms |
 | Kubernetes Service load | 100 requests, 0 errors, 326.53 tok/s |
 | Pod kill during load | 300 requests, 0 errors, 315.46 tok/s |
 | Pod replacement | Ready after 7.6 s |
@@ -118,6 +119,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Alertmanager | Ready on 9093; Prometheus reports it as active; a synthetic alert fired end-to-end; null receiver (no external delivery) |
 | OTel/Jaeger | `inference-gateway` service; 5 traces; first trace 4 spans; no export errors; badger volume survives a Jaeger restart |
 | Gateway soak (mock upstream) | v0.2.4 120 s: 2,329 requests, 0 errors, 19.389 req/s, p95 215.82 ms; v0.2.4 600 s: 11,717 requests, 0 errors, p95 213.62 ms; v0.2.4 7200 s: 140,178 requests, 0 errors, 19.469 req/s, p95 214.82 ms; gauges 0 after drain |
+| Real-vLLM soak | 30 min, 17,609 requests, 0 errors, 9.781 req/s, p95 433.79 ms, p99 455.82 ms; gauges 0 after drain |
 | Backpressure (c=16) | 621 success / 6,544 clean 429 / 0 other errors; gauges 0 after drain |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
 | GPU-in-K8s (WSL2 k3s) | Verified short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway replicas, 100 requests, 0 errors, 147.17 tok/s, p95 3.02 s; host path is 327.51 tok/s / 513 ms. Node later became `NotReady`; no long-run GPU soak |

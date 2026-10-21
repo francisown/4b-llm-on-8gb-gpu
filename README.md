@@ -62,7 +62,7 @@ This repository is deliberately about **one 8 GB inference delivery path**.
 | **Qwen3.5-4B** (delivery model) | Self-made INT4-AWQ shrinks the 4B model to | **3.568 GiB** (59% smaller than BF16, 32% smaller than FP8) | [`benchmark/eval/README.md`](benchmark/eval/README.md) |
 | **Qwen3.5-4B** | Four variants score *identically* on the same 200 questions | **All 141/200 (70.5%)**, yet INT4 agrees with BF16 on only **87.0%** of questions | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
 | **Qwen3.5-4B** | INT4-AWQ output throughput at concurrency 4 | **333.90 tok/s**, TTFT p50 **251.73 ms** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
-| **Gateway** (mock upstream) | 2-hour closed-loop soak | **140,178 requests, 0 errors**, p95 **214.82 ms**, p99 220.03 ms | [`soak-c4-7200s-v0.2.4.json`](benchmark/results/observability/soak-c4-7200s-v0.2.4.json) |
+| **Gateway + real vLLM** | 30-minute closed-loop soak | **17,609 requests, 0 errors**, 9.781 rps, p95 **433.79 ms**, p99 455.82 ms | [`real-vllm-docker-soak-c4-1800s.json`](benchmark/results/real-vllm-docker-soak-c4-1800s.json) |
 
 The second row is the most valuable thing this project produced: **four models scoring the same does not make them equivalent.** 200 multiple-choice questions cannot establish equivalence anyway (Wilson 95% interval 63.84%–76.39%), and INT4 picks a different option on 26 of them. That distinction is what decides whether you dare swap a quantization scheme in production.
 
@@ -74,7 +74,7 @@ A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Co
 
 | Path | Status | Evidence |
 |---|---|---|
-| **Docker + host vLLM on RTX 5060** | Verified (v0.2.4 image) | Gateway image `v0.2.4` with real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; 20 requests at c=4, 0 errors, **327.51 tok/s**, p95 513 ms; stream TTFT p50 **85.5 ms**, p95 101.9 ms. Raw: [`real-vllm-v0.2.4-c4.json`](benchmark/results/real-vllm-v0.2.4-c4.json) |
+| **Docker + host vLLM on RTX 5060** | Verified (v0.2.4 image) | Gateway image `v0.2.4` with real Qwen3.5-4B-INT4-AWQ; 3 runs × 20 requests at c=4, 0 errors, **325.71 tok/s mean**, p95 512.92 ms; stream TTFT p50 **82.4 ms**, p95 98.47 ms; 30-minute soak **17,609 requests, 0 errors**, p95 433.79 ms. Raw: [`real-vllm-v0.2.4-3runs-summary.json`](benchmark/results/real-vllm-v0.2.4-3runs-summary.json) |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified (host vLLM) | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods; model server was outside the cluster |
 | **GPU-in-K8s vLLM + gateway (WSL2 k3s)** | Short smoke only | vLLM pod with `nvidia.com/gpu: 1` + 2 gateway pods; 100 in-cluster requests, 0 errors, **147.17 tok/s**, p95 3.02 s; stream TTFT p50 91.8 ms. After ~6 hours the k3s node became `NotReady` (flannel/PLEG), so this is **not** long-run stable serving. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 198%/60%; scale-up 45s, scale-down 90s; mock upstream, HPA mechanics only |
@@ -403,7 +403,7 @@ Model weights and datasets are not committed (see `.gitignore`).
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus, HPA 2→4→2; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) and [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes GPU scheduling | **Short smoke only**: node advertised `nvidia.com/gpu: 1`; vLLM pod served real Qwen3.5-4B-INT4-AWQ; 2 gateway pods; 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s. After ~6 h the WSL2 k3s node became `NotReady` (flannel/PLEG), so long-run GPU serving is **not** claimed. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
-| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, Alertmanager routing with synthetic alert delivery, SLO/error-budget docs, a 2-hour gateway soak (140,178 requests, 0 errors, p95 214.82 ms), c=16 backpressure, and OTel/Jaeger tracing with a badger persistence demo; no multi-hour GPU/K8s soak yet |
+| Observability & SRE | Prometheus/Grafana/Alertmanager with synthetic alert delivery, SLO/error-budget docs, a 30-minute real-vLLM soak (17,609 requests, 0 errors, p95 433.79 ms), a 2-hour mock-gateway soak (140,178 requests, 0 errors), c=16 backpressure, and OTel/Jaeger with badger persistence; no multi-hour GPU/K8s soak yet |
 | CI/CD | CI (tests, manifest/workflow/docs validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.4 published); no image signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |

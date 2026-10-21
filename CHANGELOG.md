@@ -20,6 +20,8 @@
   0 errors, p95 213.62 ms).
 - Run a 2-hour v0.2.4 mock soak: 140,178 requests, 0 errors, 19.469 req/s,
   p95 214.82 ms; active/waiting return to 0.
+- Run three real-vLLM v0.2.4 batches (325.71 tok/s mean, 0 errors) and a
+  30-minute real-model soak (17,609 requests, 0 errors, p95 433.79 ms).
 
 ## 0.2.3 — 2026-10-21
 

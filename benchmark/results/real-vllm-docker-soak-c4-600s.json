@@ -1,0 +1,55 @@
+{
+  "url": "http://127.0.0.1:9003/chat",
+  "duration_s": 600.064,
+  "concurrency": 4,
+  "max_tokens": 32,
+  "requests": 5992,
+  "success": 5992,
+  "rejected_429": 0,
+  "errors": 0,
+  "error_rate": 0.0,
+  "rejection_rate": 0.0,
+  "throughput_rps": 9.986,
+  "success_rps": 9.986,
+  "latency_ms": {
+    "mean": 400.57,
+    "p50": 395.83,
+    "p95": 418.49,
+    "p99": 538.67
+  },
+  "status_counts": {
+    "200": 5992
+  },
+  "health_before": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "real-vllm-docker",
+    "version": "0.2.4"
+  },
+  "health_after": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "real-vllm-docker",
+    "version": "0.2.4"
+  },
+  "status_before": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "real-vllm-docker",
+    "version": "0.2.4"
+  },
+  "status_after": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "real-vllm-docker",
+    "version": "0.2.4"
+  },
+  "rejection_samples": [],
+  "error_samples": []
+}

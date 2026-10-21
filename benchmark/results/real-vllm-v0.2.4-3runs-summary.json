@@ -1,0 +1,20 @@
+﻿{
+    "date":  "2026-10-21T23:36:43.7274714+08:00",
+    "gateway_version":  "0.2.4",
+    "runs":  3,
+    "non_stream":  {
+                       "throughput_tps_mean":  325.71,
+                       "throughput_tps_min":  324.151,
+                       "throughput_tps_max":  327.87,
+                       "p50_ms_mean":  502.83,
+                       "p95_ms_mean":  512.92,
+                       "errors":  0
+                   },
+    "stream":  {
+                   "throughput_tps_mean":  324.911,
+                   "ttft_p50_ms_mean":  82.4,
+                   "ttft_p95_ms_mean":  98.47,
+                   "latency_p95_ms_mean":  516.11,
+                   "errors":  0
+               }
+}

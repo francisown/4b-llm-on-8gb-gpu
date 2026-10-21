@@ -10,7 +10,7 @@
 |---|---|---|
 | 4B model shrunk to | **3.568 GiB** (59% smaller than BF16) | Self-made W4A16 INT4-AWQ; 32% smaller than FP8 |
 | INT4-AWQ output throughput | **333.90 tok/s** at c=4 | 256-in / 128-out, temperature 0, mean of 3 runs; TTFT p50 251.73 ms |
-| Gateway soak | **140,178 requests, 0 errors** | 2-hour closed loop against a mock upstream, c=4, p95 214.82 ms |
+| Real-vLLM 30-minute soak | **17,609 requests, 0 errors** | c=4, 9.781 req/s, p95 433.79 ms; a separate 2-hour mock-gateway soak handled 140,178 requests |
 
 The quality result is the part worth discussing: BF16, third-party FP8, self-made FP8, and self-made INT4 all scored **141/200** on the frozen C-Eval set, but INT4 agreed with BF16 on only **87.0%** of questions and changed 26 answers. Equal totals do not mean equivalent models. The Wilson 95% interval for 200 questions is 63.84%–76.39%, so this is not an equivalence claim.
 

@@ -64,6 +64,16 @@ Deployment 使用 `imagePullPolicy: IfNotPresent`。本地节点已有镜像时�
 如果镜像不存在，Pod 会进入 `ErrImagePull`，这时应检查导入命令，而不是盲目改
 成 `Always`。
 
+对于有镜像仓库的集群，可以直接使用 GHCR 镜像：
+
+```yaml
+image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.1
+imagePullPolicy: IfNotPresent
+```
+
+本地 Docker Desktop/kind 仍可用 `docker save` 导入；详见
+[`../docs/RELEASE.md`](../docs/RELEASE.md)。
+
 ## 部署
 
 ```powershell

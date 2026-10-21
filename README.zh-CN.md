@@ -197,6 +197,15 @@ kubectl apply -k k8s/observability
 
 要跑完整链路（需要 GPU + WSL2 + vLLM）见 [docs/project-notes.md](docs/project-notes.md) 的「可复现环境」一节。四份逐题的量化评测原始结果在 [`benchmark/eval/`](benchmark/eval/)，性能原始 JSON 在 [`benchmark/results/`](benchmark/results/)。
 
+## 发布
+
+- 最新版本：**v0.2.1** —— [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.1)
+- 镜像：`ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.1`
+- Digest：`sha256:908a6feacaa8ed1f4e10056102f006bb008930fffa1f4a93ef6ba05f45450ac0`
+- 详情：[`docs/RELEASE.md`](docs/RELEASE.md)
+
+下面的 K8s 实测是在 **v0.2.0** 上完成的；v0.2.1 增加可选 API Key 认证和版本化镜像 tag，不改变服务路径。
+
 ## 可观测性 demo（不需要 GPU）
 
 CPU-only 栈用 mock OpenAI 兼容上游，不需要模型权重就能验证指标链路：
@@ -247,6 +256,8 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`gateway/`](gateway/) | FastAPI 网关、网页、Dockerfile、离线 pytest |
 | [`docs/SLO.md`](docs/SLO.md) | SLO 目标、PromQL、错误预算策略与 dashboard 链接 |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.1 tag、GHCR 镜像/digest、发布验证与部署说明 |
+| [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | 可选的推理运维 Agent 实验，不属于已验证交付路径 |
 | [`SECURITY.md`](SECURITY.md) | 漏洞报告、Secret 策略、范围与已知限制 |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 本地检查、可观测性 demo、soak、PR 清单与发布流程 |
 | [`.github/workflows/release.yml`](.github/workflows/release.yml) | tag 触发的 GHCR 镜像构建与发布 |
@@ -349,7 +360,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
 | Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、120 秒 gateway soak（2,329 请求、0 错误；c=16 背压返回干净 429）；尚无 OpenTelemetry 与多小时 soak |
-| CI/CD | CI（测试、清单/工作流校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流 + Dependabot；尚无镜像签名与自动部署 |
+| CI/CD | CI（测试、清单/工作流校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.1 已发布）+ Dependabot；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |
 

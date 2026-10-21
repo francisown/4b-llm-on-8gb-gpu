@@ -61,6 +61,9 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Add a clean startup path with explicit model/runtime checks.
 - [x] Add a release checklist for images, model artifacts, checksums, and configuration.
 - [x] Add a tag-triggered release workflow, Dependabot, and security/contribution docs.
+- [x] Publish v0.2.1 to GHCR and create a GitHub Release.
+- [x] Add a single benchmark protocol and repository navigation docs.
+- [x] Remove out-of-scope financial research and career files.
 - [x] Document the offline delivery boundary and what remains hardware-specific.
 
 ### 5. Kubernetes deployment
@@ -94,6 +97,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 |---|---|
 | Gateway offline tests | 14 passed |
 | Workflow validation | 2 workflow files passed |
+| Release v0.2.1 | GHCR image pull verified; GitHub Release created; release workflow succeeded |
 | Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
 | Cost-calculator tests | 5 passed |
 | Manifest validation | 16 documents passed |

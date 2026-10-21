@@ -1,4 +1,5 @@
 <p align="right">
+  <a href="https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.1"><img src="https://img.shields.io/github/v/release/francisown/8gb-llm-inference-delivery?style=flat-square" alt="Latest release"></a>
   <a href="https://github.com/francisown/8gb-llm-inference-delivery/actions/workflows/ci.yml"><img src="https://github.com/francisown/8gb-llm-inference-delivery/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Language-English-555?style=flat-square" alt="Language: English">
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-2f81f7?style=flat-square" alt="Read in Simplified Chinese"></a>
@@ -210,6 +211,15 @@ kubectl apply -k k8s/observability
 
 The full pipeline (needs a GPU + WSL2 + vLLM) is documented in the "Reproducible environment" section of [`docs/project-notes.md`](docs/project-notes.md). The four per-question quantization result files live in [`benchmark/eval/`](benchmark/eval/); all raw performance JSON is in [`benchmark/results/`](benchmark/results/).
 
+## Release
+
+- Latest: **v0.2.1** — [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.1)
+- Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.1`
+- Digest: `sha256:908a6feacaa8ed1f4e10056102f006bb008930fffa1f4a93ef6ba05f45450ac0`
+- Details: [`docs/RELEASE.md`](docs/RELEASE.md)
+
+The K8s benchmark below was measured on **v0.2.0**; v0.2.1 adds optional API-key auth and a versioned image tag without changing the serving path.
+
 ## Observability demo (no GPU)
 
 The CPU-only stack uses a mock OpenAI-compatible upstream, so it validates the metric pipeline without model weights:
@@ -262,6 +272,8 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probes / PDB / HPA / Prometheus / load-test Job |
 | [`docs/SLO.md`](docs/SLO.md) | SLO targets, PromQL queries, error-budget policy, and dashboard link |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.1 tag, GHCR image/digest, release verification, and deployment notes |
+| [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | Optional inference-ops agent experiment; not part of the validated delivery path |
 | [`SECURITY.md`](SECURITY.md) | Vulnerability reporting, secrets policy, scope, and known limitations |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Local checks, observability demo, soak test, PR checklist, and release flow |
 | [`.github/workflows/release.yml`](.github/workflows/release.yml) | Tag-triggered GHCR image build and publish |
@@ -363,7 +375,7 @@ Model weights and datasets are not committed (see `.gitignore`).
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
 | Kubernetes GPU scheduling | **Partially verified**: Docker Desktop K8s has no GPU device plugin; WSL2 k3s did advertise `nvidia.com/gpu: 1` and run a GPU pod, but stable in-cluster vLLM was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs, and a 120 s gateway soak (2,329 requests, 0 errors; c=16 backpressure returns clean 429s); no OpenTelemetry or multi-hour soak yet |
-| CI/CD | CI (tests, manifest/workflow validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow, and Dependabot; no image signing or automated deployment yet |
+| CI/CD | CI (tests, manifest/workflow validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.1 published), and Dependabot; no image signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |
 

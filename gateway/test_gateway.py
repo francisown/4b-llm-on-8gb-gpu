@@ -167,6 +167,27 @@ def test_health_and_metrics_do_not_require_api_key(
     assert client.get("/metrics").status_code == 200
 
 
+def test_rate_limit_is_per_identity(
+    gateway_client: tuple[TestClient, FakeUpstream],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = gateway_client
+    monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "")
+    monkeypatch.setattr(gateway.app.state, "rate_limiter", gateway.RateLimiter(2))
+
+    headers_a = {"X-API-Key": "tenant-a"}
+    assert client.post("/chat", json=request_body(), headers=headers_a).status_code == 200
+    assert client.post("/chat", json=request_body(), headers=headers_a).status_code == 200
+    limited = client.post("/chat", json=request_body(), headers=headers_a)
+    assert limited.status_code == 429
+    assert int(limited.headers["Retry-After"]) >= 1
+    assert client.post(
+        "/chat",
+        json=request_body(),
+        headers={"X-API-Key": "tenant-b"},
+    ).status_code == 200
+
+
 def test_chat_success_and_request_id_propagation(
     gateway_client: tuple[TestClient, FakeUpstream],
 ) -> None:

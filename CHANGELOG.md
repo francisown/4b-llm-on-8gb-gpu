@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.2.3 — 2026-10-21
 
+- Add optional per-identity rate limiting (`GATEWAY_RATE_LIMIT_PER_MINUTE`),
+  keyed by API key or client IP, with a regression test (15 gateway tests).
 - Validate HPA 2→4→2 on Docker Desktop Kubernetes with metrics-server and a
   mock upstream: 8,000 requests at c=32, 0 errors; CPU 196%/60%; scale-up 45s,
   scale-down 80s.
+- Run a 10-minute gateway soak: 11,554 requests, 0 errors, p95 217.39 ms;
+  active/waiting return to 0.
 
 ## 0.2.2 — 2026-10-21
 

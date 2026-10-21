@@ -41,6 +41,7 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Verify `/health`, `/live`, `/metrics`, and startup/shutdown behaviour.
 - [x] Add focused tests for the failure paths that matter in production.
 - [x] Add connect-only retry (never replay a read timeout).
+- [x] Add optional per-identity rate limiting (API key or client IP).
 - [x] Fix the keep-alive health-check flap found on Kubernetes.
 
 ### 3. Observability and benchmark harness
@@ -55,7 +56,7 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Deploy a Grafana dashboard and document SLOs/error budget.
 - [x] Add TLS termination and Prometheus alert rules.
 - [x] Add OpenTelemetry tracing with Jaeger and a Grafana datasource.
-- [x] Add a repeatable gateway soak and run a 2-minute test (2,329 requests, 0 errors).
+- [x] Add a repeatable gateway soak and run 2-minute and 10-minute tests (2,329 and 11,554 requests, 0 errors).
 
 ### 4. Container and Linux delivery
 
@@ -97,10 +98,11 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 
 | Check | Result |
 |---|---|
-| Gateway offline tests | 14 passed |
+| Gateway offline tests | 15 passed |
 | Workflow validation | 2 workflow files passed |
-| Release v0.2.2 | GHCR image pull verified; GitHub Release created; release workflow succeeded |
+| Release v0.2.3 | GHCR image, GitHub Release, and release workflow pending/verified after publish |
 | Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
+| Per-identity rate limit | Tenant A gets 2 allowed then 429 with `Retry-After`; tenant B remains allowed |
 | Cost-calculator tests | 5 passed |
 | Manifest validation | 16 documents passed |
 | Kubernetes Service load | 100 requests, 0 errors, 326.53 tok/s |
@@ -113,7 +115,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | TLS | HTTPS `/health` and `/chat` returned 200 through Nginx with a self-signed cert |
 | Alert rules | 5 rules loaded in Prometheus (upstream, errors, TTFT, queue wait, no-success) |
 | OTel/Jaeger | `inference-gateway` service; 5 traces; first trace 4 spans; no export errors |
-| Gateway soak (mock upstream) | 120 s, 2,329 requests, 0 errors, 19.391 req/s, p95 216.64 ms; active/waiting 0 after drain |
+| Gateway soak (mock upstream) | 120 s: 2,329 requests, 0 errors, 19.391 req/s, p95 216.64 ms; 600 s: 11,554 requests, 0 errors, p95 217.39 ms; gauges 0 after drain |
 | Backpressure (c=16) | 621 success / 6,544 clean 429 / 0 other errors; gauges 0 after drain |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
 | Stable in-cluster vLLM | Not achieved: `PLEG is not healthy`; see [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md) |

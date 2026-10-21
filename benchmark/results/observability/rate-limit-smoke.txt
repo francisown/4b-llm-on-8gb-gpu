@@ -1,0 +1,7 @@
+﻿date=2026-10-21T12:17:02.7403525+08:00
+rate_limit_per_minute=5
+tenant_a_statuses=200,200,200,200,200,429
+tenant_a_retry_header=retry-after: 59
+tenant_b_status=200
+health={"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.3"}
+metric=# HELP inference_gateway_rate_limited_total Requests rejected by the per-identity rate limit. # TYPE inference_gateway_rate_limited_total counter inference_gateway_rate_limited_total 1.0

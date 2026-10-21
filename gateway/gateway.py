@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+from collections import deque
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+import hashlib
 import json
 import logging
+import math
 import os
 from pathlib import Path
 import secrets
@@ -36,8 +39,9 @@ MAX_QUEUED_REQUESTS = int(os.getenv("GATEWAY_MAX_QUEUE", "4"))
 QUEUE_TIMEOUT_SECONDS = float(os.getenv("GATEWAY_QUEUE_TIMEOUT_SECONDS", "10"))
 HEALTH_TIMEOUT_SECONDS = float(os.getenv("HEALTH_TIMEOUT_SECONDS", "3"))
 UPSTREAM_CONNECT_RETRIES = max(0, int(os.getenv("UPSTREAM_CONNECT_RETRIES", "1")))
+RATE_LIMIT_PER_MINUTE = max(0, int(os.getenv("GATEWAY_RATE_LIMIT_PER_MINUTE", "0")))
 POD_NAME = os.getenv("POD_NAME", "local")
-GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.2")
+GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.3")
 GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "")
 APP_DIR = Path(__file__).resolve().parent
 
@@ -137,6 +141,10 @@ CLIENT_DISCONNECTS_TOTAL = Counter(
 AUTH_FAILURES_TOTAL = Counter(
     "inference_gateway_auth_failures_total",
     "Requests rejected because the API key was missing or invalid.",
+)
+RATE_LIMITED_TOTAL = Counter(
+    "inference_gateway_rate_limited_total",
+    "Requests rejected by the per-identity rate limit.",
 )
 UPSTREAM_HEALTHY = Gauge(
     "inference_gateway_upstream_healthy",
@@ -288,6 +296,31 @@ class AdmissionController:
             }
 
 
+class RateLimiter:
+    """Per-identity sliding-window limit, kept in process memory."""
+
+    def __init__(self, limit_per_minute: int):
+        self.limit = max(0, limit_per_minute)
+        self.window_seconds = 60.0
+        self._events: dict[str, deque[float]] = {}
+        self._lock = asyncio.Lock()
+
+    async def check(self, identity: str) -> tuple[bool, int]:
+        if self.limit <= 0:
+            return True, 0
+        now = time.monotonic()
+        async with self._lock:
+            events = self._events.setdefault(identity, deque())
+            cutoff = now - self.window_seconds
+            while events and events[0] <= cutoff:
+                events.popleft()
+            if len(events) >= self.limit:
+                retry_after = max(1, math.ceil(self.window_seconds - (now - events[0])))
+                return False, retry_after
+            events.append(now)
+            return True, 0
+
+
 def build_payload(body: ChatRequest, *, stream: bool) -> dict[str, Any]:
     messages: list[dict[str, str]] = []
     if body.system_prompt:
@@ -350,6 +383,7 @@ async def lifespan(app: FastAPI):
         MAX_QUEUED_REQUESTS,
         QUEUE_TIMEOUT_SECONDS,
     )
+    app.state.rate_limiter = RateLimiter(RATE_LIMIT_PER_MINUTE)
     log_event(
         logging.INFO,
         "gateway_start",
@@ -470,6 +504,50 @@ def require_api_key(
         )
 
 
+def request_identity(
+    request: Request,
+    authorization: str | None,
+    x_api_key: str | None,
+) -> str:
+    key = x_api_key or ""
+    if not key and authorization:
+        scheme, _, token = authorization.partition(" ")
+        if scheme.lower() == "bearer":
+            key = token.strip()
+    if key:
+        # Do not keep raw tokens in the in-memory limiter.
+        return "key:" + hashlib.sha256(key.encode("utf-8")).hexdigest()
+    host = request.client.host if request.client else "unknown"
+    return "ip:" + host
+
+
+async def enforce_rate_limit(
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+) -> None:
+    """Optional per-identity rate limit; disabled when the limit is 0."""
+    limiter = app.state.rate_limiter
+    if limiter.limit <= 0:
+        return
+    identity = request_identity(request, authorization, x_api_key)
+    allowed, retry_after = await limiter.check(identity)
+    if not allowed:
+        RATE_LIMITED_TOTAL.inc()
+        log_event(
+            logging.WARNING,
+            "request_rejected",
+            status_code=429,
+            outcome="rate_limited",
+            reason="rate_limit",
+        )
+        raise HTTPException(
+            status_code=429,
+            detail="rate limit exceeded",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
 async def post_with_connect_retry(
     client: httpx.AsyncClient,
     url: str,
@@ -523,7 +601,7 @@ async def send_stream_with_connect_retry(
     raise RuntimeError("unreachable retry loop")
 
 
-@app.post("/chat", response_model=ChatResponse, dependencies=[Depends(require_api_key)])
+@app.post("/chat", response_model=ChatResponse, dependencies=[Depends(require_api_key), Depends(enforce_rate_limit)])
 async def chat(
     body: ChatRequest,
     x_request_id: str | None = Header(default=None),
@@ -622,7 +700,7 @@ async def chat(
     )
 
 
-@app.post("/chat/stream", dependencies=[Depends(require_api_key)])
+@app.post("/chat/stream", dependencies=[Depends(require_api_key), Depends(enforce_rate_limit)])
 async def chat_stream(
     body: ChatRequest,
     request: Request,

@@ -3,7 +3,7 @@
     build:
       context: .
       dockerfile: Dockerfile
-    image: ai-inference-gateway:v0.2.2
+    image: ai-inference-gateway:v0.2.3
     ports:
       - "9000:9000"
     environment:
@@ -12,9 +12,10 @@
       UPSTREAM_TIMEOUT_SECONDS: "${UPSTREAM_TIMEOUT_SECONDS:-60}"
       HEALTH_TIMEOUT_SECONDS: "${HEALTH_TIMEOUT_SECONDS:-3}"
       UPSTREAM_CONNECT_RETRIES: "${UPSTREAM_CONNECT_RETRIES:-1}"
-      GATEWAY_VERSION: "${GATEWAY_VERSION:-0.2.2}"
+      GATEWAY_VERSION: "${GATEWAY_VERSION:-0.2.3}"
       POD_NAME: "${POD_NAME:-local}"
       GATEWAY_API_KEY: "${GATEWAY_API_KEY:-}"
+      GATEWAY_RATE_LIMIT_PER_MINUTE: "${GATEWAY_RATE_LIMIT_PER_MINUTE:-0}"
       GATEWAY_MAX_CONCURRENT: "${GATEWAY_MAX_CONCURRENT:-4}"
       GATEWAY_MAX_QUEUE: "${GATEWAY_MAX_QUEUE:-4}"
       GATEWAY_QUEUE_TIMEOUT_SECONDS: "${GATEWAY_QUEUE_TIMEOUT_SECONDS:-10}"

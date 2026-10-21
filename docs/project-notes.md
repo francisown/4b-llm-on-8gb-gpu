@@ -20,10 +20,10 @@
 | FP8 / INT4-AWQ 量化 | 完成 | 两个量化脚本、自制模型、`INT4-AWQ实验记录.md` |
 | 量化质量评测 | 完成 | C-Eval `val` 200 题、四模型逐题结果、精度 × 体积 × 吞吐总表 |
 | KV Cache、调度与推测解码 | 完成 | 参数 sweep、Prefix Cache、Chunked Prefill、MTP/N-gram 报告 |
-| Python 生产网关 | 完成 | SSE、超时、错误、探针、背压、指标、JSON 日志、14 个 pytest |
+| Python 生产网关 | 完成 | SSE、超时、错误、探针、背压、指标、JSON 日志、15 个 pytest |
 | Docker 离线交付 | 完成并实机验收 | 模型、两个镜像、Compose、一键脚本、SHA-256 校验 |
 | 成本模型 | 完成 | `tools/cost_calculator.py` + 5 个单元测试 |
-| 正式网关测试、结构化日志 | 完成 | 14 个离线 pytest；关键应用事件为单行 JSON |
+| 正式网关测试、结构化日志 | 完成 | 15 个离线 pytest；关键应用事件为单行 JSON |
 | Kubernetes 网关层 | 2026-10-21 已验证 | 2 副本、探针、PDB、零停机滚动/回滚、Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误；GPU 调度未验证 |
 
 ## 关键结果
@@ -101,7 +101,7 @@
 - `/live`、`/health`、`/gateway/status`；
 - Prometheus `/metrics`；
 - 单行 JSON 应用日志；
-- 14 个不依赖真实模型的 pytest，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份与可选 API Key 认证；
+- 15 个不依赖真实模型的 pytest，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份、可选 API Key 认证与按身份限流；
 - 非 root Docker 镜像与 Compose。
 
 详见 [网关 README](gateway/README.md)。

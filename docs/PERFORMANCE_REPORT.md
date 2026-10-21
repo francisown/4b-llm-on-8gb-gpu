@@ -14,7 +14,7 @@ context lengths, or concurrency levels.
 | Model | Qwen3.5-4B-INT4-AWQ-self |
 | Runtime | vLLM 0.29.0 |
 | Host | Windows + WSL2 Ubuntu 22.04; Docker Desktop Kubernetes for the gateway |
-| Gateway | FastAPI `ai-inference-gateway:v0.2.0` for the measured run; `v0.2.2` adds optional API-key auth without changing the serving path |
+| Gateway | FastAPI `ai-inference-gateway:v0.2.0` for the measured run; v0.2.1 adds auth, v0.2.2 adds TLS/alerting/OTel, and v0.2.3 adds rate limiting without changing the serving path |
 | Model server | vLLM in a Docker container with GPU access; **not** scheduled by Kubernetes |
 | Prometheus | v2.55.1, scraping both gateway pods |
 
@@ -119,6 +119,21 @@ Raw: [`soak-c4-120s.json`](../benchmark/results/observability/soak-c4-120s.json)
 The value of this test is the **zero-error completion and gauge recovery**,
 not the latency number: the mock upstream has a fixed delay, so the latency is
 not comparable to vLLM.
+
+### 10-minute soak
+
+| Metric | Result |
+|---|---:|
+| Duration / concurrency | 600.092 s / 4 |
+| Requests | **11,554** |
+| Errors | **0** |
+| Throughput | 19.254 req/s |
+| Latency mean / p50 / p95 / p99 | 207.73 / 207.19 / 217.39 / 222.50 ms |
+| Health before / after | ok / ok |
+| Active / waiting after drain | **0 / 0** |
+
+Raw: [`soak-c4-600s.json`](../benchmark/results/observability/soak-c4-600s.json).
+This is a 10-minute gateway soak, not a multi-hour model soak.
 
 ### Backpressure at concurrency 16
 

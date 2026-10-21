@@ -47,7 +47,7 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-Expected result: **14 passed**. `smoke_test.py` remains the separate online test
+Expected result: **15 passed**. `smoke_test.py` remains the separate online test
 for a fully running gateway and vLLM server.
 
 ## Docker
@@ -62,7 +62,7 @@ it builds in a normal CI environment. On a restricted network, override both:
 docker build \
   --build-arg PYTHON_IMAGE=docker.m.daocloud.io/library/python:3.10-slim \
   --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
-  -t ai-inference-gateway:v0.2.2 .
+  -t ai-inference-gateway:v0.2.3 .
 ```
 
 ```bash
@@ -92,8 +92,9 @@ allowing the container to reach vLLM on port 8000. If that route changes, set
 | `GATEWAY_MAX_CONCURRENT` | `4` | Active requests admitted to vLLM |
 | `GATEWAY_MAX_QUEUE` | `4` | Additional requests allowed to wait |
 | `GATEWAY_QUEUE_TIMEOUT_SECONDS` | `10` | Maximum queue wait before 429 |
-| `GATEWAY_VERSION` | `0.2.2` | Version exposed in headers/metrics |
+| `GATEWAY_VERSION` | `0.2.3` | Version exposed in headers/metrics |
 | `GATEWAY_API_KEY` | empty (auth disabled) | Optional bearer/X-API-Key token for `/chat` and `/chat/stream`; health/metrics stay open |
+| `GATEWAY_RATE_LIMIT_PER_MINUTE` | `0` (disabled) | Per-identity sliding-window limit; identity is the API key when present, otherwise the client IP |
 | `POD_NAME` | `local` | Pod identity; set from `metadata.name` in Kubernetes |
 | `LOG_LEVEL` | `INFO` | Application log level |
 

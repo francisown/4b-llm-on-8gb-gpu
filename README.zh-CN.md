@@ -65,7 +65,7 @@
 
 | 路径 | 状态 | 证据 |
 |---|---|---|
-| **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.2`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 增加认证，v0.2.2 增加 TLS/告警/OTel 部署层）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
+| **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.3`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 认证、v0.2.2 TLS/告警/OTel、v0.2.3 按身份限流）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
 | **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
 | **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 196%/60%；45s 扩容、80s 缩容；mock 上游，只验证 HPA 机制 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
@@ -140,11 +140,12 @@ flowchart LR
 - 连接/读/写/连接池四类独立超时；上游错误转换；客户端断开时取消上游
 - 有界并发与队列，超限返回 HTTP 429 背压
 - 可选 `Authorization: Bearer` / `X-API-Key` 认证；`/live`、`/health`、`/metrics` 保持开放，供探针和 Prometheus 使用
+- 可选按身份限流（`GATEWAY_RATE_LIMIT_PER_MINUTE`），以 API Key 或客户端 IP 为身份
 - 仅对“发送前的连接失败”重试；读超时绝不重放
 - `/live`（进程）与 `/health`（上游依赖）分离；`/gateway/status` 观测在途与排队
 - 健康检查使用 `Connection: close` 且禁用 keep-alive 复用（这是 K8s 实测中真实修复的 `RemoteProtocolError` 抖动）
 - Prometheus 计数器、Gauge、延迟直方图；`X-Gateway-Pod` / `X-Gateway-Version` 响应头；单行 JSON 应用日志
-- **14 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份与可选 API Key 认证
+- **15 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份、可选 API Key 认证与按身份限流
 - 非 root Docker 镜像 + Compose；Kubernetes 2 副本、PDB、零停机滚动、按 Pod 的 Prometheus 抓取
 
 离线交付包把模型、vLLM/PyTorch/CUDA 用户态环境、网关、Compose、一键脚本和 SHA-256 校验打在一起，**已在全新的 Docker Desktop 环境中完成镜像导入、GPU 检查、模型启动和网页对话验证**。
@@ -183,7 +184,7 @@ Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4�
 ```bash
 # 1. 确定性自测（不需要 GPU、模型或 API Key）
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # 预期：5 个成本测试 + 14 个网关测试
+python scripts/verify_local.py          # 预期：5 个成本测试 + 15 个网关测试
 python scripts/validate_manifests.py    # 预期：16 个 Kubernetes 文档
 
 # 2. 从原始 JSON 复算吞吐与成本（在仓库根执行）
@@ -200,12 +201,12 @@ kubectl apply -k k8s/observability
 
 ## 发布
 
-- 最新版本：**v0.2.2** —— [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.2)
-- 镜像：`ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.2`
-- Digest：`sha256:c1765502e546e61c5fa3a7a968ae0d7e8f1f9cc218ffc0e6396a2d80ca197ded`
+- 最新版本：**v0.2.3** —— [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.3)
+- 镜像：`ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3`
+- Digest：由 release workflow 发布，见 release 页面。
 - 详情：[`docs/RELEASE.md`](docs/RELEASE.md)
 
-下面的 K8s 实测是在 **v0.2.0** 上完成的；v0.2.1 增加可选 API Key 认证，v0.2.2 增加 TLS、告警与 OTel 部署层，不改变服务路径。
+下面的 K8s 实测是在 **v0.2.0** 上完成的；v0.2.1 增加 API Key 认证，v0.2.2 增加 TLS/告警/OTel，v0.2.3 增加按身份限流，不改变服务路径。
 
 ## 可观测性 demo（不需要 GPU）
 
@@ -264,7 +265,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus 告警规则、验证与 runbook |
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing、OTLP 配置、验证与限制 |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
-| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.2 tag、GHCR 镜像、发布验证与部署说明 |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.3 tag、GHCR 镜像、发布验证与部署说明 |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | 可选的推理运维 Agent 实验，不属于已验证交付路径 |
 | [`SECURITY.md`](SECURITY.md) | 漏洞报告、Secret 策略、范围与已知限制 |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 本地检查、可观测性 demo、soak、PR 清单与发布流程 |
@@ -367,9 +368,9 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus、HPA 2→4→2；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
-| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、120 秒 gateway soak（2,329 请求、0 错误；c=16 背压返回干净 429）+ OTel/Jaeger tracing；尚无多小时 soak |
-| CI/CD | CI（测试、清单/工作流校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.2 已发布）+ Dependabot；尚无镜像签名与自动部署 |
+| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、10 分钟 gateway soak（11,554 请求、0 错误、p95 217.39 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 soak |
+| CI/CD | CI（测试、清单/工作流校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.3 已发布）+ Dependabot；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |
 
-网关镜像 `v0.2.2` 已重建并对着真实模型验证。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。
+网关镜像 `v0.2.3` 已重建并对着真实模型验证。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。

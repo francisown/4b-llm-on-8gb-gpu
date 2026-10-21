@@ -1,0 +1,5 @@
+NAME                               READY   STATUS    RESTARTS   AGE     IP            NODE                    NOMINATED NODE   READINESS GATES
+inference-gateway-7f44bb55-d4xbx   1/1     Running   0          3m56s   10.244.0.24   desktop-control-plane   <none>           <none>
+inference-gateway-7f44bb55-jftsb   1/1     Running   0          3m56s   10.244.0.22   desktop-control-plane   <none>           <none>
+mock-vllm-78f6bcc5c-wtzzn          1/1     Running   0          3m56s   10.244.0.23   desktop-control-plane   <none>           <none>
+tls-proxy-b55b76ccc-xpzf8          1/1     Running   0          3m56s   10.244.0.21   desktop-control-plane   <none>           <none>

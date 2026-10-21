@@ -212,7 +212,7 @@ That conclusion is independent of the model generation, and it is the only thing
 # 1. Deterministic checks (no GPU, no model, no API key)
 python -m pip install -r gateway/requirements-dev.txt pyyaml
 python scripts/verify_local.py          # expect: 5 cost tests + 19 gateway tests
-python scripts/validate_manifests.py    # expect: 25 Kubernetes documents
+python scripts/validate_manifests.py    # expect: 34 Kubernetes documents
 
 # 2. Recompute throughput and cost from the raw JSON (run at repo root)
 python tools/cost_calculator.py \
@@ -293,8 +293,10 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`gateway/`](gateway/) | FastAPI gateway, web UI, Dockerfile, offline pytest suite |
 | [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probes / PDB / HPA / NetworkPolicy / Prometheus / load-test Job |
 | [`k8s/gpu-inference/`](k8s/gpu-inference/) | WSL2 k3s manifests for vLLM-on-GPU + 2 gateway replicas |
+| [`k8s/tls-demo/`](k8s/tls-demo/) | Nginx TLS terminator and enforced NetworkPolicy on Docker Desktop Kubernetes |
 | [`docs/SLO.md`](docs/SLO.md) | SLO targets, PromQL queries, error-budget policy, and dashboard link |
 | [`docs/TLS.md`](docs/TLS.md) | Local TLS terminator, verification, and production guidance |
+| [`docs/K8S_TLS.md`](docs/K8S_TLS.md) | Kubernetes TLS termination and the NetworkPolicy toggle matrix |
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus alert rules, verification, and runbook |
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing, OTLP configuration, verification, and limits |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |

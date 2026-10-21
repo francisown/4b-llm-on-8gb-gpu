@@ -105,7 +105,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
 | Per-identity rate limit | v0.2.4: auth disabled, tenant A 5×200 then 429 and key rotation stays limited; auth enabled, tenant A 5×200 then 429 while tenant B remains 200 |
 | Cost-calculator tests | 5 passed |
-| Manifest validation | 25 documents passed |
+| Manifest validation | 34 documents passed |
 | Real vLLM gateway (Docker Desktop) | 3 runs × 20 requests, c=4: **325.71 tok/s mean**, p95 512.92 ms, 0 errors; stream TTFT p50 82.4 ms; 30-min soak 17,609 requests, 0 errors, p95 433.79 ms |
 | Kubernetes Service load | 100 requests, 0 errors, 326.53 tok/s |
 | Pod kill during load | 300 requests, 0 errors, 315.46 tok/s |

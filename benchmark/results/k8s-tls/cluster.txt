@@ -1,0 +1,5 @@
+date=2026-10-22T00:56:12+08:00
+context=docker-desktop
+server_version=v1.36.1
+node=desktop-control-plane Ready v1.36.1
+cni_probe=NetworkPolicy enforced (see networkpolicy-matrix.txt)

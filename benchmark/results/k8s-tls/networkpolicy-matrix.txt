@@ -1,0 +1,28 @@
+date=2026-10-22T00:55:00+08:00
+namespace=k8s-tls-demo
+policy=gateway-allow-same-namespace
+policy_spec=ingress from namespaceSelector {kubernetes.io/metadata.name: k8s-tls-demo} on TCP 9000
+source_pod=busybox:1.36 via kubectl run --rm, wget -T 5
+target=gateway.k8s-tls-demo.svc.cluster.local:9000
+
+# The point of this matrix is the toggle, not a single observation. The same
+# source pod, the same target, only the policy object changes.
+
+step_A_policy_on_cross_ns=denied  (wget: download timed out, ~8s)
+step_B_delete_policy=ok
+step_C_policy_off_cross_ns=reachable  (HTTP 200, {"status":"ok","vllm":"ok"})
+step_D_reapply_policy=ok
+step_E_policy_on_cross_ns=denied  (wget: download timed out, ~8s)
+step_F_policy_on_same_ns=reachable  (HTTP 200, {"status":"ok","vllm":"ok"})
+
+interpretation=reachability flips with the policy object alone, so the denial
+comes from the NetworkPolicy and not from a broken route, missing DNS, or a
+Service misconfiguration. Enforcement is DROP (the client times out) rather
+than REJECT (connection refused).
+
+caveat=the policy only appeared to be a no-op once. The cause was a manifest
+applied with `kubectl apply -f` that carried no explicit `namespace:` field,
+so the object landed in `default` and matched no gateway pod. Every manifest
+in k8s/tls-demo/ now sets `namespace` explicitly.
+
+not_claimed=no egress policy, no cross-node traffic, single-node cluster

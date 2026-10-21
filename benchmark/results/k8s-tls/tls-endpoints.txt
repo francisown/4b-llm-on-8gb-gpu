@@ -1,0 +1,16 @@
+date=2026-10-22T00:56:20+08:00
+port_forward=localhost:19443 -> svc/tls-proxy:443 (host 9443 is taken by the compose demo)
+
+--- served certificate ---
+subject=CN=localhost
+issuer=CN=localhost
+notBefore=Oct 21 03:51:54 2026 GMT
+notAfter=Oct 21 03:51:54 2027 GMT
+
+--- GET /health over TLS ---
+{"status":"ok","vllm":"ok","pod":"inference-gateway-7f44bb55-jftsb","version":"0.2.4"}
+[http=200]
+
+--- POST /chat over TLS ---
+{"request_id":"e8a029bc-7d41-419e-af56-42a423650bd7","model":"mock-qwen","answer":"Mock response from the observability stack.","usage":{"prompt_tokens":2,"completion_tokens":8,"total_tokens":10},"latency_ms":153.3}
+[http=200]

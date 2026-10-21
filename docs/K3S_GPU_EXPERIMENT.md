@@ -72,14 +72,17 @@ cannot allocate unhealthy devices nvidia.com/gpu
    `RuntimeError: Failed to infer device type`, because the GPU was not
    injected without the device-plugin allocation.
 
-Restarting k3s/WSL can temporarily restore the node and the GPU resource, but
-the PLEG failure recurs under the combined load of a 13.2 GB image import,
-a 3.6 GB model, and vLLM initialization.
+In the earlier attempt, restarting k3s/WSL could temporarily restore the node
+and the GPU resource, but the PLEG failure recurred under the combined load of a
+13.2 GB image import, a 3.6 GB model, and vLLM initialization. The later short
+run did not hit this state after the old namespace was removed and `VLLM_PORT`
+was fixed.
 
 ## Root cause
 
-This is not a model or vLLM code failure. It is a **WSL2 + k3s + containerd +
-NVIDIA runtime** lifecycle problem:
+This was the failure mode in the earlier attempt. It is a **WSL2 + k3s +
+containerd + NVIDIA runtime** lifecycle problem, not a model or vLLM code
+failure by itself:
 
 - WSL2 exposes the GPU as `/dev/dxg` plus WSL driver libraries, not as a normal
   Linux `/dev/nvidia*` device set.

@@ -121,7 +121,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
 | GPU-in-K8s (WSL2 k3s) | Verified short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway replicas, 100 requests, 0 errors, 147.17 tok/s, p95 3.02 s; host path is 327.51 tok/s / 513 ms |
 | Stable native-Linux GPU serving | Not achieved; WSL2 k3s is not a native Linux node/PVC production path |
-| TensorRT-LLM | Not measured; protocol documented in [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md) |
+| TensorRT-LLM | Not measured; support-matrix blockers (Qwen3.5, RTX 5060/SM120, CUDA/torch mismatch) documented in [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md) |
 
 ## Working rules
 

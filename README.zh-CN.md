@@ -11,6 +11,8 @@
 
 `vLLM 服务 → 并发压测 → 量化（FP8 / INT4-AWQ）→ 质量评测 → KV Cache 与调度调优 → 推测解码 → FastAPI 生产网关 → Docker 离线交付 → Kubernetes`
 
+![网关聊天界面](docs/assets/gateway-ui.png)
+
 ## 从这里开始
 
 - [四个数字](#先看四个能说明交付结果的数字)
@@ -60,7 +62,7 @@
 
 第二行是这份工作里最容易被忽略、但最值钱的一条：**四个模型总分相同，不代表它们等价。** 200 题单选题不足以证明模型等价（Wilson 95% 区间 63.84%–76.39%），而 INT4 有 26 道题的选择与 BF16 不同。这个区分决定了你敢不敢在业务里换量化方案。
 
-一个 7.49 GiB 的离线包（模型、CUDA/vLLM 用户态、网关、Compose 和校验值）在本机构建并做过 smoke test；它包含模型权重，**没有公开发布**，因此不计入公开可复现声明。公开可复现路径是确定性检查和 CPU-only Compose 演示。
+一个 7.49 GiB 的离线包（模型、CUDA/vLLM 用户态、网关、Compose 和校验值）在本机构建并做过 smoke test；它包含模型权重，**没有公开发布**，但内容与 SHA-256 校验值已记录在 [`docs/OFFLINE_BUNDLE.md`](docs/OFFLINE_BUNDLE.md)，拿到副本的人可以核验。公开可复现路径是确定性检查和 CPU-only Compose 演示。
 
 ---
 
@@ -73,7 +75,7 @@
 | **GPU-in-K8s vLLM + gateway（WSL2 k3s）** | 已验证（短 smoke） | vLLM Pod 占 `nvidia.com/gpu: 1`，2 个 gateway Pod；集群内 100 请求 0 错误、**147.17 tok/s**、p95 3.02s；流式 TTFT p50 91.8 ms、p95 113.2 ms；性能明显低于宿主路径，不是生产/等价声明。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 198%/60%；45s 扩容、90s 缩容；mock 上游，只验证 HPA 机制 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
-| **TensorRT-LLM 对比** | 未测量 | 只记录方法和 harness，不声称结果；见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
+| **TensorRT-LLM 对比** | 未测量 | TensorRT-LLM 1.2.1 的 support matrix 不覆盖 Qwen3.5 或 RTX 5060/SM120，CUDA/torch 要求也不同；不声称未支持的 benchmark。见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 
 完整命令、原始结果和限制见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/)。最早的 gateway benchmark 用宿主 vLLM；WSL2 k3s 这一轮把 vLLM 也放进了集群，短 smoke 功能通过，但吞吐和尾延迟明显差于宿主路径，因此不声称生产可用或性能等价。
 
@@ -270,6 +272,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing、OTLP 配置、验证与限制 |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
 | [`docs/REPRODUCE.md`](docs/REPRODUCE.md) | 三层复现路径、环境版本与已知缺口 |
+| [`docs/OFFLINE_BUNDLE.md`](docs/OFFLINE_BUNDLE.md) | 7.49 GiB 离线包内容、SHA-256 校验值与验证记录 |
 | [`requirements-quant.txt`](requirements-quant.txt) | 记录的量化/vLLM 环境，不是通用 lockfile |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.4 tag、GHCR 镜像、发布验证与部署说明 |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | 可选的推理运维 Agent 实验，不属于已验证交付路径 |

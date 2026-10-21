@@ -13,6 +13,8 @@ Quantize, benchmark, serve, and package a 4B model on a **single RTX 5060 with 8
 
 `vLLM serving → concurrency benchmarking → quantization (FP8 / INT4-AWQ) → quality evaluation → KV cache & scheduling tuning → speculative decoding → FastAPI gateway → Docker offline delivery → Kubernetes`
 
+![Gateway chat UI](docs/assets/gateway-ui.png)
+
 ## Start here
 
 - [Four numbers](#four-numbers-that-define-the-delivery)
@@ -64,7 +66,7 @@ This repository is deliberately about **one 8 GB inference delivery path**.
 
 The second row is the most valuable thing this project produced: **four models scoring the same does not make them equivalent.** 200 multiple-choice questions cannot establish equivalence anyway (Wilson 95% interval 63.84%–76.39%), and INT4 picks a different option on 26 of them. That distinction is what decides whether you dare swap a quantization scheme in production.
 
-A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Compose files, and checksums was built and smoke-tested locally. It is **not published** (it contains model weights), so it is not part of the public reproduction claim; the reproducible public paths are the deterministic checks and the CPU-only Compose demo.
+A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Compose files, and checksums was built and smoke-tested locally. It is **not published** (it contains model weights), but its contents and SHA-256 checksums are published in [`docs/OFFLINE_BUNDLE.md`](docs/OFFLINE_BUNDLE.md), so a copy can be verified. The reproducible public paths are the deterministic checks and the CPU-only Compose demo.
 
 ---
 
@@ -72,12 +74,12 @@ A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Co
 
 | Path | Status | Evidence |
 |---|---|---|
-| **Docker + host vLLM on RTX 5060** | Verified (v0.2.4 image) | Gateway image `v0.2.4` with real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; 20 requests at c=4, 0 errors, **327.51 tok/s**, p95 513 ms; stream TTFT p50 **85.5 ms**, p95 101.9 ms |
+| **Docker + host vLLM on RTX 5060** | Verified (v0.2.4 image) | Gateway image `v0.2.4` with real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; 20 requests at c=4, 0 errors, **327.51 tok/s**, p95 513 ms; stream TTFT p50 **85.5 ms**, p95 101.9 ms. Raw: [`real-vllm-v0.2.4-c4.json`](benchmark/results/real-vllm-v0.2.4-c4.json) |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified (host vLLM) | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods; model server was outside the cluster |
 | **GPU-in-K8s vLLM + gateway (WSL2 k3s)** | Verified (short smoke) | vLLM pod with `nvidia.com/gpu: 1` + 2 gateway pods; 100 in-cluster requests, 0 errors, **147.17 tok/s**, p95 3.02 s; stream TTFT p50 91.8 ms, p95 113.2 ms; performance below host path, not production. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 198%/60%; scale-up 45s, scale-down 90s; mock upstream, HPA mechanics only |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
-| **TensorRT-LLM comparison** | Not measured | Harness and protocol documented; no result claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
+| **TensorRT-LLM comparison** | Not measured | TensorRT-LLM 1.2.1 support matrix does not cover Qwen3.5 or RTX 5060/SM120, and its CUDA/torch requirements differ; no unsupported benchmark is claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 
 The detailed commands, raw results, and limitations are in
 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) and
@@ -290,6 +292,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing, OTLP configuration, verification, and limits |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |
 | [`docs/REPRODUCE.md`](docs/REPRODUCE.md) | Three reproduction levels, environment versions, and known gaps |
+| [`docs/OFFLINE_BUNDLE.md`](docs/OFFLINE_BUNDLE.md) | 7.49 GiB offline bundle contents, SHA-256 checksums, and verification transcript |
 | [`requirements-quant.txt`](requirements-quant.txt) | Recorded quantization/vLLM environment; not a universal lockfile |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.4 tag, GHCR image, release verification, and deployment notes |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | Optional inference-ops agent experiment; not part of the validated delivery path |

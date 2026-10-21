@@ -36,7 +36,24 @@ totals do not mean equal models.
 
 Raw data: [`benchmark/eval/`](../benchmark/eval/).
 
-## 2. Kubernetes gateway performance
+## 2. Gateway v0.2.4 real-model smoke (host)
+
+This is a host-gateway run against the real vLLM server, separate from the
+original v0.2.0 Kubernetes benchmark.
+
+| Metric | Non-stream | Stream |
+|---|---:|---:|
+| Requests / concurrency | 20 / 4 | 20 / 4 |
+| Errors | 0 | 0 |
+| Output throughput | 327.51 tok/s | 322.19 tok/s |
+| Latency mean / p50 / p95 / p99 | 499.16 / 501.53 / 513.08 / 513.57 ms | 507.23 / 509.81 / 521.39 / 522.12 ms |
+| TTFT p50 / p95 | — | **85.5 / 101.9 ms** |
+
+Raw: [`real-vllm-v0.2.4-c4.json`](../benchmark/results/real-vllm-v0.2.4-c4.json)
+and [`real-vllm-v0.2.4-stream-c4.json`](../benchmark/results/real-vllm-v0.2.4-stream-c4.json).
+This is a single 20-request batch, not a 3-run mean.
+
+## 3. Kubernetes gateway performance
 
 Validated on Docker Desktop Kubernetes v1.36.1, two gateway replicas, real vLLM
 upstream, `temperature=0`, thinking disabled.
@@ -103,7 +120,7 @@ This is functional validation, not parity: the host path measured 327.51 tok/s
 and p95 513 ms. The in-cluster gap is not yet isolated. Raw:
 [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/).
 
-## 3. Failure handling
+## 4. Failure handling
 
 | Test | Result |
 |---|---|
@@ -116,7 +133,7 @@ Raw: [`pod-kill.txt`](../benchmark/results/k8s/pod-kill.txt),
 [`rollback.txt`](../benchmark/results/k8s/rollback.txt),
 [`prometheus-targets.json`](../benchmark/results/k8s/prometheus-targets.json).
 
-## 4. Gateway soak (mock upstream)
+## 5. Gateway soak (mock upstream)
 
 This is a gateway-stability test, not a model-throughput benchmark. It ran
 against the CPU-only mock OpenAI-compatible upstream, so it isolates the
@@ -171,7 +188,7 @@ returning 5xx. This is the intended backpressure behavior; the 429s are
 counted separately from unexpected errors. Raw:
 [`backpressure-c16-30s.json`](../benchmark/results/observability/backpressure-c16-30s.json).
 
-## 5. What is not in this report
+## 6. What is not in this report
 
 - **No TensorRT-LLM result.** The comparison protocol and harness exist; no
   engine was built or measured. See [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md).
@@ -186,7 +203,7 @@ counted separately from unexpected errors. Raw:
 - **No cloud cost quote.** The cost calculator is a capacity estimate, not an
   accounting system.
 
-## 6. Reproduce
+## 7. Reproduce
 
 ```bash
 python scripts/verify_local.py

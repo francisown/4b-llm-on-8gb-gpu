@@ -13,6 +13,23 @@ invalid.
 | **TensorRT-LLM** | **Not measured** | No result claimed. | Would be comparable only after the same model, quantization, input/output lengths, concurrency, and GPU are fixed. |
 | **Custom CUDA engine** (`qwen3.5-fp8-cuda`) | Measured in a different repository | **54 tok/s** single-stream, hand-written FP8 kernels. | **No.** Different engine, different batching, different prompt/output protocol. |
 
+## TensorRT-LLM feasibility check (2026-10-21)
+
+A same-model TensorRT-LLM benchmark is not currently possible on this host
+without an unsupported build:
+
+- PyPI `tensorrt-llm==1.2.1` requires Python 3.10/3.12, CUDA 13.1,
+  TensorRT 10.14.1, and `torch>=2.9.1,<=2.10.0a0`; the recorded vLLM environment
+  uses CUDA 13.0 and PyTorch 2.13.0.
+- The TensorRT-LLM 1.2.1 support matrix lists **Qwen3**, not **Qwen3.5**, and
+  its hardware table does not list the RTX 5060 / SM120 consumer GPU.
+- Installing the package and forcing the Qwen3.5 hybrid architecture through an
+  unsupported path would not produce a result comparable to the vLLM row.
+
+The correct status remains **not measured**. The harness is ready; the blocker
+is supported model/GPU coverage plus a matching CUDA/PyTorch environment, not a
+missing benchmark script.
+
 ## Why TensorRT-LLM is not in the table
 
 This host is a single RTX 5060 (8 GB) behind Windows/WSL2. A credible

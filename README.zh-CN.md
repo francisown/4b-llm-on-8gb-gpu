@@ -53,7 +53,7 @@
 | **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.0` + 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
 | **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
-| **Kubernetes 调度 GPU** | 未验证 | `nvidia.com/gpu: 1` 探针一直 Pending：`Insufficient nvidia.com/gpu`（Docker Desktop 无 device plugin） |
+| **Kubernetes 调度 GPU** | **部分验证** | Docker Desktop K8s：`Insufficient nvidia.com/gpu`，一直 Pending。WSL2 k3s：节点广告 `nvidia.com/gpu: 1`，GPU Pod 跑通 `nvidia-smi -L`，vLLM 也加载了模型；但稳定 serving 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | **TensorRT-LLM 对比** | 未测量 | 只记录方法和 harness，不声称结果；见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 
 完整命令、原始结果和限制见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md)。这台机器上 GPU 推理容器仍在集群外，Kubernetes 管理的是无状态网关层。
@@ -195,6 +195,10 @@ kubectl apply -k k8s/observability
 | [`docs/project-notes.md`](docs/project-notes.md) | 主文档：模块状态、可复现环境、量化与推测解码细节 |
 | [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) | Kubernetes 实测记录：部署、压测、Pod 强杀、回滚、Prometheus 与 GPU 调度边界 |
 | [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) | vLLM / TensorRT-LLM / 自研 CUDA 的对比状态与不可比原因 |
+| [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) | WSL2 k3s GPU 尝试：做成了什么、PLEG 阻塞、为什么不声称集群内 serving 数字 |
+| [`docs/LINUX_GPU_RUNBOOK.md`](docs/LINUX_GPU_RUNBOOK.md) | 真实 Linux GPU 节点步骤：驱动、toolkit、device plugin、PVC、vLLM、TensorRT-LLM |
+| [`docs/PERFORMANCE_REPORT.md`](docs/PERFORMANCE_REPORT.md) | 性能报告：量化、K8s 网关、故障处理与不声称的内容 |
+| [`docs/RESUME_BULLETS.md`](docs/RESUME_BULLETS.md) | 带证据链接的简历 bullet 与不可声称项 |
 | [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | 一句话定位、证据地图、不声称的内容、未来 6–12 周计划 |
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | 当前旗舰计划与验证清单 |
 | [`benchmark/eval/`](benchmark/eval/) | 冻结的 200 题清单、四个模型的逐题原始结果、三向总表 |
@@ -295,7 +299,7 @@ kubectl apply -k k8s/observability
 |---|---|
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
-| Kubernetes 调度 GPU | **未验证**：Docker Desktop 没有 NVIDIA device plugin，`nvidia.com/gpu` 探针一直 Pending |
+| Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | 可观测性与 SRE | 部分完成：Prometheus 抓取与按 Pod 指标；HPA 清单存在但因无 metrics-server 未生效；尚无 Grafana/OpenTelemetry/SLO |
 | CI/CD | 已加 CI（测试、清单校验、Kustomize 渲染、Docker 构建）；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |

@@ -51,7 +51,7 @@ The second row is the most valuable thing this project produced: **four models s
 | **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.0`, real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
-| **GPU scheduled by Kubernetes** | Not verified | A `nvidia.com/gpu: 1` probe stayed `Pending`: `Insufficient nvidia.com/gpu` (no device plugin on Docker Desktop) |
+| **GPU scheduled by Kubernetes** | **Partially verified** | Docker Desktop K8s: `Pending` (`Insufficient nvidia.com/gpu`). WSL2 k3s: node advertised `nvidia.com/gpu: 1`, a GPU pod ran `nvidia-smi -L`, and vLLM loaded the model; stable in-cluster serving was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | **TensorRT-LLM comparison** | Not measured | Harness and protocol documented; no result claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 
 The detailed commands, raw results, and limitations are in
@@ -204,6 +204,10 @@ The full pipeline (needs a GPU + WSL2 + vLLM) is documented in the "Reproducible
 | [`docs/project-notes.md`](docs/project-notes.md) | Detailed project notes: module status, reproducible environment, quantization and speculative-decoding detail |
 | [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) | What was actually deployed and measured on Kubernetes, including the GPU-scheduling boundary |
 | [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) | vLLM / TensorRT-LLM / custom-CUDA comparison status and why some rows are not comparable |
+| [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) | WSL2 k3s GPU attempt: what worked, the PLEG blocker, and why no in-cluster serving number is claimed |
+| [`docs/LINUX_GPU_RUNBOOK.md`](docs/LINUX_GPU_RUNBOOK.md) | Step-by-step native Linux GPU node path: driver, toolkit, device plugin, PVC, vLLM, TensorRT-LLM |
+| [`docs/PERFORMANCE_REPORT.md`](docs/PERFORMANCE_REPORT.md) | Concise performance report with quantization, K8s gateway, failure, and non-claims |
+| [`docs/RESUME_BULLETS.md`](docs/RESUME_BULLETS.md) | Evidence-linked resume bullets and what not to claim |
 | [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | One-line positioning, evidence map, non-claims, and the next 6–12 weeks |
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | Current flagship plan and verification checklist |
 | [`benchmark/eval/`](benchmark/eval/) | Frozen 200-question set, per-question results for four models, combined comparison table |
@@ -304,7 +308,7 @@ Model weights and datasets are not committed (see `.gitignore`).
 |---|---|
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
-| Kubernetes GPU scheduling | **Not verified**: Docker Desktop has no NVIDIA device plugin; a `nvidia.com/gpu` probe stayed Pending |
+| Kubernetes GPU scheduling | **Partially verified**: Docker Desktop K8s has no GPU device plugin; WSL2 k3s did advertise `nvidia.com/gpu: 1` and run a GPU pod, but stable in-cluster vLLM was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | Observability & SRE | Partial: Prometheus scraping and per-pod metrics; HPA manifest present but inactive without metrics-server; no Grafana/OpenTelemetry/SLO yet |
 | CI/CD | CI workflow added (tests, manifest validation, Kustomize render, Docker build); no registry signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |

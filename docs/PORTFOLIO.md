@@ -37,15 +37,17 @@ indefinitely.
 | Killing a pod during 300 requests causes 0 errors | `benchmark/results/k8s/pod-kill-under-load.json` |
 | Bad rollout keeps old replicas serving | `benchmark/results/k8s/rollback.txt` |
 | Prometheus scrapes both replicas | `benchmark/results/k8s/prometheus-targets.json` |
-| GPU scheduling in K8s is **not** verified | `benchmark/results/k8s/gpu-probe.txt` |
+| GPU scheduling in K8s was demonstrated on WSL2 k3s; stable serving was blocked by PLEG | [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md) |
 
 ## What is not claimed
 
 - No training or pretraining result.
 - No TensorRT-LLM performance number. The comparison protocol is documented in
   [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md), but no result is invented.
-- No GPU-in-Kubernetes result on this host. Docker Desktop has no NVIDIA device
-  plugin, so a `nvidia.com/gpu` pod stays Pending.
+- No stable GPU-in-Kubernetes serving result. Docker Desktop K8s has no NVIDIA
+  device plugin; WSL2 k3s scheduled a GPU pod and loaded vLLM, but
+  `PLEG is not healthy` blocked stable serving. See
+  [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md).
 - No production SLA, multi-tenant isolation, TLS, or authentication.
 - No claim that the 54 tok/s custom-CUDA engine is directly comparable to the
   batched vLLM service.

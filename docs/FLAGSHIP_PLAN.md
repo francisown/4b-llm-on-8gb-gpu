@@ -66,19 +66,24 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Validate the gateway deployment with 2 replicas, probes, PDB, and rolling updates.
 - [x] Document rollback and verify it with a deliberately broken image.
 - [x] Add a deployment smoke test for the gateway layer.
-- [ ] Validate GPU scheduling with the NVIDIA device plugin and a GPU node.
+- [x] Demonstrate GPU scheduling on WSL2 k3s with the NVIDIA device plugin and a GPU smoke pod.
+- [x] Create a model PVC and load vLLM inside the cluster (model loaded; stable serving not achieved).
+- [ ] Validate stable GPU scheduling and serving on a native Linux GPU node.
 - [ ] Validate HPA with a working metrics-server.
-- [ ] Move vLLM into the cluster with a model PVC and GPU runtime class.
+- [ ] Move vLLM into a stable in-cluster serving path with a model PVC and GPU runtime class.
 
-Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md).
+Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
+[`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md), and the native Linux path in
+[`LINUX_GPU_RUNBOOK.md`](LINUX_GPU_RUNBOOK.md).
 
 ### 6. Portfolio packaging
 
 - [x] Rewrite the README around the problem, evidence, architecture, and trade-offs.
 - [x] Add a positioning document for GitHub/profile use.
+- [x] Add a concise performance report.
+- [x] Add a concise resume-ready project summary.
 - [ ] Publish a one-page English and Chinese case study with the new deployment results.
 - [ ] Add a release-quality architecture diagram and benchmark table.
-- [ ] Add a concise resume-ready project summary.
 
 ## Verification summary (2026-10-21)
 
@@ -86,14 +91,15 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md).
 |---|---|
 | Gateway offline tests | 12 passed |
 | Cost-calculator tests | 5 passed |
-| Manifest validation | 12 documents passed |
+| Manifest validation | 16 documents passed |
 | Kubernetes Service load | 100 requests, 0 errors, 326.53 tok/s |
 | Pod kill during load | 300 requests, 0 errors, 315.46 tok/s |
 | Pod replacement | Ready after 7.6 s |
 | Bad-image rollback | Old replicas stayed Ready; `rollout undo` recovered |
 | Prometheus | Both gateway pods `up`, both `upstream_healthy=1` |
-| GPU-in-K8s | Not validated: `Insufficient nvidia.com/gpu` |
-| TensorRT-LLM | Not measured; protocol documented |
+| GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
+| Stable in-cluster vLLM | Not achieved: `PLEG is not healthy`; see [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md) |
+| TensorRT-LLM | Not measured; protocol documented in [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md) |
 
 ## Working rules
 

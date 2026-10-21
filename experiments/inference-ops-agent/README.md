@@ -1,4 +1,8 @@
-# Agent 第一课：模型、工具、观察和循环
+# Inference ops agent (experimental)
+
+> **Status: experimental.** This directory is not part of the validated
+> inference-delivery path. It is kept here as an optional operations-agent
+> experiment; the gateway and vLLM deployment are the supported deliverables.
 
 这个目录包含一个不依赖 Agent 框架的最小推理运维 Agent。
 
@@ -35,15 +39,15 @@ INT4 能生成工具意图，但实测自由生成 XML 时会漏掉分隔符，�
 `127.0.0.1:9000` 运行，然后在 WSL 中执行：
 
 ```bash
-cd /mnt/e/AI-Inference-Lab
-source /root/.venvs/ai-inference-bin/activate
-python agent_lab/inference_agent.py
+cd experiments/inference-ops-agent
+python -m pip install openai
+python inference_agent.py
 ```
 
 也可以只问一个问题：
 
 ```bash
-python agent_lab/inference_agent.py "GPU现在用了多少显存？"
+python inference_agent.py "GPU现在用了多少显存？"
 ```
 
 环境变量可覆盖默认地址和模型名：`VLLM_API_BASE`、`VLLM_HTTP_BASE`、

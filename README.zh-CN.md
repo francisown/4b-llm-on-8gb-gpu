@@ -7,9 +7,16 @@
 
 这是一个从模型到服务的完整推理工程项目：在**单张 RTX 5060 8GB** 上，把 Qwen3.5-4B 从量化、质量评测一路做到服务化、调优和离线交付，并留下足以解释每个取舍的测量数据和原始证据。
 
-**定位：AI Systems / Inference Engineer** —— 让模型适配硬件，再把它做成可观测、可验证的服务。证据地图与明确不声称的内容见 [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md)。
+**定位：AI Systems / Inference Engineer** —— 让模型适配硬件，再把它做成可观测、可验证的服务。
 
 `vLLM 服务 → 并发压测 → 量化（FP8 / INT4-AWQ）→ 质量评测 → KV Cache 与调度调优 → 推测解码 → FastAPI 生产网关 → Docker 离线交付 → Kubernetes`
+
+## 范围
+
+这个仓库只讲**一条 8GB 推理交付路径**。
+
+- **范围内：** 量化、质量评测、vLLM 服务、FastAPI 网关、Kubernetes 网关层、可观测性、发布与交付。
+- **不在本仓库：** 手写 CUDA 引擎在 [`qwen3.5-fp8-cuda`](https://github.com/francisown/qwen3.5-fp8-cuda)；推理运维 Agent 是 [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) 里的实验，不属于已验证交付路径。
 
 这里交付的最小单位是一个**可以交给别人运行的推理服务**：模型要装得进显存，质量变化要测得出来，服务上限要看得见，运行方式要能复现。
 
@@ -220,8 +227,6 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) | WSL2 k3s GPU 尝试：做成了什么、PLEG 阻塞、为什么不声称集群内 serving 数字 |
 | [`docs/LINUX_GPU_RUNBOOK.md`](docs/LINUX_GPU_RUNBOOK.md) | 真实 Linux GPU 节点步骤：驱动、toolkit、device plugin、PVC、vLLM、TensorRT-LLM |
 | [`docs/PERFORMANCE_REPORT.md`](docs/PERFORMANCE_REPORT.md) | 性能报告：量化、K8s 网关、故障处理与不声称的内容 |
-| [`docs/RESUME_BULLETS.md`](docs/RESUME_BULLETS.md) | 带证据链接的简历 bullet 与不可声称项 |
-| [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | 一句话定位、证据地图、不声称的内容、未来 6–12 周计划 |
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | 当前旗舰计划与验证清单 |
 | [`benchmark/eval/`](benchmark/eval/) | 冻结的 200 题清单、四个模型的逐题原始结果、三向总表 |
 | [`benchmark/results/`](benchmark/results/) | 全部性能原始 JSON（并发 sweep、长上下文、推测解码、真实多轮对话） |

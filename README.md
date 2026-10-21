@@ -8,9 +8,21 @@
 
 Quantize, benchmark, serve, and package a 4B model on a **single RTX 5060 with 8 GB**. This project turns model weights into a measured, runnable inference service: the model fits the memory budget, quality changes are evaluated, serving limits are exposed, and the delivery bundle can be run by someone else.
 
-**Profile target: AI Systems / Inference Engineer** — make the model fit the hardware, then ship it as an observable, verifiable service. See [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) for the evidence map and explicit non-claims.
+**Profile target: AI Systems / Inference Engineer** — make the model fit the hardware, then ship it as an observable, verifiable service.
 
 `vLLM serving → concurrency benchmarking → quantization (FP8 / INT4-AWQ) → quality evaluation → KV cache & scheduling tuning → speculative decoding → FastAPI gateway → Docker offline delivery → Kubernetes`
+
+## Scope
+
+This repository is deliberately about **one 8 GB inference delivery path**.
+
+- **In scope:** quantization, quality evaluation, vLLM serving, FastAPI gateway,
+  Kubernetes gateway layer, observability, and release/delivery.
+- **Separate:** the hand-written CUDA engine lives in
+  [`qwen3.5-fp8-cuda`](https://github.com/francisown/qwen3.5-fp8-cuda). The
+  inference-ops agent is an experiment in
+  [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) and is
+  not part of the validated delivery path.
 
 ## What this project demonstrates
 
@@ -229,8 +241,6 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) | WSL2 k3s GPU attempt: what worked, the PLEG blocker, and why no in-cluster serving number is claimed |
 | [`docs/LINUX_GPU_RUNBOOK.md`](docs/LINUX_GPU_RUNBOOK.md) | Step-by-step native Linux GPU node path: driver, toolkit, device plugin, PVC, vLLM, TensorRT-LLM |
 | [`docs/PERFORMANCE_REPORT.md`](docs/PERFORMANCE_REPORT.md) | Concise performance report with quantization, K8s gateway, failure, and non-claims |
-| [`docs/RESUME_BULLETS.md`](docs/RESUME_BULLETS.md) | Evidence-linked resume bullets and what not to claim |
-| [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | One-line positioning, evidence map, non-claims, and the next 6–12 weeks |
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | Current flagship plan and verification checklist |
 | [`benchmark/eval/`](benchmark/eval/) | Frozen 200-question set, per-question results for four models, combined comparison table |
 | [`benchmark/results/`](benchmark/results/) | All raw performance JSON (concurrency sweeps, long context, speculative decoding, repeat comparisons) |

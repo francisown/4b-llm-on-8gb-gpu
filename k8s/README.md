@@ -66,6 +66,10 @@ Deployment 使用 `imagePullPolicy: IfNotPresent`。本地节点已有镜像时�
 
 对于有镜像仓库的集群，可以直接使用 GHCR 镜像：
 
+```bash
+kubectl apply -k deploy/k8s-overlays/ghcr
+```
+
 ```yaml
 image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 imagePullPolicy: IfNotPresent
@@ -88,6 +92,8 @@ kubectl get pods,deploy,svc,pdb -n ai-inference -o wide
 - startup `/live`、readiness `/health`、liveness `/live`；
 - `terminationGracePeriodSeconds: 30` + `preStop sleep 5`；
 - 非 root、只读根文件系统、`/tmp` emptyDir；
+- namespace 启用 Pod Security `baseline`；
+- `NetworkPolicy` 只允许同 namespace 访问 gateway 的 9000 端口；
 - CPU/内存 requests 与 limits；
 - PDB `minAvailable: 1`；
 - HPA 清单（需要 metrics-server 才生效）；
@@ -206,6 +212,7 @@ Secret 不要提交到 Git。
 | `configmap.yaml` | 模型名、上游地址、并发/超时/重试参数 |
 | `deployment.yaml` | 2 副本、探针、滚动策略、安全上下文 |
 | `service.yaml` | ClusterIP 入口 |
+| `networkpolicy.yaml` | 只允许同 namespace 访问 gateway 的 9000 端口 |
 | `pdb.yaml` | `minAvailable: 1` |
 | `hpa.yaml` | CPU HPA 清单（需要 metrics-server；机制验证见 `benchmark/hpa/`） |
 | `observability/prometheus.yaml` | Prometheus、RBAC、按 Pod 抓取 |

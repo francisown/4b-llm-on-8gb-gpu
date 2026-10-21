@@ -120,19 +120,19 @@ The value of this test is the **zero-error completion and gauge recovery**,
 not the latency number: the mock upstream has a fixed delay, so the latency is
 not comparable to vLLM.
 
-### 10-minute soak
+### 10-minute soak (v0.2.4)
 
 | Metric | Result |
 |---|---:|
 | Duration / concurrency | 600.092 s / 4 |
-| Requests | **11,554** |
+| Requests | **11,717** |
 | Errors | **0** |
-| Throughput | 19.254 req/s |
-| Latency mean / p50 / p95 / p99 | 207.73 / 207.19 / 217.39 / 222.50 ms |
+| Throughput | 19.525 req/s |
+| Latency mean / p50 / p95 / p99 | 204.86 / 204.16 / 213.62 / 219.19 ms |
 | Health before / after | ok / ok |
 | Active / waiting after drain | **0 / 0** |
 
-Raw: [`soak-c4-600s.json`](../benchmark/results/observability/soak-c4-600s.json).
+Raw: [`soak-c4-600s-v0.2.4.json`](../benchmark/results/observability/soak-c4-600s-v0.2.4.json).
 This is a 10-minute gateway soak, not a multi-hour model soak.
 
 ### Backpressure at concurrency 16

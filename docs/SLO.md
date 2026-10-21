@@ -133,13 +133,13 @@ The CPU-only Compose stack was started and exercised end to end:
 
 A v0.2.4 2-minute closed-loop soak at concurrency 4 completed **2,329 requests with 0
 errors**, 19.389 req/s, p95 **215.82 ms**, and `active=0`, `waiting=0` after a
-one-second drain. A v0.2.3 10-minute soak completed **11,554 requests with 0
-errors**, 19.254 req/s, p95 **217.39 ms**, and the same gauge recovery. A
+one-second drain. A v0.2.4 10-minute soak completed **11,717 requests with 0
+errors**, 19.525 req/s, p95 **213.62 ms**, and the same gauge recovery. A
 concurrency-16 backpressure run produced 621 successes and 6,544 clean 429s with
 **0 other errors**. These are gateway-stability tests against the mock upstream;
 they are not vLLM throughput results. Evidence:
 [`soak-c4-120s-v0.2.4.json`](../benchmark/results/observability/soak-c4-120s-v0.2.4.json),
-[`soak-c4-600s.json`](../benchmark/results/observability/soak-c4-600s.json),
+[`soak-c4-600s-v0.2.4.json`](../benchmark/results/observability/soak-c4-600s-v0.2.4.json),
 [`backpressure-c16-30s.json`](../benchmark/results/observability/backpressure-c16-30s.json).
 
 Evidence: [`benchmark/results/observability/summary.txt`](../benchmark/results/observability/summary.txt),

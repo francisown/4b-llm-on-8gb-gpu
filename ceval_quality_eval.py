@@ -1,4 +1,4 @@
-"""Prepare and run a reproducible C-Eval validation-set quality benchmark.
+﻿"""Prepare and run a reproducible C-Eval validation-set quality benchmark.
 
 The INT4-AWQ calibration used C-Eval *dev*. This evaluator deliberately uses
 the disjoint *val* split so the reported quality is not measured on calibration
@@ -23,7 +23,7 @@ import urllib.request
 import zipfile
 
 
-DEFAULT_ZIP = Path("/mnt/e/AI-Inference-Lab/datasets/ceval.zip")
+DEFAULT_ZIP = Path(os.environ.get("CEVAL_ZIP", "/mnt/e/AI-Inference-Lab/datasets/ceval.zip"))
 DEFAULT_MANIFEST = Path("benchmark/eval/ceval-val-200.json")
 CHOICES = ("A", "B", "C", "D")
 

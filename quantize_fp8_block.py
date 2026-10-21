@@ -1,4 +1,4 @@
-"""Create a local FP8_BLOCK checkpoint from the Qwen3.5-4B BF16 model.
+﻿"""Create a local FP8_BLOCK checkpoint from the Qwen3.5-4B BF16 model.
 
 This script deliberately uses llm-compressor's model-free PTQ entrypoint so the
 entire 4B model never has to fit in the RTX 5060's 8 GB VRAM at once.
@@ -15,8 +15,8 @@ from pathlib import Path
 from llmcompressor import model_free_ptq
 
 
-DEFAULT_MODEL = Path("/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b")
-DEFAULT_OUTPUT = Path("/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b-fp8-self-v3")
+DEFAULT_MODEL = Path(os.environ.get("QWEN_BF16_DIR", "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b"))
+DEFAULT_OUTPUT = Path(os.environ.get("QWEN_FP8_OUTPUT", "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b-fp8-self-v3"))
 
 # Qwen3.5 is a hybrid vision-language model. Keep the vision tower, embeddings,
 # small linear-attention A/B projections, and the MTP fusion projection in BF16.

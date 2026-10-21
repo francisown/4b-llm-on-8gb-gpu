@@ -35,9 +35,13 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 ## Verification
 
 - Deterministic path: `python scripts/verify_local.py` (5 cost + 19 gateway
-  tests), manifest validation (16 documents), workflow validation, docs
+  tests), manifest validation (17 documents), workflow validation, docs
   validation, generated-CSV check.
 - v0.2.4 2-minute mock soak: 2,329 requests, 0 errors, p95 215.82 ms.
+- v0.2.4 10-minute mock soak: 11,717 requests, 0 errors, 19.525 req/s,
+  p95 213.62 ms.
+- HPA re-run on v0.2.4 with CPU metrics + mock upstream: 2→4 in 45 s,
+  4→2 in 90 s, 8,000 requests at c=32 with 0 errors, CPU 198%/60%.
 - Rate limit on v0.2.4: auth disabled, rotating `X-API-Key` no longer creates a
   new bucket (same direct IP); auth enabled, tenant A 5×200 then 429 while
   tenant B remains 200.

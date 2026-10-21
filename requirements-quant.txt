@@ -1,0 +1,11 @@
+# Recorded quantization/evaluation environment (WSL2 + RTX 5060).
+# This is a record, not a universal lockfile: install the CUDA 13.0 wheels from
+# the matching PyTorch index before using it on another host.
+vllm==0.29.0
+torch==2.13.0
+transformers==5.14.0
+
+# The original run did not record exact versions for these two packages.
+# Pin them before treating this file as a strict lockfile.
+llmcompressor
+datasets

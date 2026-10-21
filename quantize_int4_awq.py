@@ -1,4 +1,4 @@
-"""Quantize the local Qwen3.5-4B BF16 checkpoint to W4A16 INT4 with AWQ.
+﻿"""Quantize the local Qwen3.5-4B BF16 checkpoint to W4A16 INT4 with AWQ.
 
 The calibration corpus is read directly from the C-Eval ZIP.  Only the dev
 split is used for calibration so validation/test rows remain available for
@@ -26,9 +26,9 @@ from llmcompressor.modifiers.transform.awq import AWQModifier
 from transformers import AutoModelForImageTextToText, AutoTokenizer
 
 
-DEFAULT_MODEL = Path("/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b")
-DEFAULT_OUTPUT = Path("/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b-int4-awq-self-v1")
-DEFAULT_CEVAL_ZIP = Path("/mnt/e/AI-Inference-Lab/datasets/ceval.zip")
+DEFAULT_MODEL = Path(os.environ.get("QWEN_BF16_DIR", "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b"))
+DEFAULT_OUTPUT = Path(os.environ.get("QWEN_INT4_OUTPUT", "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b-int4-awq-self-v1"))
+DEFAULT_CEVAL_ZIP = Path(os.environ.get("CEVAL_ZIP", "/mnt/e/AI-Inference-Lab/datasets/ceval.zip"))
 
 # Keep modules that either do not benefit enough from packing, are sensitive,
 # or are outside the text-only language model path in BF16.

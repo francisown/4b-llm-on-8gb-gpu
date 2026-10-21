@@ -1,0 +1,27 @@
+﻿{
+  "url": "http://inference-gateway:9000/chat",
+  "stream": false,
+  "requests": 8000,
+  "concurrency": 32,
+  "max_tokens": 8,
+  "warmup": 2,
+  "duration_s": 50.188,
+  "success": 8000,
+  "errors": 0,
+  "error_rate": 0.0,
+  "throughput_rps": 159.401,
+  "completion_tokens": 64000,
+  "tokens_per_second": 1275.207,
+  "latency_ms": {
+    "mean": 199.89,
+    "p50": 199.54,
+    "p95": 206.07,
+    "p99": 214.02
+  },
+  "ttft_ms": null,
+  "pods": {
+    "inference-gateway-597f5b9b7b-qgg66": 3752,
+    "inference-gateway-597f5b9b7b-tcbmv": 4248
+  },
+  "error_samples": []
+}

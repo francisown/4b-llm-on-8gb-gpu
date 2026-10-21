@@ -15,6 +15,7 @@
 
 - [四个数字](#先看四个能说明交付结果的数字)
 - [5 分钟复现](#5-分钟复现路径)
+- [完整复现指南](docs/REPRODUCE.md)
 - [基准协议](docs/BENCHMARK_PROTOCOL.md)
 - [Kubernetes 实测](docs/K8S_VERIFICATION.md)
 - [性能报告](docs/PERFORMANCE_REPORT.md)
@@ -55,7 +56,7 @@
 | **Qwen3.5-4B**（交付模型） | 自制 INT4-AWQ 把 4B 模型压到 | **3.568 GiB**（比 BF16 小 59%，比 FP8 小 32%） | [`benchmark/eval/README.md`](benchmark/eval/README.md) |
 | **Qwen3.5-4B** | 同一套 200 题上，四个版本总分完全相同 | **全部 141/200（70.5%）**，但 INT4 与 BF16 只有 **87.0%** 逐题一致 | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
 | **Qwen3.5-4B** | INT4-AWQ 在并发 4 下的输出吞吐 | **333.90 tok/s**，TTFT p50 **251.73 ms** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
-| **Gateway**（mock upstream） | 10 分钟闭环 soak | **11,554 请求，0 错误**，p95 **217.39 ms** | [`soak-c4-600s.json`](benchmark/results/observability/soak-c4-600s.json) |
+| **Gateway**（mock upstream） | 10 分钟闭环 soak | **11,717 请求，0 错误**，p95 **213.62 ms** | [`soak-c4-600s-v0.2.4.json`](benchmark/results/observability/soak-c4-600s-v0.2.4.json) |
 
 第二行是这份工作里最容易被忽略、但最值钱的一条：**四个模型总分相同，不代表它们等价。** 200 题单选题不足以证明模型等价（Wilson 95% 区间 63.84%–76.39%），而 INT4 有 26 道题的选择与 BF16 不同。这个区分决定了你敢不敢在业务里换量化方案。
 
@@ -69,7 +70,7 @@
 |---|---|---|
 | **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.4`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 认证、v0.2.2 TLS/告警/OTel、v0.2.3 按身份限流、v0.2.4 认证/限流身份与畸形上游响应加固）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
 | **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
-| **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 196%/60%；45s 扩容、80s 缩容；mock 上游，只验证 HPA 机制 |
+| **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 198%/60%；45s 扩容、90s 缩容；mock 上游，只验证 HPA 机制 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
 | **Kubernetes 调度 GPU** | **部分验证** | Docker Desktop K8s：`Insufficient nvidia.com/gpu`，一直 Pending。WSL2 k3s：节点广告 `nvidia.com/gpu: 1`，GPU Pod 跑通 `nvidia-smi -L`，vLLM 也加载了模型；但稳定 serving 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | **TensorRT-LLM 对比** | 未测量 | 只记录方法和 harness，不声称结果；见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
@@ -187,7 +188,7 @@ Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4�
 # 1. 确定性自测（不需要 GPU、模型或 API Key）
 python -m pip install -r gateway/requirements-dev.txt pyyaml
 python scripts/verify_local.py          # 预期：5 个成本测试 + 19 个网关测试
-python scripts/validate_manifests.py    # 预期：16 个 Kubernetes 文档
+python scripts/validate_manifests.py    # 预期：17 个 Kubernetes 文档
 
 # 2. 从原始 JSON 复算吞吐与成本（在仓库根执行）
 python tools/cost_calculator.py \
@@ -267,13 +268,15 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus 告警规则、验证与 runbook |
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing、OTLP 配置、验证与限制 |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
+| [`docs/REPRODUCE.md`](docs/REPRODUCE.md) | 三层复现路径、环境版本与已知缺口 |
+| [`requirements-quant.txt`](requirements-quant.txt) | 记录的量化/vLLM 环境，不是通用 lockfile |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.4 tag、GHCR 镜像、发布验证与部署说明 |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | 可选的推理运维 Agent 实验，不属于已验证交付路径 |
 | [`SECURITY.md`](SECURITY.md) | 漏洞报告、Secret 策略、范围与已知限制 |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 本地检查、可观测性 demo、soak、PR 清单与发布流程 |
 | [`.github/workflows/release.yml`](.github/workflows/release.yml) | tag 触发的 GHCR 镜像构建与发布 |
 | [`deploy/observability/`](deploy/observability/) | CPU-only Compose demo：mock vLLM + 网关 + Prometheus + 已配置的 Grafana dashboard |
-| [`k8s/`](k8s/) | 网关 Deployment / Service / ConfigMap / 探针 / PDB / HPA / Prometheus / 压测 Job |
+| [`k8s/`](k8s/) | 网关 Deployment / Service / ConfigMap / 探针 / PDB / HPA / NetworkPolicy / Prometheus / 压测 Job |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 测试、清单/工作流校验、Kustomize 渲染与 Docker 构建 |
 | [`scripts/validate_workflows.py`](scripts/validate_workflows.py) | 确定性的 GitHub Actions YAML 校验 |
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK 量化脚本 |
@@ -369,7 +372,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus、HPA 2→4→2；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
-| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、10 分钟 gateway soak（11,554 请求、0 错误、p95 217.39 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 soak |
+| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、10 分钟 gateway soak（11,717 请求、0 错误、p95 213.62 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 soak |
 | CI/CD | CI（测试、清单/工作流/文档校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.4 已发布）；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |

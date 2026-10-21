@@ -10,7 +10,7 @@
 |---|---|---|
 | 4B 模型压到 | **3.568 GiB**（比 BF16 小 59%） | 自制 W4A16 INT4-AWQ；比 FP8 小 32% |
 | INT4-AWQ 输出吞吐 | 并发 4 时 **333.90 tok/s** | 256-in / 128-out，temperature 0，3 轮均值；TTFT p50 251.73 ms |
-| 网关 soak | **11,554 请求，0 错误** | 对 mock upstream 的 10 分钟闭环，c=4，p95 217.39 ms |
+| 网关 soak | **11,717 请求，0 错误** | 对 mock upstream 的 10 分钟闭环，c=4，p95 213.62 ms |
 
 质量部分是真正值得讨论的：BF16、第三方 FP8、自制 FP8、自制 INT4 在冻结 C-Eval 集上都拿到 **141/200**，但 INT4 与 BF16 只有 **87.0%** 逐题一致，改变了 26 道题的答案。总分相同不代表模型等价；200 题的 Wilson 95% 区间是 63.84%–76.39%，不足以证明等价。
 
@@ -28,7 +28,7 @@ Qwen3-0.6B 的 5,693 tok/s（c=64）只作为引擎批处理测试负载放在�
 
 **4. 服务化。**FastAPI 网关：SSE 流式（含 TTFT 与端到端延迟）、连接/读/写/连接池四类独立超时、有界并发与队列、HTTP 429 背压、Prometheus 指标、`/live` 与 `/health` 分离、单行 JSON 日志、可选 API Key 认证、按身份限流、非 root 镜像。**19 个 pytest** 不依赖真实模型和 GPU。
 
-**5. 部署。**两副本 Kubernetes 网关、readiness/liveness、PDB、零停机滚动与回滚：集群内 100 请求 0 错误、326.53 tok/s；压测中强杀 1 个 Pod 的 300 请求 0 错误。HPA 2→4→2 另用 CPU 指标 + mock upstream 验证（45s / 80s）。GPU 推理仍在集群外，稳定的集群内 GPU vLLM 不声称成功。
+**5. 部署。**两副本 Kubernetes 网关、readiness/liveness、PDB、零停机滚动与回滚：集群内 100 请求 0 错误、326.53 tok/s；压测中强杀 1 个 Pod 的 300 请求 0 错误。HPA 2→4→2 另用 CPU 指标 + mock upstream 验证（45s / 90s）。GPU 推理仍在集群外，稳定的集群内 GPU vLLM 不声称成功。
 
 离线包 7.49 GiB（含模型权重）已在本机构建并 smoke test，但**未公开发布**，因此不计入公开可复现声明。
 

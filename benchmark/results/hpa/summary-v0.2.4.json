@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-21",
+  "gateway_version": "0.2.4",
+  "namespace": "hpa-demo",
+  "upstream": "mock OpenAI-compatible server",
+  "job": {
+    "requests": 8000,
+    "concurrency": 32,
+    "max_tokens": 8,
+    "duration_s": 50.188,
+    "success": 8000,
+    "errors": 0,
+    "throughput_rps": 159.401,
+    "tokens_per_second": 1275.207,
+    "latency_ms": {
+      "mean": 199.89,
+      "p50": 199.54,
+      "p95": 206.07,
+      "p99": 214.02
+    }
+  },
+  "hpa": {
+    "min_replicas": 2,
+    "max_replicas": 4,
+    "target_cpu_percent": 60,
+    "observed_cpu_percent": 198,
+    "scale_up_2_to_3_s": 30,
+    "scale_up_2_to_4_s": 45,
+    "scale_down_4_to_2_s": 90,
+    "events": [
+      "2026-10-21T06:25:25Z New size: 3",
+      "2026-10-21T06:25:40Z New size: 4",
+      "2026-10-21T06:27:10Z New size: 2 (All metrics below target)"
+    ]
+  },
+  "evidence": [
+    "benchmark/results/hpa/loadgen-v0.2.4.json",
+    "benchmark/results/hpa/scale-out-v0.2.4.txt"
+  ]
+}

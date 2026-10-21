@@ -10,7 +10,7 @@
 |---|---|---|
 | 4B model shrunk to | **3.568 GiB** (59% smaller than BF16) | Self-made W4A16 INT4-AWQ; 32% smaller than FP8 |
 | INT4-AWQ output throughput | **333.90 tok/s** at c=4 | 256-in / 128-out, temperature 0, mean of 3 runs; TTFT p50 251.73 ms |
-| Gateway soak | **11,554 requests, 0 errors** | 10-minute closed loop against a mock upstream, c=4, p95 217.39 ms |
+| Gateway soak | **11,717 requests, 0 errors** | 10-minute closed loop against a mock upstream, c=4, p95 213.62 ms |
 
 The quality result is the part worth discussing: BF16, third-party FP8, self-made FP8, and self-made INT4 all scored **141/200** on the frozen C-Eval set, but INT4 agreed with BF16 on only **87.0%** of questions and changed 26 answers. Equal totals do not mean equivalent models. The Wilson 95% interval for 200 questions is 63.84%–76.39%, so this is not an equivalence claim.
 
@@ -28,7 +28,7 @@ A Qwen3-0.6B run (5,693 tok/s at c=64) appears in the appendix of the main READM
 
 **4. Serving.** A FastAPI gateway with SSE streaming (TTFT and end-to-end latency), four independent timeout classes, bounded concurrency and queueing with HTTP 429 backpressure, Prometheus metrics, split `/live` and `/health` probes, single-line JSON logs, optional API-key auth, per-identity rate limiting, and a non-root image. **19 pytest cases** need neither a model nor a GPU.
 
-**5. Deployment.** A two-replica Kubernetes gateway with readiness/liveness, PDB, zero-downtime rollout, and rollback completed 100 in-cluster requests at 0 errors and 326.53 tok/s; 300 requests during a deliberate pod kill completed at 0 errors. HPA 2→4→2 was validated separately with CPU metrics and a mock upstream (45 s / 80 s). GPU inference still runs outside the cluster; stable in-cluster GPU vLLM is not claimed.
+**5. Deployment.** A two-replica Kubernetes gateway with readiness/liveness, PDB, zero-downtime rollout, and rollback completed 100 in-cluster requests at 0 errors and 326.53 tok/s; 300 requests during a deliberate pod kill completed at 0 errors. HPA 2→4→2 was validated separately with CPU metrics and a mock upstream (45 s / 90 s). GPU inference still runs outside the cluster; stable in-cluster GPU vLLM is not claimed.
 
 The offline bundle (7.49 GiB, including model weights) was built and smoke-tested locally. It is **not published**, so it is not part of the public reproduction claim.
 

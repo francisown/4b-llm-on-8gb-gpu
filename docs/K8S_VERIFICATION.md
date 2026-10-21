@@ -203,16 +203,16 @@ The separate test used a 60% CPU target and a mock upstream:
 |---|---:|
 | Initial / max replicas | 2 / 4 |
 | Scale-up | **45 s** (2 → 4) |
-| Scale-down | **80 s** (4 → 2, after the 60 s stabilization window) |
+| Scale-down | **90 s** (4 → 2, after the 60 s stabilization window) |
 | Load | 8,000 requests at c=32, 0 errors |
-| Observed CPU target | 196% vs 60% |
+| Observed CPU target | 198% vs 60% |
 | Event | `SuccessfulRescale New size: 4` |
 
 This validates CPU-based HPA mechanics, not model or GPU autoscaling. The
 gateway is stateless and the model server stayed outside the cluster. Evidence:
 [`benchmark/hpa/README.md`](../benchmark/hpa/README.md),
-[`benchmark/results/hpa/summary.json`](../benchmark/results/hpa/summary.json), and
-[`benchmark/results/hpa/scale-out.txt`](../benchmark/results/hpa/scale-out.txt).
+[`benchmark/results/hpa/summary-v0.2.4.json`](../benchmark/results/hpa/summary-v0.2.4.json), and
+[`benchmark/results/hpa/scale-out-v0.2.4.txt`](../benchmark/results/hpa/scale-out-v0.2.4.txt).
 
 ## Reproduce
 

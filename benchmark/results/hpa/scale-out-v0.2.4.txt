@@ -1,0 +1,34 @@
+﻿# gateway v0.2.4; hpa-demo; target 60%; mock upstream
+# SuccessfulRescale 2026-10-21T06:25:25Z New size: 3
+# SuccessfulRescale 2026-10-21T06:25:40Z New size: 4
+# SuccessfulRescale 2026-10-21T06:27:10Z New size: 2 (all metrics below target)
+14:25:50 current=3 desired=4 cpu=198
+14:25:55 current=3 desired=4 cpu=194
+14:26:00 current=4 desired=4 cpu=194
+14:26:05 current=4 desired=4 cpu=194
+14:26:11 current=4 desired=4 cpu=102
+14:26:16 current=4 desired=4 cpu=102
+14:26:21 current=4 desired=4 cpu=102
+14:26:26 current=4 desired=4 cpu=5
+14:26:32 current=4 desired=4 cpu=5
+14:26:37 current=4 desired=4 cpu=5
+14:26:42 current=4 desired=4 cpu=2
+14:26:47 current=4 desired=4 cpu=2
+14:26:53 current=4 desired=4 cpu=2
+14:26:58 current=4 desired=4 cpu=3
+14:27:03 current=4 desired=4 cpu=3
+14:27:08 current=4 desired=4 cpu=3
+14:27:14 current=4 desired=2 cpu=3
+14:27:19 current=4 desired=2 cpu=3
+14:27:24 current=4 desired=2 cpu=3
+14:27:29 current=2 desired=2 cpu=3
+14:27:35 current=2 desired=2 cpu=3
+14:27:40 current=2 desired=2 cpu=3
+14:27:45 current=2 desired=2 cpu=3
+14:27:50 current=2 desired=2 cpu=3
+14:27:56 current=2 desired=2 cpu=3
+14:28:01 current=2 desired=2 cpu=3
+14:28:06 current=2 desired=2 cpu=3
+14:28:11 current=2 desired=2 cpu=3
+14:28:17 current=2 desired=2 cpu=3
+14:28:22 current=2 desired=2 cpu=3

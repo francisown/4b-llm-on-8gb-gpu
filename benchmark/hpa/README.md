@@ -1,10 +1,10 @@
-# HPA validation (Docker Desktop Kubernetes)
+﻿# HPA validation (Docker Desktop Kubernetes)
 
 This is a real HPA test, isolated in the `hpa-demo` namespace. It uses a mock
 OpenAI-compatible upstream, so it validates **HPA mechanics and CPU-based
 scaling**, not vLLM model throughput.
 
-The manifests in this directory pin `ai-inference-gateway:v0.2.2`, the image
+The manifests in this directory pin `ai-inference-gateway:v0.2.4`, the image
 used for the recorded run. For a fresh run, retag the current gateway image or
 update `gateway.yaml` and `loadgen.yaml` together.
 
@@ -45,19 +45,20 @@ kubectl apply -f benchmark/hpa/loadgen.yaml
 kubectl get hpa -n hpa-demo -w
 ```
 
-## Observed result (2026-10-21)
+## Observed result (2026-10-21, v0.2.4)
 
 | Metric | Result |
 |---|---:|
 | Initial replicas | 2 |
 | Max replicas | 4 |
-| CPU target / observed | 60% / **196%** |
-| Scale-up | **45 s** (2 → 4) |
-| Scale-down | **80 s** (4 → 2, after the 60 s stabilization window) |
+| CPU target / observed | 60% / **198%** |
+| Scale-up 2→3 | **30 s** |
+| Scale-up 2→4 | **45 s** |
+| Scale-down 4→2 | **90 s** (after the 60 s stabilization window) |
 | Load | 8,000 requests, concurrency 32, 0 errors |
-| Throughput | 158.859 req/s |
-| Output tokens/s | 1,270.875 (mock, 8 tokens) |
-| Latency p95 | 207.58 ms |
+| Throughput | 159.401 req/s |
+| Output tokens/s | 1,275.207 (mock, 8 tokens) |
+| Latency p95 | 206.07 ms |
 
 HPA event:
 
@@ -66,8 +67,9 @@ SuccessfulRescale  New size: 4; reason: cpu resource utilization
 (percentage of request) above target
 ```
 
-Evidence: [`../results/hpa/scale-out.txt`](../results/hpa/scale-out.txt) and
-[`../results/hpa/summary.json`](../results/hpa/summary.json).
+Evidence: [`../results/hpa/summary-v0.2.4.json`](../results/hpa/summary-v0.2.4.json),
+[`../results/hpa/scale-out-v0.2.4.txt`](../results/hpa/scale-out-v0.2.4.txt), and
+[`../results/hpa/loadgen-v0.2.4.json`](../results/hpa/loadgen-v0.2.4.json).
 
 ## Limits
 

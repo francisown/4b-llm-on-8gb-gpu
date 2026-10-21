@@ -17,6 +17,7 @@ Quantize, benchmark, serve, and package a 4B model on a **single RTX 5060 with 8
 
 - [Four numbers](#four-numbers-that-define-the-delivery)
 - [Reproduce in 5 minutes](#reproduce-in-5-minutes)
+- [Full reproduction guide](docs/REPRODUCE.md)
 - [Benchmark protocol](docs/BENCHMARK_PROTOCOL.md)
 - [Kubernetes verification](docs/K8S_VERIFICATION.md)
 - [Performance report](docs/PERFORMANCE_REPORT.md)
@@ -59,7 +60,7 @@ This repository is deliberately about **one 8 GB inference delivery path**.
 | **Qwen3.5-4B** (delivery model) | Self-made INT4-AWQ shrinks the 4B model to | **3.568 GiB** (59% smaller than BF16, 32% smaller than FP8) | [`benchmark/eval/README.md`](benchmark/eval/README.md) |
 | **Qwen3.5-4B** | Four variants score *identically* on the same 200 questions | **All 141/200 (70.5%)**, yet INT4 agrees with BF16 on only **87.0%** of questions | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
 | **Qwen3.5-4B** | INT4-AWQ output throughput at concurrency 4 | **333.90 tok/s**, TTFT p50 **251.73 ms** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
-| **Gateway** (mock upstream) | 10-minute closed-loop soak | **11,554 requests, 0 errors**, p95 **217.39 ms** | [`soak-c4-600s.json`](benchmark/results/observability/soak-c4-600s.json) |
+| **Gateway** (mock upstream) | 10-minute closed-loop soak | **11,717 requests, 0 errors**, p95 **213.62 ms** | [`soak-c4-600s-v0.2.4.json`](benchmark/results/observability/soak-c4-600s-v0.2.4.json) |
 
 The second row is the most valuable thing this project produced: **four models scoring the same does not make them equivalent.** 200 multiple-choice questions cannot establish equivalence anyway (Wilson 95% interval 63.84%–76.39%), and INT4 picks a different option on 26 of them. That distinction is what decides whether you dare swap a quantization scheme in production.
 
@@ -73,7 +74,7 @@ A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Co
 |---|---|---|
 | **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.4` (same serving path as the measured `v0.2.0`; v0.2.1 auth, v0.2.2 TLS/alerting/OTel, v0.2.3 rate limiting, v0.2.4 auth/rate-limit hardening), real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods |
-| **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 196%/60%; scale-up 45s, scale-down 80s; mock upstream, HPA mechanics only |
+| **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 198%/60%; scale-up 45s, scale-down 90s; mock upstream, HPA mechanics only |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
 | **GPU scheduled by Kubernetes** | **Partially verified** | Docker Desktop K8s: `Pending` (`Insufficient nvidia.com/gpu`). WSL2 k3s: node advertised `nvidia.com/gpu: 1`, a GPU pod ran `nvidia-smi -L`, and vLLM loaded the model; stable in-cluster serving was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | **TensorRT-LLM comparison** | Not measured | Harness and protocol documented; no result claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
@@ -201,7 +202,7 @@ That conclusion is independent of the model generation, and it is the only thing
 # 1. Deterministic checks (no GPU, no model, no API key)
 python -m pip install -r gateway/requirements-dev.txt pyyaml
 python scripts/verify_local.py          # expect: 5 cost tests + 19 gateway tests
-python scripts/validate_manifests.py    # expect: 16 Kubernetes documents
+python scripts/validate_manifests.py    # expect: 17 Kubernetes documents
 
 # 2. Recompute throughput and cost from the raw JSON (run at repo root)
 python tools/cost_calculator.py \
@@ -213,7 +214,7 @@ kubectl apply -k k8s
 kubectl apply -k k8s/observability
 ```
 
-The full pipeline (needs a GPU + WSL2 + vLLM) is documented in the "Reproducible environment" section of [`docs/project-notes.md`](docs/project-notes.md). The four per-question quantization result files live in [`benchmark/eval/`](benchmark/eval/); all raw performance JSON is in [`benchmark/results/`](benchmark/results/).
+The full pipeline (needs a GPU + WSL2 + vLLM) is documented in [`docs/REPRODUCE.md`](docs/REPRODUCE.md) and the "Reproducible environment" section of [`docs/project-notes.md`](docs/project-notes.md). The four per-question quantization result files live in [`benchmark/eval/`](benchmark/eval/); all raw performance JSON is in [`benchmark/results/`](benchmark/results/).
 
 ## Release
 
@@ -277,12 +278,14 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | In-cluster / port-forward load generator with TTFT, latency percentiles, error rate, and per-pod counts |
 | [`benchmark/soak_test.py`](benchmark/soak_test.py) | Closed-loop gateway soak with latency percentiles, error rate, and active/waiting gauge recovery |
 | [`gateway/`](gateway/) | FastAPI gateway, web UI, Dockerfile, offline pytest suite |
-| [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probes / PDB / HPA / Prometheus / load-test Job |
+| [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probes / PDB / HPA / NetworkPolicy / Prometheus / load-test Job |
 | [`docs/SLO.md`](docs/SLO.md) | SLO targets, PromQL queries, error-budget policy, and dashboard link |
 | [`docs/TLS.md`](docs/TLS.md) | Local TLS terminator, verification, and production guidance |
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus alert rules, verification, and runbook |
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing, OTLP configuration, verification, and limits |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |
+| [`docs/REPRODUCE.md`](docs/REPRODUCE.md) | Three reproduction levels, environment versions, and known gaps |
+| [`requirements-quant.txt`](requirements-quant.txt) | Recorded quantization/vLLM environment; not a universal lockfile |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.4 tag, GHCR image, release verification, and deployment notes |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | Optional inference-ops agent experiment; not part of the validated delivery path |
 | [`SECURITY.md`](SECURITY.md) | Vulnerability reporting, secrets policy, scope, and known limitations |
@@ -384,7 +387,7 @@ Model weights and datasets are not committed (see `.gitignore`).
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus, HPA 2→4→2; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) and [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes GPU scheduling | **Partially verified**: Docker Desktop K8s has no GPU device plugin; WSL2 k3s did advertise `nvidia.com/gpu: 1` and run a GPU pod, but stable in-cluster vLLM was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
-| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs, a 10-minute gateway soak (11,554 requests, 0 errors, p95 217.39 ms), c=16 backpressure, and OTel/Jaeger tracing; no multi-hour soak yet |
+| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs, a 10-minute gateway soak (11,717 requests, 0 errors, p95 213.62 ms), c=16 backpressure, and OTel/Jaeger tracing; no multi-hour soak yet |
 | CI/CD | CI (tests, manifest/workflow/docs validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.4 published); no image signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |

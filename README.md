@@ -76,7 +76,7 @@ A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Co
 |---|---|---|
 | **Docker + host vLLM on RTX 5060** | Verified (v0.2.4 image) | Gateway image `v0.2.4` with real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; 20 requests at c=4, 0 errors, **327.51 tok/s**, p95 513 ms; stream TTFT p50 **85.5 ms**, p95 101.9 ms. Raw: [`real-vllm-v0.2.4-c4.json`](benchmark/results/real-vllm-v0.2.4-c4.json) |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified (host vLLM) | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods; model server was outside the cluster |
-| **GPU-in-K8s vLLM + gateway (WSL2 k3s)** | Verified (short smoke) | vLLM pod with `nvidia.com/gpu: 1` + 2 gateway pods; 100 in-cluster requests, 0 errors, **147.17 tok/s**, p95 3.02 s; stream TTFT p50 91.8 ms, p95 113.2 ms; performance below host path, not production. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
+| **GPU-in-K8s vLLM + gateway (WSL2 k3s)** | Short smoke only | vLLM pod with `nvidia.com/gpu: 1` + 2 gateway pods; 100 in-cluster requests, 0 errors, **147.17 tok/s**, p95 3.02 s; stream TTFT p50 91.8 ms. After ~6 hours the k3s node became `NotReady` (flannel/PLEG), so this is **not** long-run stable serving. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 198%/60%; scale-up 45s, scale-down 90s; mock upstream, HPA mechanics only |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
 | **TensorRT-LLM comparison** | Not measured | TensorRT-LLM 1.2.1 support matrix does not cover Qwen3.5 or RTX 5060/SM120, and its CUDA/torch requirements differ; no unsupported benchmark is claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
@@ -299,7 +299,9 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |
 | [`docs/REPRODUCE.md`](docs/REPRODUCE.md) | Three reproduction levels, environment versions, and known gaps |
 | [`docs/OFFLINE_BUNDLE.md`](docs/OFFLINE_BUNDLE.md) | 7.49 GiB offline bundle contents, SHA-256 checksums, and verification transcript |
-| [`requirements-quant.txt`](requirements-quant.txt) | Recorded quantization/vLLM environment; not a universal lockfile |
+| [`requirements-quant.txt`](requirements-quant.txt) | Human-readable quantization starting point |
+| [`requirements-quant.lock.txt`](requirements-quant.lock.txt) | Actual pip freeze of the quantization/evaluation environment (88 packages) |
+| [`requirements-vllm.lock.txt`](requirements-vllm.lock.txt) | Actual pip freeze of the vLLM serving environment (205 packages) |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.4 tag, GHCR image, release verification, and deployment notes |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | Optional inference-ops agent experiment; not part of the validated delivery path |
 | [`SECURITY.md`](SECURITY.md) | Vulnerability reporting, secrets policy, scope, and known limitations |
@@ -400,7 +402,7 @@ Model weights and datasets are not committed (see `.gitignore`).
 |---|---|
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus, HPA 2→4→2; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) and [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
-| Kubernetes GPU scheduling | **Verified on WSL2 k3s (short smoke)**: node advertises `nvidia.com/gpu: 1`; vLLM pod serves real Qwen3.5-4B-INT4-AWQ; 2 gateway pods; 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s. Performance is much lower than the host path; not a production/parity claim. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
+| Kubernetes GPU scheduling | **Short smoke only**: node advertised `nvidia.com/gpu: 1`; vLLM pod served real Qwen3.5-4B-INT4-AWQ; 2 gateway pods; 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s. After ~6 h the WSL2 k3s node became `NotReady` (flannel/PLEG), so long-run GPU serving is **not** claimed. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, Alertmanager routing, SLO/error-budget docs, a 2-hour gateway soak (140,178 requests, 0 errors, p95 214.82 ms), c=16 backpressure, and OTel/Jaeger tracing; no multi-hour GPU/K8s soak yet |
 | CI/CD | CI (tests, manifest/workflow/docs validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.4 published); no image signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |

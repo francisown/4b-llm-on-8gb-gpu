@@ -9,10 +9,13 @@ Host: Windows + WSL2 Ubuntu 22.04, NVIDIA RTX 5060 8 GB, driver 595.97, CUDA 13.
 > concrete fixes mattered: deleting an older crash-looping `ai-inference`
 > namespace, and overriding the Kubernetes-injected
 > `VLLM_PORT=tcp://...` with `VLLM_PORT=8000` (plus
-> `enableServiceLinks: false`). The PLEG failure below is kept as the earlier
-> attempt; it did not recur in the final short run. See
-> [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/) for the current
-> evidence and limits.
+> `enableServiceLinks: false`). **The PLEG failure recurred after roughly six
+> hours**, when the node became `NotReady` with flannel/PLEG errors. A
+> `systemctl restart k3s` briefly restored `Ready`, then the node failed again
+> within about five minutes; the vLLM pod went `Unknown` and endpoints
+> disappeared. The short validation is therefore not a long-run stability
+> claim. See [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/) for
+> both the result and the failure evidence.
 
 This document records an attempt to answer a specific question:
 
@@ -100,6 +103,8 @@ the WSL GPU at all, so it cannot be used as a fallback.
 - **GPU scheduling in Kubernetes: demonstrated** on WSL2 k3s.
 - **Short in-cluster vLLM serving: achieved** after cleaning the old namespace
   and setting `VLLM_PORT=8000`; 100 requests, 0 errors, 147.17 tok/s.
+- **Long-run stability: not achieved.** After about six hours the same node
+  became `NotReady` (flannel/PLEG); no multi-hour GPU/K8s soak is claimed.
 - **Production/native-Linux serving: not claimed.** This was a 100-request smoke
   test with a hostPath model, not a PVC-based production deployment or soak.
 - The host path remains faster (327.51 tok/s, p95 513 ms) than the WSL2 k3s path

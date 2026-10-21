@@ -72,7 +72,7 @@
 |---|---|---|
 | **Docker + 宿主 vLLM（RTX 5060）** | 已验证（v0.2.4 镜像） | 网关镜像 `v0.2.4` + 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；20 请求 c=4、0 错误、**327.51 tok/s**、p95 513 ms；流式 TTFT p50 **85.5 ms**、p95 101.9 ms |
 | **Kubernetes 网关，2 副本 + Prometheus** | 已验证（宿主 vLLM） | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取；模型服务在集群外 |
-| **GPU-in-K8s vLLM + gateway（WSL2 k3s）** | 已验证（短 smoke） | vLLM Pod 占 `nvidia.com/gpu: 1`，2 个 gateway Pod；集群内 100 请求 0 错误、**147.17 tok/s**、p95 3.02s；流式 TTFT p50 91.8 ms、p95 113.2 ms；性能明显低于宿主路径，不是生产/等价声明。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
+| **GPU-in-K8s vLLM + gateway（WSL2 k3s）** | 仅短 smoke | vLLM Pod 占 `nvidia.com/gpu: 1`，2 个 gateway Pod；集群内 100 请求 0 错误、**147.17 tok/s**、p95 3.02s；流式 TTFT p50 91.8 ms。约 6 小时后 k3s 节点变成 `NotReady`（flannel/PLEG），因此**不声称**长稳 serving。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 198%/60%；45s 扩容、90s 缩容；mock 上游，只验证 HPA 机制 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
 | **TensorRT-LLM 对比** | 未测量 | TensorRT-LLM 1.2.1 的 support matrix 不覆盖 Qwen3.5 或 RTX 5060/SM120，CUDA/torch 要求也不同；不声称未支持的 benchmark。见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
@@ -277,7 +277,9 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
 | [`docs/REPRODUCE.md`](docs/REPRODUCE.md) | 三层复现路径、环境版本与已知缺口 |
 | [`docs/OFFLINE_BUNDLE.md`](docs/OFFLINE_BUNDLE.md) | 7.49 GiB 离线包内容、SHA-256 校验值与验证记录 |
-| [`requirements-quant.txt`](requirements-quant.txt) | 记录的量化/vLLM 环境，不是通用 lockfile |
+| [`requirements-quant.txt`](requirements-quant.txt) | 量化环境的人类可读起点 |
+| [`requirements-quant.lock.txt`](requirements-quant.lock.txt) | 量化/评测环境的实际 pip freeze（88 包） |
+| [`requirements-vllm.lock.txt`](requirements-vllm.lock.txt) | vLLM 服务环境的实际 pip freeze（205 包） |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.4 tag、GHCR 镜像、发布验证与部署说明 |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | 可选的推理运维 Agent 实验，不属于已验证交付路径 |
 | [`SECURITY.md`](SECURITY.md) | 漏洞报告、Secret 策略、范围与已知限制 |
@@ -380,7 +382,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 |---|---|
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus、HPA 2→4→2；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
-| Kubernetes 调度 GPU | **WSL2 k3s 短 smoke 已验证**：节点广告 `nvidia.com/gpu: 1`；vLLM Pod 服务真实 Qwen3.5-4B-INT4-AWQ；2 个 gateway Pod；100 请求 0 错误、147.17 tok/s、p95 3.02s。性能明显低于宿主路径，不是生产/等价声明。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
+| Kubernetes 调度 GPU | **仅短 smoke**：节点广告 `nvidia.com/gpu: 1`；vLLM Pod 服务真实 Qwen3.5-4B-INT4-AWQ；2 个 gateway Pod；100 请求 0 错误、147.17 tok/s、p95 3.02s。约 6 小时后 WSL2 k3s 节点变成 `NotReady`（flannel/PLEG），不声称长稳 GPU serving。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、Alertmanager 路由、SLO/错误预算文档、2 小时 gateway soak（140,178 请求、0 错误、p95 214.82 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 GPU/K8s soak |
 | CI/CD | CI（测试、清单/工作流/文档校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.4 已发布）；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |

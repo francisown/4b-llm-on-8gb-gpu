@@ -207,7 +207,10 @@ The engine initially crashed because Kubernetes injected
 mounted with `hostPath`, and the namespace uses Pod Security audit/warn rather
 than enforce. This is a short functional smoke test, not a production or
 performance-parity claim; the host path measured 327.51 tok/s and p95 513 ms.
-Evidence: [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/) and
+**After roughly six hours the same k3s node became `NotReady` with
+flannel/PLEG errors, and the vLLM/gateway pods lost connectivity.** Long-run
+GPU serving is therefore not claimed. Evidence:
+[`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/) and
 [`k8s/gpu-inference/`](../k8s/gpu-inference/).
 
 ## HPA status
@@ -285,5 +288,7 @@ kubectl logs job/gateway-loadgen -n gpu-inference
 - GPU-in-K8s was validated only on WSL2 k3s with a hostPath model and a
   100-request smoke test; native Linux GPU nodes/PVCs and long GPU soaks are
   not claimed.
+- The WSL2 k3s node later became `NotReady` (flannel/PLEG), so even the short
+  GPU path is not a long-run stability claim.
 - TensorRT-LLM was not measured; see
   [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md).

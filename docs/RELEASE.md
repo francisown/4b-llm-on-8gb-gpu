@@ -46,7 +46,8 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
   4→2 in 90 s, 8,000 requests at c=32 with 0 errors, CPU 198%/60%.
 - WSL2 k3s GPU-in-K8s short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway
   replicas, 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s; host
-  path 327.51 tok/s / p95 513 ms. Functional validation only.
+  path 327.51 tok/s / p95 513 ms. Short functional validation only; the node
+  later became `NotReady` (flannel/PLEG), so no long-run claim.
 - Alertmanager ready on 9093; Prometheus reports it as an active Alertmanager
   (null receiver, routing connectivity only).
 - Rate limit on v0.2.4: auth disabled, rotating `X-API-Key` no longer creates a
@@ -54,7 +55,7 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
   tenant B remains 200.
 - HPA and soak results use a mock upstream; they validate gateway mechanics,
   not model throughput.
-- CI: runs 38, 39, 40, and 41 succeeded.
+- CI: runs 38–48 succeeded.
 - Release workflow: run 4 succeeded; GitHub Release published
   `2026-10-21T06:01:37Z`.
 - GHCR: `docker pull ...:v0.2.4` succeeded; digest

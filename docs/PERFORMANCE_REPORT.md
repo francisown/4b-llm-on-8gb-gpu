@@ -117,8 +117,9 @@ gateway replicas:
 | Stream requests / TTFT p50 / p95 | 20 / **91.8 / 113.2 ms** |
 
 This is functional validation, not parity: the host path measured 327.51 tok/s
-and p95 513 ms. The in-cluster gap is not yet isolated. Raw:
-[`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/).
+and p95 513 ms. The in-cluster gap is not yet isolated. After roughly six hours
+the node became `NotReady` (flannel/PLEG), so no long-run GPU/K8s soak is
+claimed. Raw: [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/).
 
 ## 4. Failure handling
 

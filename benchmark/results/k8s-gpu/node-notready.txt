@@ -1,0 +1,43 @@
+﻿recovery_attempt=systemctl restart k3s; Ready briefly; NotReady again within ~5 minutes
+recovery_result=vLLM pod Unknown, gateway pods not Ready, endpoints empty
+node_ready=False
+node_condition=KubeletNotReady (PLEG/flannel subnet.env missing)
+date=2026-10-21T22:27:57.2446946+08:00
+gpu_allocatable=  nvidia.com/gpu:     0
+vllm_pods=NAME                    READY   STATUS                   RESTARTS   AGE     IP       NODE              NOMINATED NODE   READINESS GATES
+vllm-75d98df7cc-4c45c   0/1     ContainerStatusUnknown   0          5m18s   <none>   chinami-daca7eb   <none>           <none>
+vllm-75d98df7cc-6wnvc   0/1     Pending                  0          13s     <none>   <none>            <none>           <none>
+vllm-75d98df7cc-k6qln   0/1     Error                    0          4m49s   <none>   chinami-daca7eb   <none>           <none>
+vllm-75d98df7cc-njpg7   0/1     Unknown                  0          6h16m   <none>   chinami-daca7eb   <none>           <none>
+vllm-75d98df7cc-p76gk   0/1     Unknown                  0          4m11s   <none>   chinami-daca7eb   <none>           <none>
+
+gateway_pods=NAME                                 READY   STATUS    RESTARTS      AGE    IP            NODE              NOMINATED NODE   READINESS GATES
+inference-gateway-78bc5f8b97-59hdk   0/1     Running   4 (25s ago)   6h8m   10.42.0.114   chinami-daca7eb   <none>           <none>
+inference-gateway-78bc5f8b97-6dl85   0/1     Running   4 (25s ago)   6h8m   10.42.0.115   chinami-daca7eb   <none>           <none>
+
+recent_k3s_log=
+Oct 21 22:27:46 CHINAMI-DACA7EB k3s[120]: E1021 22:27:46.890646     120 kuberuntime_sandbox.go:74] "Failed to create sa
+ndbox for pod" err="rpc error: code = Unknown desc = failed to setup network for sandbox \"01d9178155d0d537b02effc899e2
+f69941ac56ede4b5dc9d35f7209e088f6ce4\": plugin type=\"flannel\" failed (add): failed to load flannel 'subnet.env' file:
+ open /run/flannel/subnet.env: no such file or directory. Check the flannel pod log for this node." pod="kube-system/co
+redns-577d995dff-4zpcw"
+Oct 21 22:27:46 CHINAMI-DACA7EB k3s[120]: E1021 22:27:46.890657     120 kuberuntime_manager.go:1747] "CreatePodSandbox 
+for pod failed" err="rpc error: code = Unknown desc = failed to setup network for sandbox \"01d9178155d0d537b02effc899e
+2f69941ac56ede4b5dc9d35f7209e088f6ce4\": plugin type=\"flannel\" failed (add): failed to load flannel 'subnet.env' file
+: open /run/flannel/subnet.env: no such file or directory. Check the flannel pod log for this node." pod="kube-system/c
+oredns-577d995dff-4zpcw"
+Oct 21 22:27:46 CHINAMI-DACA7EB k3s[120]: E1021 22:27:46.890701     120 pod_workers.go:1338] "Error syncing pod, skippi
+ng" err="failed to \"CreatePodSandbox\" for \"coredns-577d995dff-4zpcw_kube-system(27a9a372-287f-4a53-9d7d-fe75df72cfa9
+)\" with CreatePodSandboxError: \"Failed to create sandbox for pod \\\"coredns-577d995dff-4zpcw_kube-system(27a9a372-28
+7f-4a53-9d7d-fe75df72cfa9)\\\": rpc error: code = Unknown desc = failed to setup network for sandbox \\\"01d9178155d0d5
+37b02effc899e2f69941ac56ede4b5dc9d35f7209e088f6ce4\\\": plugin type=\\\"flannel\\\" failed (add): failed to load flanne
+l 'subnet.env' file: open /run/flannel/subnet.env: no such file or directory. Check the flannel pod log for this node.\
+"" pod="kube-system/coredns-577d995dff-4zpcw" podUID="27a9a372-287f-4a53-9d7d-fe75df72cfa9"
+Oct 21 22:27:53 CHINAMI-DACA7EB k3s[120]: E1021 22:27:53.625374     120 handler_proxy.go:144] error resolving kube-syst
+em/metrics-server: no endpoints available for service "metrics-server"
+Oct 21 22:27:57 CHINAMI-DACA7EB k3s[120]: E1021 22:27:57.163188     120 network_policy_controller.go:314] Aborting sync
+. Failed to cleanup stale iptables rules: unable to list chains: running [/usr/sbin/iptables -t filter -S --wait]: exit
+ status 1: iptables v1.8.7 (nf_tables): table `filter' is incompatible, use 'nft' tool.
+
+
+

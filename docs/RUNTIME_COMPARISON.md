@@ -9,7 +9,7 @@ invalid.
 | Runtime | Status here | Measured result | Comparable to the vLLM row? |
 |---|---|---|---|
 | **vLLM 0.29.0** | Measured on RTX 5060 8 GB | **326.53 tok/s** at concurrency 4 through the Kubernetes Service; 0/100 errors; latency p50 500.3 ms, p95 513.8 ms. Streaming TTFT p50 **96.1 ms** (port-forward, one pod). | This is the reference row. |
-| **vLLM 0.29.0 (WSL2 k3s, GPU-in-K8s)** | Short smoke only | 100 in-cluster requests, 0 errors, **147.17 tok/s**, p95 3019.9 ms; stream TTFT p50 91.8 ms. Host path is 327.51 tok/s / 513 ms. | Functional only; not a parity claim. |
+| **vLLM 0.29.0 (WSL2 k3s, GPU-in-K8s)** | Short smoke only | 100 in-cluster requests, 0 errors, **147.17 tok/s**, p95 3019.9 ms; stream TTFT p50 91.8 ms. Host path is 327.51 tok/s / 513 ms. Node later `NotReady` (flannel/PLEG). | Functional only; not a parity or long-run claim. |
 | **TensorRT-LLM** | **Not measured** | No result claimed. | Would be comparable only after the same model, quantization, input/output lengths, concurrency, and GPU are fixed. |
 | **Custom CUDA engine** (`qwen3.5-fp8-cuda`) | Measured in a different repository | **54 tok/s** single-stream, hand-written FP8 kernels. | **No.** Different engine, different batching, different prompt/output protocol. |
 

@@ -58,3 +58,8 @@ manifest set.
 - 100 requests is a short smoke test, not a soak. No multi-hour GPU serving or
   memory-leak result is claimed.
 - This is WSL2 k3s; it is not a claim about native Linux GPU clusters.
+- **Long-run stability failed:** after roughly six hours the node became
+  `NotReady` with flannel/PLEG errors and the vLLM/gateway pods lost
+  connectivity. A k3s restart briefly restored `Ready`, then it failed again
+  within about five minutes. The 100-request result is a short smoke, not a
+  soak. See [`node-notready.txt`](node-notready.txt).

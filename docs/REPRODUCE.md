@@ -41,14 +41,18 @@ Recorded environment:
 | Runtime | vLLM 0.29.0 |
 | PyTorch | 2.13.0+cu130 |
 | CUDA runtime | 13.0 |
-| Transformers | 5.14 |
-| Quantization | llm-compressor AWQ / FP8_BLOCK, compressed-tensors + Marlin |
+| Transformers | 5.14.1 (quantization env) / 5.17.0 (serving env) |
+| Quantization | llm-compressor 0.13.0, compressed-tensors 0.18.0 |
 
-The original WSL2 environment is not a portable lockfile. The known versions
-above are recorded for reproducibility; the exact CUDA-specific wheel set must
-be installed for the target host. A recorded starting point is
-[`requirements-quant.txt`](../requirements-quant.txt); it intentionally marks the
-two packages whose exact versions were not captured.
+The original WSL2 environments are captured as exact `pip freeze` locks:
+
+- [`requirements-quant.lock.txt`](../requirements-quant.lock.txt) — 88 packages
+  from `/root/.venvs/llm-compressor-qwen35` (quantization/evaluation);
+- [`requirements-vllm.lock.txt`](../requirements-vllm.lock.txt) — 205 packages
+  from `/root/.venvs/ai-inference-week1` (vLLM serving).
+
+CUDA-specific wheels still have to come from the matching PyTorch index; the
+locks record the Python package set, not the NVIDIA driver.
 
 ### Paths
 
@@ -105,7 +109,9 @@ revision, GPU driver, or CUDA version; new runs must include them
 For the WSL2 k3s GPU-in-K8s path, see
 [`k8s/gpu-inference/`](../k8s/gpu-inference/). It requires an NVIDIA runtime
 class and a node advertising `nvidia.com/gpu`; the recorded run used a hostPath
-model and is a short smoke test, not a production PVC path.
+model and is a short smoke test, not a production PVC path. The same WSL2 k3s
+node later became `NotReady` (flannel/PLEG), so no long-run GPU/K8s stability is
+claimed.
 
 ## Known reproduction gaps
 

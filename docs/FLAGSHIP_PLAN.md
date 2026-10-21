@@ -101,7 +101,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 |---|---|
 | Gateway offline tests | 19 passed |
 | Workflow validation | 2 workflow files passed |
-| Release v0.2.4 | GHCR image `sha256:4453ef462ac426b6abe239819d41a4171454f7ebffacaf90ffb481a8f95e1365`; GitHub Release created; release workflow run 4 succeeded; CI runs 38–46 succeeded |
+| Release v0.2.4 | GHCR image `sha256:4453ef462ac426b6abe239819d41a4171454f7ebffacaf90ffb481a8f95e1365`; GitHub Release created; release workflow run 4 succeeded; CI runs 38–48 succeeded |
 | Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
 | Per-identity rate limit | v0.2.4: auth disabled, tenant A 5×200 then 429 and key rotation stays limited; auth enabled, tenant A 5×200 then 429 while tenant B remains 200 |
 | Cost-calculator tests | 5 passed |
@@ -120,7 +120,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Gateway soak (mock upstream) | v0.2.4 120 s: 2,329 requests, 0 errors, 19.389 req/s, p95 215.82 ms; v0.2.4 600 s: 11,717 requests, 0 errors, p95 213.62 ms; v0.2.4 7200 s: 140,178 requests, 0 errors, 19.469 req/s, p95 214.82 ms; gauges 0 after drain |
 | Backpressure (c=16) | 621 success / 6,544 clean 429 / 0 other errors; gauges 0 after drain |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
-| GPU-in-K8s (WSL2 k3s) | Verified short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway replicas, 100 requests, 0 errors, 147.17 tok/s, p95 3.02 s; host path is 327.51 tok/s / 513 ms |
+| GPU-in-K8s (WSL2 k3s) | Verified short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway replicas, 100 requests, 0 errors, 147.17 tok/s, p95 3.02 s; host path is 327.51 tok/s / 513 ms. Node later became `NotReady`; no long-run GPU soak |
 | Stable native-Linux GPU serving | Not achieved; WSL2 k3s is not a native Linux node/PVC production path |
 | TensorRT-LLM | Not measured; support-matrix blockers (Qwen3.5, RTX 5060/SM120, CUDA/torch mismatch) documented in [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md) |
 

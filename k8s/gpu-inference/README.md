@@ -29,7 +29,8 @@ The recorded result is in
 [`benchmark/results/k8s-gpu/`](../../benchmark/results/k8s-gpu/). It is a
 100-request smoke test, not a performance-parity or production claim. The host
 path measured 327.51 tok/s; this k3s path measured 147.17 tok/s with much worse
-p95, and the cause is not yet isolated.
+p95, and the cause is not yet isolated. After roughly six hours the WSL2 k3s
+node became `NotReady` (flannel/PLEG), so long-run GPU serving is not claimed.
 
 ## Cleanup
 

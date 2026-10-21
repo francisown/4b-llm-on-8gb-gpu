@@ -11,11 +11,18 @@ python -m pip install -r gateway/requirements-dev.txt pyyaml
 python scripts/verify_local.py
 python scripts/validate_manifests.py
 python scripts/validate_workflows.py
+python -m ruff check gateway tools tests
+python -m mypy gateway/gateway.py
 ```
 
 `verify_local.py` runs the cost tests, the gateway tests (no GPU/model), and a
 Python syntax check. The manifest and workflow validators are deterministic and
 do not need a cluster.
+
+Lint and type rules are deliberately narrow. `ruff.toml` sets
+`line-length = 100` and selects only `E` and `F` (correctness), so stylistic
+families like import sorting are not enforced yet. `mypy` currently checks
+`gateway/gateway.py` only; widening it to the whole tree is a separate change.
 
 ## Gateway changes
 
@@ -23,7 +30,13 @@ do not need a cluster.
 cd gateway
 python -m pip install -r requirements-dev.txt
 python -m pytest -q
+# or, with the coverage floor CI enforces:
+python -m pytest -q --cov=gateway --cov-report=term-missing --cov-fail-under=65
 ```
+
+Coverage currently sits at 71% overall (73% in `gateway.py`). The 65% floor is
+there to catch a real regression, not to force the number up; raising it
+without adding tests just moves the goalposts.
 
 The tests use a fake vLLM upstream. Add a test for every new failure path,
 authentication rule, or observability contract. Keep `/live`, `/health`, and

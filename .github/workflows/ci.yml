@@ -29,6 +29,20 @@ jobs:
       - name: Deterministic repository verification
         run: python scripts/verify_local.py
 
+      # Quality gates. These re-run the gateway suite with coverage on purpose:
+      # verify_local.py answers "is the repo internally consistent?" while
+      # these answer "did quality regress?".
+      - name: Lint (ruff)
+        run: python -m ruff check gateway tools tests
+
+      - name: Type check (mypy)
+        run: python -m mypy gateway/gateway.py
+
+      - name: Test with coverage floor
+        run: |
+          python -m pytest -q gateway \
+            --cov=gateway --cov-report=term-missing --cov-fail-under=65
+
       - name: Validate Kubernetes manifests
         run: python scripts/validate_manifests.py
 

@@ -1,0 +1,11 @@
+# Ruff configuration for the CI quality gate.
+#
+# Deliberately narrow to start: correctness rules only (E, F). Stylistic
+# families such as import sorting, pyupgrade, and TRY are not enforced yet;
+# turning them on would require a repo-wide reformat that is out of scope here.
+
+line-length = 100
+target-version = "py310"
+
+[lint]
+select = ["E", "F"]

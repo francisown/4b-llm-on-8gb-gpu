@@ -662,7 +662,11 @@ async def send_stream_with_connect_retry(
     raise RuntimeError("unreachable retry loop")
 
 
-@app.post("/chat", response_model=ChatResponse, dependencies=[Depends(require_api_key), Depends(enforce_rate_limit)])
+@app.post(
+    "/chat",
+    response_model=ChatResponse,
+    dependencies=[Depends(require_api_key), Depends(enforce_rate_limit)],
+)
 async def chat(
     body: ChatRequest,
     x_request_id: str | None = Header(default=None),

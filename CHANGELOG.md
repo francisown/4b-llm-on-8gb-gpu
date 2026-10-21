@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.4 — 2026-10-21
+
+- Harden per-identity rate limiting: a key is used as identity only when
+  authentication is configured; otherwise the direct client IP is used.
+- Bound the in-memory rate-limit identity map (`GATEWAY_RATE_LIMIT_MAX_IDENTITIES`)
+  and add `GATEWAY_API_KEYS` for multiple authenticated keys.
+- Return `502` with a structured error when the upstream returns malformed JSON,
+  instead of leaking an unhandled `500`.
+- Expand the gateway suite to 19 tests, including window expiry, identity-map
+  bounds, auth + rate-limit interaction, and malformed upstream responses.
+- Regenerate `benchmark/eval/quantization-final-comparison.csv` from the raw
+  three-run evidence and add `--check` enforcement.
+- Reconcile the HPA narrative with the actual `hpa-demo` validation, fix stale
+  links/numbers, and add Markdown link + manifest-count checks to CI.
+- Use `docs/RELEASE.md` as the GitHub Release body for future tags.
+
 ## 0.2.3 — 2026-10-21
 
 - Add optional per-identity rate limiting (`GATEWAY_RATE_LIMIT_PER_MINUTE`),

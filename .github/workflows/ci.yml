@@ -35,6 +35,12 @@ jobs:
       - name: Validate workflow YAML
         run: python scripts/validate_workflows.py
 
+      - name: Validate documentation links
+        run: python scripts/validate_docs.py
+
+      - name: Check generated quantization CSV
+        run: python scripts/build_quantization_csv.py --check
+
       - uses: azure/setup-kubectl@v4
         with:
           version: v1.31.0

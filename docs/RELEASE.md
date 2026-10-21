@@ -1,66 +1,74 @@
-# Release v0.2.3
+﻿# Release v0.2.4
 
 Release date: **2026-10-21**
 
-- GitHub Release: <https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.3>
-- Tag: `v0.2.3`
-- Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3`
-- Digest: `sha256:92ce8a06303822c5ce17fcf610de66630a5367f72376c707e96c0a78ce593525`
+- GitHub Release: <https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.4>
+- Tag: `v0.2.4`
+- Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4`
+- Digest: printed by the release workflow; see the package/release page.
 
 ## Pull
 
 ```bash
-docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3
+docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 ```
 
 ## What changed
 
-- Optional per-identity rate limiting (`GATEWAY_RATE_LIMIT_PER_MINUTE`), keyed
-  by API key or client IP; 429 with `Retry-After`; 15 gateway tests.
-- HPA 2→4→2 validated on Docker Desktop Kubernetes with metrics-server and a
-  mock upstream: 8,000 requests at c=32, 0 errors; CPU 196%/60%; scale-up 45s,
-  scale-down 80s.
-- 10-minute gateway soak: 11,554 requests, 0 errors, p95 217.39 ms, gauges
-  return to 0.
-- v0.2.2's TLS terminator, Prometheus alert rules, and OTel/Jaeger tracing
-  remain in place.
+- Rate limiting now trusts the API key as an identity only when auth is
+  configured; with auth disabled it uses the direct client IP, so rotating
+  arbitrary `X-API-Key` headers no longer creates new buckets.
+- The rate-limit identity map is bounded
+  (`GATEWAY_RATE_LIMIT_MAX_IDENTITIES`); new identities share an overflow bucket
+  when it is full.
+- `GATEWAY_API_KEYS` accepts multiple comma-separated authenticated keys for
+  per-key limits.
+- Malformed upstream JSON now returns `502` with a structured log/metric instead
+  of an unhandled `500`.
+- Gateway tests: 19, including window expiry, bounded identity map,
+  auth + rate-limit interaction, and malformed upstream responses.
+- The quantization CSV is regenerated from raw evidence and checked in CI.
+- HPA documentation now matches the separate `hpa-demo` validation.
+- CI checks Markdown links and the generated CSV; future release bodies use this
+  file.
 
-## Verification at release
+## Verification
 
-- CI: run 35 (`main`) and run 36 (`v0.2.3`) succeeded.
-- Release workflow: run 3 succeeded; GitHub Release published
-  `2026-10-21T04:34:39Z`.
-- GHCR: `docker pull ...:v0.2.3` succeeded; digest
-  `sha256:92ce8a06303822c5ce17fcf610de66630a5367f72376c707e96c0a78ce593525`.
-- Rate limit: tenant A got 5×200 then 429 with `Retry-After: 59`; tenant B
-  remained 200.
-- HPA: 2→4 in 45s, 4→2 in 80s; HPA event `SuccessfulRescale New size: 4`.
-- Soak: 11,554 requests / 0 errors / p95 217.39 ms.
-- Kubernetes gateway evidence: measured on `v0.2.0`; later releases add
-  auth/observability/rate-limit features without changing the serving path.
+- Deterministic path: `python scripts/verify_local.py` (5 cost + 19 gateway
+  tests), manifest validation (16 documents), workflow validation, docs
+  validation, generated-CSV check.
+- v0.2.4 2-minute mock soak: 2,329 requests, 0 errors, p95 215.82 ms.
+- Rate limit on v0.2.4: auth disabled, rotating `X-API-Key` no longer creates a
+  new bucket (same direct IP); auth enabled, tenant A 5×200 then 429 while
+  tenant B remains 200.
+- Existing HPA/soak evidence is unchanged: HPA used CPU metrics + mock upstream;
+  the 10-minute soak used the mock upstream. Neither is a model-throughput claim.
+- GHCR digest and workflow run IDs are recorded in the repository after publish.
 
 ## Deploy
 
 For a registry-based cluster:
 
 ```yaml
-image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3
+image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 imagePullPolicy: IfNotPresent
 ```
 
 For the local Docker Desktop/kind path:
 
 ```bash
-docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3
-docker tag ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3 \
-  ai-inference-gateway:v0.2.3
+docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
+docker tag ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4 \
+  ai-inference-gateway:v0.2.4
 ```
 
 ## Do not claim
 
-- The K8s throughput numbers are from v0.2.0, not this exact image.
+- The K8s throughput numbers were measured on v0.2.0; later releases add
+  gateway features without changing the serving path.
 - HPA and soak results use a mock upstream; they validate gateway mechanics,
   not model performance.
 - The self-signed TLS certificate is not public-production ready.
 - Jaeger all-in-one uses in-memory storage; traces are not durable.
+- The 7.49 GiB offline bundle is local and not published.
 - No TensorRT-LLM result is included.

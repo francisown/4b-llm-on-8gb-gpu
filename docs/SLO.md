@@ -115,14 +115,14 @@ metric pipeline, not model quality or GPU performance.
 
 The CPU-only Compose stack was started and exercised end to end:
 
-- gateway `/health` returned `{"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.3"}`;
+- gateway `/health` returned `{"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.4"}`;
 - Prometheus target `inference-gateway` was `up`;
 - 20 non-streaming and 5 streaming requests completed successfully and appeared in `inference_gateway_requests_total`;
 - Grafana 11.2.0 health was `ok`;
 - the provisioned datasource was `Prometheus` (`uid=prometheus`, `url=http://prometheus:9090`);
 - the provisioned dashboard was `Inference Gateway` (`uid=inference-gateway`).
 - HTTPS `/health` through the Nginx TLS terminator returned 200 for gateway
-  `0.2.3`; HTTPS `/chat` returned 200.
+  `0.2.4`; HTTPS `/chat` returned 200.
 - Prometheus loaded five alert rules (`GatewayUpstreamUnhealthy`,
   `GatewayErrorRateHigh`, `GatewayTTFTP95High`, `GatewayQueueWaitP95High`,
   `GatewayNoSuccessfulRequests`).
@@ -131,14 +131,14 @@ The CPU-only Compose stack was started and exercised end to end:
 
 ### Soak validation
 
-A 2-minute closed-loop soak at concurrency 4 completed **2,329 requests with 0
-errors**, 19.391 req/s, p95 **216.64 ms**, and `active=0`, `waiting=0` after a
-one-second drain. A 10-minute soak completed **11,554 requests with 0 errors**,
-19.254 req/s, p95 **217.39 ms**, and the same gauge recovery. A concurrency-16
-backpressure run produced 621 successes and 6,544 clean 429s with **0 other
-errors**. These are gateway-stability tests against the mock upstream; they are
-not vLLM throughput results. Evidence:
-[`soak-c4-120s.json`](../benchmark/results/observability/soak-c4-120s.json),
+A v0.2.4 2-minute closed-loop soak at concurrency 4 completed **2,329 requests with 0
+errors**, 19.389 req/s, p95 **215.82 ms**, and `active=0`, `waiting=0` after a
+one-second drain. A v0.2.3 10-minute soak completed **11,554 requests with 0
+errors**, 19.254 req/s, p95 **217.39 ms**, and the same gauge recovery. A
+concurrency-16 backpressure run produced 621 successes and 6,544 clean 429s with
+**0 other errors**. These are gateway-stability tests against the mock upstream;
+they are not vLLM throughput results. Evidence:
+[`soak-c4-120s-v0.2.4.json`](../benchmark/results/observability/soak-c4-120s-v0.2.4.json),
 [`soak-c4-600s.json`](../benchmark/results/observability/soak-c4-600s.json),
 [`backpressure-c16-30s.json`](../benchmark/results/observability/backpressure-c16-30s.json).
 
@@ -150,7 +150,8 @@ Evidence: [`benchmark/results/observability/summary.txt`](../benchmark/results/o
 ## Limits
 
 - Single GPU, single model server; the model server is a single point of failure.
-- No multi-tenant isolation, quota, authentication, or TLS in the reference stack.
-- No long-duration soak result; the error budget is a policy template, not a
+- The K8s base manifests do not terminate TLS or require API keys; the Compose
+  demo adds TLS/auth. There is no per-tenant isolation or shared quota store.
+- No multi-hour soak result; the error budget is a policy template, not a
   measured 30-day history.
 - The SLO targets are for the stated reference workload only.

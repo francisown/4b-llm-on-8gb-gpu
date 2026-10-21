@@ -8,14 +8,14 @@
 | 项目 | 结果 |
 |---|---|
 | 集群 | Docker Desktop 4.91.0，Kubernetes v1.36.1，单节点 `desktop-control-plane` |
-| 网关 | `ai-inference-gateway:v0.2.3`，2 副本，全部 Ready |
+| 网关 | `ai-inference-gateway:v0.2.4`，2 副本，全部 Ready |
 | 模型服务 | vLLM 0.29.0 + Qwen3.5-4B-INT4-AWQ，**在集群外**的宿主 Docker 中运行 |
 | 集群内 Service 压测 | 100 请求 / 并发 4，**0 错误，326.53 tok/s**，两个 Pod 分别收到 25 / 75 请求 |
 | 压测中强杀 1 个 Pod | 300 请求 / 并发 4，**0 错误，315.46 tok/s** |
 | Pod 强杀恢复 | 替换 Pod **7.6 秒**后 Ready，Service endpoints 自动更新 |
 | 坏版本回滚 | 新 Pod `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 后恢复 |
 | Prometheus | 两个网关 Pod 均 `up`，`upstream_healthy=1`，按 Pod 抓取 |
-| HPA | 清单存在，但集群无 metrics-server，`cpu: <unknown>/70%`，**未生效** |
+| HPA | 基础清单需要 metrics-server；已在独立 `hpa-demo` 命名空间用 metrics-server + mock upstream 验证 2→4→2（45s / 80s），不是 GPU/推理指标扩缩容 |
 | K8s 调度 GPU | `nvidia.com/gpu: 1` 探针一直 Pending：`Insufficient nvidia.com/gpu`，**未验证** |
 
 完整原始结果与限制见 [`../docs/K8S_VERIFICATION.md`](../docs/K8S_VERIFICATION.md)。
@@ -55,8 +55,8 @@ Docker Desktop 的 Kubernetes 节点使用自己的 containerd，宿主 Docker �
 不会自动出现。用 `cmd` 管道导入，避免 PowerShell 破坏 tar 二进制：
 
 ```powershell
-docker build -t ai-inference-gateway:v0.2.3 .\gateway
-cmd /c "docker save ai-inference-gateway:v0.2.3 | docker exec -i desktop-control-plane ctr -n k8s.io images import -"
+docker build -t ai-inference-gateway:v0.2.4 .\gateway
+cmd /c "docker save ai-inference-gateway:v0.2.4 | docker exec -i desktop-control-plane ctr -n k8s.io images import -"
 docker exec desktop-control-plane ctr -n k8s.io images list | Select-String ai-inference-gateway
 ```
 
@@ -67,7 +67,7 @@ Deployment 使用 `imagePullPolicy: IfNotPresent`。本地节点已有镜像时�
 对于有镜像仓库的集群，可以直接使用 GHCR 镜像：
 
 ```yaml
-image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3
+image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 imagePullPolicy: IfNotPresent
 ```
 
@@ -191,11 +191,11 @@ Secret 不要提交到 Git。
 
 ## 已知边界
 
-- HPA 未生效：集群没有 metrics-server，`ScalingActive=False`。
+- HPA 只在独立 `hpa-demo` 命名空间用 CPU 指标 + mock upstream 验证；基础清单需要 metrics-server，且没有队列/GPU 指标。
 - GPU 未由 Kubernetes 调度：没有 NVIDIA device plugin。
 - vLLM 仍是单实例，模型服务本身没有高可用。
-- 没有 TLS、认证、NetworkPolicy、租户配额。
-- 没有长时间 soak test、内存泄漏分析或持续负载 p99。
+- K8s 基础清单没有 TLS、认证或 NetworkPolicy；认证/TLS 只在 Compose 演示栈验证。
+- 没有长时间 soak test、内存泄漏分析或持续负载 p99；10 分钟 soak 只针对 mock upstream 的网关。
 - TensorRT-LLM 未测量，见 [`../docs/RUNTIME_COMPARISON.md`](../docs/RUNTIME_COMPARISON.md)。
 
 ## 文件
@@ -207,7 +207,7 @@ Secret 不要提交到 Git。
 | `deployment.yaml` | 2 副本、探针、滚动策略、安全上下文 |
 | `service.yaml` | ClusterIP 入口 |
 | `pdb.yaml` | `minAvailable: 1` |
-| `hpa.yaml` | CPU HPA 清单（未生效） |
+| `hpa.yaml` | CPU HPA 清单（需要 metrics-server；机制验证见 `benchmark/hpa/`） |
 | `observability/prometheus.yaml` | Prometheus、RBAC、按 Pod 抓取 |
 | `benchmark/loadgen-job.yaml` | 100 请求 / 并发 4 Service 压测 |
 | `benchmark/loadgen-kill-job.yaml` | 压测中强杀 Pod 的 300 请求测试 |

@@ -1,4 +1,4 @@
-apiVersion: batch/v1
+﻿apiVersion: batch/v1
 kind: Job
 metadata:
   name: gateway-loadgen
@@ -16,7 +16,8 @@ spec:
       restartPolicy: Never
       containers:
         - name: loadgen
-          image: ai-inference-gateway:v0.2.0
+          # The gateway image already contains Python + httpx; the script is mounted.
+          image: ai-inference-gateway:v0.2.4
           imagePullPolicy: IfNotPresent
           command: ["python", "/scripts/k8s_load_test.py"]
           args:

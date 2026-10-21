@@ -1,4 +1,4 @@
-# 参数决策表：每个值为什么是它
+﻿# 参数决策表：每个值为什么是它
 
 这份表的价值不在数值本身，而在**每个取值都有测量或显存约束作为依据**。面试与文章里能讲的正是这个：被问到"为什么 `max-num-seqs` 用 16 不用 256"时，答案是"因为 256 时 CUDA Graph 捕获不了，实测报错"，而不是"照默认配的"。
 
@@ -58,7 +58,7 @@
 | `VLLM_USE_V2_MODEL_RUNNER` | 0（历史） | 原以为 WSL2 不支持 V2 runner 所需的 UVA | **已作废**，见下 |
 | `VLLM_WSL2_ENABLE_PIN_MEMORY` | 1 | 真正需要的是打开 WSL2 的 pinned memory 开关，而不是退回 V1 runner | 实测 V2 可用，但与 V1 性能等价（并发 1 差 -0.3%，并发 4 差 -0.1%） |
 
-关于最后两行：`INT4-AWQ实验记录.md` 与 `benchmark/results/speculative/README.md` 里那句「WSL 不支持 V2 runner 所需的 UVA」**不准确**。真实情况是 pinned memory 在 WSL2 上受支持但默认关闭。完整证据见 [`wsl2-v2-runner-验证指引.md`](wsl2-v2-runner-验证指引.md)。
+关于最后两行：`INT4-AWQ实验记录.md` 与 `benchmark/results/speculative/README.md` 里那句「WSL 不支持 V2 runner 所需的 UVA」**不准确**。真实情况是 pinned memory 在 WSL2 上受支持但默认关闭。完整证据见 [`wsl2-v2-runner-验证指引.md`](wsl2-runner-verification.md)。
 
 **不必因此重跑推测解码扫描**：那次扫描的所有对照组都使用同一个 V1 runner，变量是 MTP 深度而非 runner，所以对照关系有效——错的只是给出的理由。
 

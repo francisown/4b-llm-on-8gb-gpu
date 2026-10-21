@@ -10,6 +10,8 @@ running it; many experiments need a GPU, a model directory, or a running vLLM.
 | `verify_local.py` | Cost tests, gateway tests, Python syntax | Python only |
 | `validate_manifests.py` | Kubernetes manifest contract checks | Python + PyYAML |
 | `validate_workflows.py` | GitHub Actions YAML checks | Python + PyYAML |
+| `validate_docs.py` | Markdown link and README/manifest-count checks | Python only |
+| `build_quantization_csv.py` | Rebuild/check the quantization comparison CSV from raw evidence | Python only |
 | `k8s_loadgen.sh` | Create the loadgen ConfigMap and run the in-cluster Job | Kubernetes |
 | `kickoff`-style server scripts | Start vLLM with a specific model/profile | GPU + model weights |
 

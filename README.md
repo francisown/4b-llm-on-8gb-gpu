@@ -1,5 +1,5 @@
-<p align="right">
-  <a href="https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.3"><img src="https://img.shields.io/github/v/release/francisown/8gb-llm-inference-delivery?style=flat-square" alt="Latest release"></a>
+﻿<p align="right">
+  <a href="https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.4"><img src="https://img.shields.io/github/v/release/francisown/8gb-llm-inference-delivery?style=flat-square" alt="Latest release"></a>
   <a href="https://github.com/francisown/8gb-llm-inference-delivery/actions/workflows/ci.yml"><img src="https://github.com/francisown/8gb-llm-inference-delivery/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Language-English-555?style=flat-square" alt="Language: English">
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-2f81f7?style=flat-square" alt="Read in Simplified Chinese"></a>
@@ -38,7 +38,7 @@ This repository is deliberately about **one 8 GB inference delivery path**.
 - **Quantization under a hard VRAM budget** — produce FP8 and self-made INT4-AWQ variants of Qwen3.5-4B that fit on an 8 GB card.
 - **Evidence-based model selection** — compare model size, throughput, latency, and per-question behaviour instead of relying on one accuracy number.
 - **Serving engineering** — tune continuous batching, KV cache, prefix caching, chunked prefill, and speculative decoding, then expose the model through a FastAPI gateway with streaming, timeouts, backpressure, probes, metrics, and structured logs.
-- **Reproducible delivery** — package the runtime, gateway, Compose files, scripts, and checksums into an offline bundle verified on a clean Docker Desktop host.
+- **Local delivery bundle** — package the runtime, gateway, Compose files, scripts, and checksums; the bundle was smoke-tested locally but is not published.
 
 > **How this relates to two other repositories of mine**
 >
@@ -52,16 +52,18 @@ This repository is deliberately about **one 8 GB inference delivery path**.
 
 ## Four numbers that define the delivery
 
-> The front page only carries conclusions about the **delivery model (Qwen3.5-4B)**, because that is what this work produced. Qwen3-0.6B appears in the last row purely as a **load for characterizing the engine** — it is small enough to drive high concurrency without hitting the VRAM wall, and it has nothing to do with the deliverable. For throughput figures, see [On comparability of numbers](#on-comparability-of-numbers-important) below.
+> The front page carries three conclusions about the **delivery model (Qwen3.5-4B)** and one gateway-stability result. Qwen3-0.6B is only a test load for characterizing the engine; it is kept in Appendix A and is not a delivery-model number. For throughput caveats, see [On comparability of numbers](#on-comparability-of-numbers-important) below.
 
 | Model | Conclusion | Number | Evidence |
 |---|---|---|---|
 | **Qwen3.5-4B** (delivery model) | Self-made INT4-AWQ shrinks the 4B model to | **3.568 GiB** (59% smaller than BF16, 32% smaller than FP8) | [`benchmark/eval/README.md`](benchmark/eval/README.md) |
 | **Qwen3.5-4B** | Four variants score *identically* on the same 200 questions | **All 141/200 (70.5%)**, yet INT4 agrees with BF16 on only **87.0%** of questions | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
-| **Qwen3.5-4B** | Offline bundle verified on a clean Docker Desktop install | **7.49 GiB** — model, runtime, gateway, checksums | local artifact (contains model weights, not published); build path in [`gateway/`](gateway/) and [`scripts/`](scripts/) |
-| Qwen3-0.6B (test load, not the delivery model — see Appendix A) | Engine batching ceiling | **5,693 tok/s** at concurrency 64 (21.4× from concurrency 1) | [`benchmark_summary.csv`](benchmark/benchmark_summary.csv) |
+| **Qwen3.5-4B** | INT4-AWQ output throughput at concurrency 4 | **333.90 tok/s**, TTFT p50 **251.73 ms** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
+| **Gateway** (mock upstream) | 10-minute closed-loop soak | **11,554 requests, 0 errors**, p95 **217.39 ms** | [`soak-c4-600s.json`](benchmark/results/observability/soak-c4-600s.json) |
 
 The second row is the most valuable thing this project produced: **four models scoring the same does not make them equivalent.** 200 multiple-choice questions cannot establish equivalence anyway (Wilson 95% interval 63.84%–76.39%), and INT4 picks a different option on 26 of them. That distinction is what decides whether you dare swap a quantization scheme in production.
+
+A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Compose files, and checksums was built and smoke-tested locally. It is **not published** (it contains model weights), so it is not part of the public reproduction claim; the reproducible public paths are the deterministic checks and the CPU-only Compose demo.
 
 ---
 
@@ -69,7 +71,7 @@ The second row is the most valuable thing this project produced: **four models s
 
 | Path | Status | Evidence |
 |---|---|---|
-| **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.3` (same serving path as the measured `v0.2.0`; v0.2.1 adds auth, v0.2.2 TLS/alerting/OTel, v0.2.3 rate limiting), real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
+| **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.4` (same serving path as the measured `v0.2.0`; v0.2.1 auth, v0.2.2 TLS/alerting/OTel, v0.2.3 rate limiting, v0.2.4 auth/rate-limit hardening), real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods |
 | **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 196%/60%; scale-up 45s, scale-down 80s; mock upstream, HPA mechanics only |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
@@ -125,12 +127,12 @@ Performance, same fair benchmark (256-in / 128-out, 16 requests, `temperature=0`
 | **Self-made INT4-AWQ v1** | **3.568 GiB** | 1 | **102.99 tok/s** | 0.1% | 72.24 ms | 9.21 ms |
 | **Self-made INT4-AWQ v1** | **3.568 GiB** | 4 | **333.90 tok/s** | 0.6% | 251.73 ms | 10.07 ms |
 
-Within-session range peaks at 1.3% and is mostly 0.1%, which means **measurements inside one session are highly stable** — so this table can be quoted directly.
+Within-session range peaks at 1.3% and is mostly 0.1%, so this batch is internally consistent. That is **precision inside one session, not external validity**: the cross-batch drift documented below means the absolute values should not be treated as universal.
 
 **Selection conclusion:**
 
 - **To trade size and speed on 8 GB → self-made INT4-AWQ.** Versus third-party FP8 it gains **+43.0%** throughput at concurrency 1 and **+30.0%** at concurrency 4, stable in direction and magnitude across three measurement rounds. The cost is a lower per-question agreement with BF16 (87.0% vs 96.5%), and that cost has to be evaluated on your own data.
-- **To stay closer to BF16's behaviour → self-made FP8 v3.** Its advantage is **quality only** (98.0% vs 96.5% per-question agreement with BF16). **Its throughput is statistically indistinguishable from third-party FP8** (+1.0% / +0.2%, both inside the within-session range).
+- **To stay closer to BF16's behaviour → self-made FP8 v3.** Its advantage is **quality only** (98.0% vs 96.5% per-question agreement with BF16). **Its throughput is equivalent within the observed run-to-run range** (+1.0% / +0.2%, both inside the within-session spread; no formal hypothesis test was run).
 
 > Earlier versions of these docs claimed "self-made FP8 v3 is also slightly faster than third-party FP8." Two independent measurement rounds contradict that, and **the claim has been removed from every document**. Saying "the two are equivalent" now rests on three repetitions; the old claim rested on a single run.
 
@@ -154,10 +156,10 @@ That conclusion is itself a result: **the optimal configuration and the shippabl
 - Split `/live` (process) and `/health` (upstream dependency); `/gateway/status` for in-flight and queued counts
 - Health checks use `Connection: close` and disable keep-alive reuse, after a real `RemoteProtocolError` flap found on Kubernetes
 - Prometheus counters, gauges, and latency histograms; `X-Gateway-Pod` / `X-Gateway-Version` response headers; single-line JSON logs
-- **15 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, probe identity, optional API-key authentication, and per-identity rate limiting
+- **19 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, probe identity, optional API-key authentication, and per-identity rate limiting
 - Non-root Docker image + Compose; Kubernetes Deployment with 2 replicas, PDB, zero-downtime rollout, and per-pod Prometheus scraping
 
-The offline bundle packs the model, the vLLM/PyTorch/CUDA userspace environment, the gateway, Compose, one-click scripts, and SHA-256 manifests into **7.49 GiB**, and was verified end to end on a clean Docker Desktop install: image import, GPU check, model startup, browser chat.
+The local offline bundle packs the model, the vLLM/PyTorch/CUDA userspace environment, the gateway, Compose, one-click scripts, and SHA-256 manifests into **7.49 GiB**. It was exercised end to end on this host (image import, GPU check, model startup, browser chat), but it is not published, so a reader cannot independently verify it.
 
 The Kubernetes path was verified separately on 2026-10-21: 100 in-cluster
 requests at concurrency 4 completed with **0 errors** and **326.53 tok/s**;
@@ -198,8 +200,8 @@ That conclusion is independent of the model generation, and it is the only thing
 ```bash
 # 1. Deterministic checks (no GPU, no model, no API key)
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # expect: 5 cost tests + 15 gateway tests
-python scripts/validate_manifests.py    # expect: 12 Kubernetes documents
+python scripts/verify_local.py          # expect: 5 cost tests + 19 gateway tests
+python scripts/validate_manifests.py    # expect: 16 Kubernetes documents
 
 # 2. Recompute throughput and cost from the raw JSON (run at repo root)
 python tools/cost_calculator.py \
@@ -215,12 +217,12 @@ The full pipeline (needs a GPU + WSL2 + vLLM) is documented in the "Reproducible
 
 ## Release
 
-- Latest: **v0.2.3** — [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.3)
-- Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3`
-- Digest: `sha256:92ce8a06303822c5ce17fcf610de66630a5367f72376c707e96c0a78ce593525`
+- Latest: **v0.2.4** — [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.4)
+- Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4`
+- Digest: published by the release workflow; see the release page.
 - Details: [`docs/RELEASE.md`](docs/RELEASE.md)
 
-The K8s benchmark below was measured on **v0.2.0**; v0.2.1 adds API-key auth, v0.2.2 adds TLS/alerting/OTel, and v0.2.3 adds per-identity rate limiting without changing the serving path.
+The K8s benchmark below was measured on **v0.2.0**; v0.2.1 adds API-key auth, v0.2.2 adds TLS/alerting/OTel, v0.2.3 adds per-identity rate limiting, and v0.2.4 hardens auth/rate-limit identity handling and malformed-upstream responses without changing the serving path.
 
 ## Observability demo (no GPU)
 
@@ -281,12 +283,11 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus alert rules, verification, and runbook |
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing, OTLP configuration, verification, and limits |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |
-| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.3 tag, GHCR image, release verification, and deployment notes |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.4 tag, GHCR image, release verification, and deployment notes |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | Optional inference-ops agent experiment; not part of the validated delivery path |
 | [`SECURITY.md`](SECURITY.md) | Vulnerability reporting, secrets policy, scope, and known limitations |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Local checks, observability demo, soak test, PR checklist, and release flow |
 | [`.github/workflows/release.yml`](.github/workflows/release.yml) | Tag-triggered GHCR image build and publish |
-| [`.github/dependabot.yml`](.github/dependabot.yml) | Weekly pip, GitHub Actions, and Docker dependency updates |
 | [`deploy/observability/`](deploy/observability/) | CPU-only Compose demo: mock vLLM + gateway + Prometheus + provisioned Grafana dashboard |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Tests, manifest/workflow validation, Kustomize render, and Docker build |
 | [`scripts/validate_workflows.py`](scripts/validate_workflows.py) | Deterministic GitHub Actions YAML validation |
@@ -384,8 +385,8 @@ Model weights and datasets are not committed (see `.gitignore`).
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus, HPA 2→4→2; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) and [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes GPU scheduling | **Partially verified**: Docker Desktop K8s has no GPU device plugin; WSL2 k3s did advertise `nvidia.com/gpu: 1` and run a GPU pod, but stable in-cluster vLLM was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs, a 10-minute gateway soak (11,554 requests, 0 errors, p95 217.39 ms), c=16 backpressure, and OTel/Jaeger tracing; no multi-hour soak yet |
-| CI/CD | CI (tests, manifest/workflow validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.3 published), and Dependabot; no image signing or automated deployment yet |
+| CI/CD | CI (tests, manifest/workflow/docs validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.4 published); no image signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |
 
-The gateway image `v0.2.3` is rebuilt and verified against the real model. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.
+The gateway image `v0.2.4` is rebuilt and verified against the real model. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.

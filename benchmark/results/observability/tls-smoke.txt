@@ -1,7 +1,7 @@
-﻿date=2026-10-21T12:31:18.1372025+08:00
-https_health={"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.3"}
+﻿date=2026-10-21T13:49:14.1564223+08:00
+https_health={"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.4"}
 https_chat_status=200
-https_chat_body={"request_id":"445aa862-87bf-459e-bd78-5a13a7d042c9","model":"mock-qwen","answer":"Mock response from the observability stack.","usage":{"prompt_tokens":2,"completion_tokens":8,"total_tokens":10},"latency_ms":154.6}
+https_chat_body={"request_id":"567fec24-7044-4b25-b40e-50c60c77b8ab","model":"mock-qwen","answer":"Mock response from the observability stack.","usage":{"prompt_tokens":4,"completion_tokens":8,"total_tokens":12},"latency_ms":155.3}
 certificate=subject=CN=localhost | issuer=CN=localhost | notBefore=Oct 21 03:51:54 2026 GMT | notAfter=Oct 21 03:51:54 2027 GMT
 prometheus_rule_groups=1
 prometheus_rules=GatewayUpstreamUnhealthy, GatewayErrorRateHigh, GatewayTTFTP95High, GatewayQueueWaitP95High, GatewayNoSuccessfulRequests

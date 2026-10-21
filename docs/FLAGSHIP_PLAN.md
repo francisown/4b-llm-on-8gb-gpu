@@ -1,4 +1,4 @@
-# AI Inference Delivery Flagship Plan
+﻿# AI Inference Delivery Flagship Plan
 
 This repository is the portfolio flagship for an **AI Systems / Inference
 Engineer** profile. The target is a small, reproducible delivery platform that
@@ -26,7 +26,7 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Remove or quarantine generated caches and machine-local files from the working tree.
 - [x] Add a short contributor/developer runbook.
 
-### 1. Reproducible local path
+### 5. Reproducible local path
 
 - [x] Make the gateway deterministic smoke path runnable without a GPU.
 - [x] Pin the Python dependency and test entry points used by CI.
@@ -64,7 +64,7 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Add a clean startup path with explicit model/runtime checks.
 - [x] Add a release checklist for images, model artifacts, checksums, and configuration.
 - [x] Add a tag-triggered release workflow, Dependabot, and security/contribution docs.
-- [x] Publish v0.2.1 to GHCR and create a GitHub Release.
+- [x] Publish v0.2.5 to GHCR and create a GitHub Release.
 - [x] Add a single benchmark protocol and repository navigation docs.
 - [x] Remove out-of-scope financial research and career files.
 - [x] Document the offline delivery boundary and what remains hardware-specific.
@@ -91,18 +91,18 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 - [x] Add a positioning document for GitHub/profile use.
 - [x] Add a concise performance report.
 - [x] Add a concise resume-ready project summary.
-- [ ] Publish a one-page English and Chinese case study with the new deployment results.
-- [ ] Add a release-quality architecture diagram and benchmark table.
+- [x] Publish a one-page English and Chinese case study with the new deployment results.
+- [x] Add a release-quality architecture diagram and benchmark table.
 
 ## Verification summary (2026-10-21)
 
 | Check | Result |
 |---|---|
-| Gateway offline tests | 15 passed |
+| Gateway offline tests | 19 passed |
 | Workflow validation | 2 workflow files passed |
-| Release v0.2.3 | GHCR image `sha256:92ce8a06303822c5ce17fcf610de66630a5367f72376c707e96c0a78ce593525`; GitHub Release created; release workflow run 3 succeeded; CI runs 35/36 succeeded |
+| Release v0.2.4 | Pending publish; see `docs/RELEASE.md` after the tag |
 | Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
-| Per-identity rate limit | Tenant A gets 2 allowed then 429 with `Retry-After`; tenant B remains allowed |
+| Per-identity rate limit | v0.2.4: auth disabled, tenant A 5×200 then 429 and key rotation stays limited; auth enabled, tenant A 5×200 then 429 while tenant B remains 200 |
 | Cost-calculator tests | 5 passed |
 | Manifest validation | 16 documents passed |
 | Kubernetes Service load | 100 requests, 0 errors, 326.53 tok/s |
@@ -115,7 +115,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | TLS | HTTPS `/health` and `/chat` returned 200 through Nginx with a self-signed cert |
 | Alert rules | 5 rules loaded in Prometheus (upstream, errors, TTFT, queue wait, no-success) |
 | OTel/Jaeger | `inference-gateway` service; 5 traces; first trace 4 spans; no export errors |
-| Gateway soak (mock upstream) | 120 s: 2,329 requests, 0 errors, 19.391 req/s, p95 216.64 ms; 600 s: 11,554 requests, 0 errors, p95 217.39 ms; gauges 0 after drain |
+| Gateway soak (mock upstream) | v0.2.4 120 s: 2,329 requests, 0 errors, 19.389 req/s, p95 215.82 ms; v0.2.3 600 s: 11,554 requests, 0 errors, p95 217.39 ms; gauges 0 after drain |
 | Backpressure (c=16) | 621 success / 6,544 clean 429 / 0 other errors; gauges 0 after drain |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
 | Stable in-cluster vLLM | Not achieved: `PLEG is not healthy`; see [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md) |

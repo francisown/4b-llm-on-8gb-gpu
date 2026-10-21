@@ -5,7 +5,7 @@ metadata:
   namespace: ai-inference
   labels:
     app.kubernetes.io/name: inference-gateway
-    app.kubernetes.io/version: "0.2.3"
+    app.kubernetes.io/version: "0.2.4"
 spec:
   replicas: 2
   strategy:
@@ -20,7 +20,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: inference-gateway
-        app.kubernetes.io/version: "0.2.3"
+        app.kubernetes.io/version: "0.2.4"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9000"
@@ -32,7 +32,9 @@ spec:
           type: RuntimeDefault
       containers:
         - name: gateway
-          image: ai-inference-gateway:v0.2.3
+          # Local Docker Desktop path: build/import ai-inference-gateway:v0.2.4.
+          # For a registry-based cluster, replace this with the GHCR image in docs/RELEASE.md.
+          image: ai-inference-gateway:v0.2.4
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:

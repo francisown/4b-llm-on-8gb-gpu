@@ -1,6 +1,6 @@
-﻿date=2026-10-21T12:32:01.8252835+08:00
+﻿date=2026-10-21T13:49:14.5714238+08:00
 services=inference-gateway, jaeger-all-in-one
 trace_limit=5
 trace_count=5
-first_trace_id=b8f65a8767e2ab4c4c7f401991d3cba7
+first_trace_id=da102321d4041c595eecb059da0d0341
 first_trace_spans=4

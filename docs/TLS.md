@@ -1,4 +1,4 @@
-# TLS termination for the gateway
+﻿# TLS termination for the gateway
 
 ## What is implemented
 
@@ -26,7 +26,7 @@ curl -k -X POST https://localhost:9443/chat \
 
 Observed on 2026-10-21:
 
-- HTTPS `/health` returned 200 with gateway `0.2.1`;
+- HTTPS `/health` returned 200 with gateway `0.2.4`;
 - HTTPS `/chat` returned 200;
 - certificate subject/issuer `CN=localhost`, valid for one year;
 - Nginx 1.27.5 served the response.

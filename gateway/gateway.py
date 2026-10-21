@@ -40,9 +40,15 @@ QUEUE_TIMEOUT_SECONDS = float(os.getenv("GATEWAY_QUEUE_TIMEOUT_SECONDS", "10"))
 HEALTH_TIMEOUT_SECONDS = float(os.getenv("HEALTH_TIMEOUT_SECONDS", "3"))
 UPSTREAM_CONNECT_RETRIES = max(0, int(os.getenv("UPSTREAM_CONNECT_RETRIES", "1")))
 RATE_LIMIT_PER_MINUTE = max(0, int(os.getenv("GATEWAY_RATE_LIMIT_PER_MINUTE", "0")))
+RATE_LIMIT_MAX_IDENTITIES = max(
+    1, int(os.getenv("GATEWAY_RATE_LIMIT_MAX_IDENTITIES", "10000"))
+)
 POD_NAME = os.getenv("POD_NAME", "local")
-GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.3")
+GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.4")
 GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "")
+GATEWAY_API_KEYS = tuple(
+    key.strip() for key in os.getenv("GATEWAY_API_KEYS", "").split(",") if key.strip()
+)
 APP_DIR = Path(__file__).resolve().parent
 
 LOG_FIELDS = (
@@ -297,20 +303,52 @@ class AdmissionController:
 
 
 class RateLimiter:
-    """Per-identity sliding-window limit, kept in process memory."""
+    """Per-identity sliding-window limit, kept in process memory.
 
-    def __init__(self, limit_per_minute: int):
+    This is intentionally a single-process limiter. With N replicas the
+    effective global limit is roughly N x the configured limit. The identity
+    map is bounded; once it is full, new identities share one overflow bucket
+    instead of growing memory without bound.
+    """
+
+    def __init__(
+        self,
+        limit_per_minute: int,
+        max_identities: int = 10_000,
+        clock: Any = time.monotonic,
+    ):
         self.limit = max(0, limit_per_minute)
         self.window_seconds = 60.0
+        self.max_identities = max(1, max_identities)
+        self._clock = clock
         self._events: dict[str, deque[float]] = {}
         self._lock = asyncio.Lock()
+        self._last_cleanup = 0.0
+
+    def _prune(self, now: float) -> None:
+        cutoff = now - self.window_seconds
+        for identity, events in list(self._events.items()):
+            while events and events[0] <= cutoff:
+                events.popleft()
+            if not events:
+                del self._events[identity]
+        self._last_cleanup = now
 
     async def check(self, identity: str) -> tuple[bool, int]:
         if self.limit <= 0:
             return True, 0
-        now = time.monotonic()
+        now = self._clock()
         async with self._lock:
-            events = self._events.setdefault(identity, deque())
+            if now - self._last_cleanup >= self.window_seconds:
+                self._prune(now)
+            events = self._events.get(identity)
+            if events is None:
+                if len(self._events) >= self.max_identities:
+                    identity = "__overflow__"
+                    events = self._events.get(identity)
+                if events is None:
+                    events = deque()
+                    self._events[identity] = events
             cutoff = now - self.window_seconds
             while events and events[0] <= cutoff:
                 events.popleft()
@@ -383,7 +421,9 @@ async def lifespan(app: FastAPI):
         MAX_QUEUED_REQUESTS,
         QUEUE_TIMEOUT_SECONDS,
     )
-    app.state.rate_limiter = RateLimiter(RATE_LIMIT_PER_MINUTE)
+    app.state.rate_limiter = RateLimiter(
+        RATE_LIMIT_PER_MINUTE, RATE_LIMIT_MAX_IDENTITIES
+    )
     log_event(
         logging.INFO,
         "gateway_start",
@@ -471,24 +511,42 @@ async def metrics() -> Response:
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+def configured_api_keys() -> tuple[str, ...]:
+    """Return the accepted API keys without exposing them in logs or metrics."""
+    keys: list[str] = []
+    if GATEWAY_API_KEY:
+        keys.append(GATEWAY_API_KEY)
+    for key in GATEWAY_API_KEYS:
+        if key not in keys:
+            keys.append(key)
+    return tuple(keys)
+
+
 def require_api_key(
     authorization: str | None = Header(default=None),
     x_api_key: str | None = Header(default=None, alias="X-API-Key"),
 ) -> None:
     """Optional bearer/X-API-Key authentication.
 
-    Authentication is disabled when GATEWAY_API_KEY is unset, preserving the
-    local/GPU demo path. Health, liveness, and metrics stay unauthenticated so
-    Kubernetes probes and Prometheus can reach them.
+    Authentication is disabled when neither GATEWAY_API_KEY nor
+    GATEWAY_API_KEYS is set, preserving the local/GPU demo path. Health,
+    liveness, and metrics stay unauthenticated so Kubernetes probes and
+    Prometheus can reach them.
     """
-    if not GATEWAY_API_KEY:
+    keys = configured_api_keys()
+    if not keys:
         return
     provided = x_api_key or ""
     if not provided and authorization:
         scheme, _, token = authorization.partition(" ")
         if scheme.lower() == "bearer":
             provided = token.strip()
-    if not provided or not secrets.compare_digest(provided, GATEWAY_API_KEY):
+    valid = False
+    if provided:
+        for key in keys:
+            if secrets.compare_digest(provided, key):
+                valid = True
+    if not valid:
         AUTH_FAILURES_TOTAL.inc()
         log_event(
             logging.WARNING,
@@ -514,7 +572,10 @@ def request_identity(
         scheme, _, token = authorization.partition(" ")
         if scheme.lower() == "bearer":
             key = token.strip()
-    if key:
+    # Only treat a key as an identity after authentication is configured.
+    # Otherwise clients could rotate arbitrary X-API-Key headers to bypass
+    # the per-IP limit.
+    if key and configured_api_keys():
         # Do not keep raw tokens in the in-memory limiter.
         return "key:" + hashlib.sha256(key.encode("utf-8")).hexdigest()
     host = request.client.host if request.client else "unknown"
@@ -673,8 +734,31 @@ async def chat(
         )
         raise HTTPException(status_code=upstream.status_code, detail=detail)
 
-    data = upstream.json()
-    usage = parse_usage(data.get("usage"))
+    try:
+        data = upstream.json()
+        answer = data["choices"][0]["message"]["content"]
+        if not isinstance(answer, str):
+            raise TypeError("upstream answer is not a string")
+        usage = parse_usage(data.get("usage"))
+    except (ValueError, KeyError, IndexError, TypeError, AttributeError) as exc:
+        REQUESTS_TOTAL.labels(mode="non_stream", outcome="upstream_error").inc()
+        log_event(
+            logging.WARNING,
+            "request_failed",
+            request_id=request_id,
+            mode="non_stream",
+            model=MODEL_NAME,
+            status_code=502,
+            outcome="upstream_error",
+            queue_wait_ms=round(lease.queue_wait_ms, 1),
+            latency_ms=round((time.perf_counter() - started) * 1_000, 1),
+            error_type=type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="invalid response from vLLM",
+        ) from exc
+
     latency_ms = (time.perf_counter() - started) * 1_000
     REQUESTS_TOTAL.labels(mode="non_stream", outcome="success").inc()
     REQUEST_DURATION_SECONDS.labels(mode="non_stream").observe(latency_ms / 1_000)
@@ -694,7 +778,7 @@ async def chat(
     return ChatResponse(
         request_id=request_id,
         model=data.get("model", MODEL_NAME),
-        answer=data["choices"][0]["message"]["content"],
+        answer=answer,
         usage=usage,
         latency_ms=round(latency_ms, 1),
     )

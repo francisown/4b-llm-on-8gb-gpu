@@ -1,4 +1,4 @@
-<p align="right">
+﻿<p align="right">
   <img src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-555?style=flat-square" alt="语言：简体中文">
   <a href="README.md"><img src="https://img.shields.io/badge/Language-English-2f81f7?style=flat-square" alt="Read in English"></a>
 </p>
@@ -33,7 +33,7 @@
 - **显存预算下的量化**：把 Qwen3.5-4B 做成 FP8 和自制 INT4-AWQ 版本，压进 8GB 显卡。
 - **用证据做模型选型**：同时比较体积、吞吐、延迟和逐题行为，不把一个准确率数字当成全部结论。
 - **推理服务工程**：调优连续批处理、KV Cache、Prefix Cache、Chunked Prefill 和推测解码，再用 FastAPI 网关提供流式输出、超时、背压、探针、指标和结构化日志。
-- **可复现交付**：把运行时、网关、Compose、脚本和校验值打成离线包，并在干净的 Docker Desktop 主机上验收。
+- **本地交付包**：把运行时、网关、Compose、脚本和校验值打成离线包；已在本机 smoke test，但未公开发布。
 
 > **和另外两个仓库的关系**
 >
@@ -47,17 +47,19 @@
 
 ## 先看四个能说明交付结果的数字
 
-> 门面只放**交付模型（Qwen3.5-4B）**的结论，因为它才是这份工作的产物。
-> Qwen3-0.6B 只作为**引擎批处理能力的测试负载**出现在最后一行的位置——它跟交付无关，只是足够轻、能拉到高并发。吞吐类的绝对数字见下方[「关于数字的可比性」](#关于数字的可比性重要)。
+> 门面放**交付模型（Qwen3.5-4B）**的三个结论，以及一个网关稳定性结果。
+> Qwen3-0.6B 只作为**引擎批处理能力的测试负载**放在附录 A，不是交付模型数字。吞吐类的绝对数字见下方[「关于数字的可比性」](#关于数字的可比性重要)。
 
 | 模型 | 结论 | 数字 | 证据 |
 |---|---|---|---|
 | **Qwen3.5-4B**（交付模型） | 自制 INT4-AWQ 把 4B 模型压到 | **3.568 GiB**（比 BF16 小 59%，比 FP8 小 32%） | [`benchmark/eval/README.md`](benchmark/eval/README.md) |
 | **Qwen3.5-4B** | 同一套 200 题上，四个版本总分完全相同 | **全部 141/200（70.5%）**，但 INT4 与 BF16 只有 **87.0%** 逐题一致 | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
-| **Qwen3.5-4B** | 离线交付包在干净的 Docker Desktop 上实机通过 | **7.49 GiB**，含模型、运行时、网关、校验值 | 本机产物（含模型权重，未随仓库公开）；构建方式见 [`gateway/`](gateway/) 与 [`scripts/`](scripts/) |
-| Qwen3-0.6B（测试负载，非交付模型，见附录 A） | 引擎的批处理上限 | 并发 64 时 **5,693 tok/s**（并发 1 → 64 吞吐涨 21.4 倍） | [`benchmark_summary.csv`](benchmark/benchmark_summary.csv) |
+| **Qwen3.5-4B** | INT4-AWQ 在并发 4 下的输出吞吐 | **333.90 tok/s**，TTFT p50 **251.73 ms** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
+| **Gateway**（mock upstream） | 10 分钟闭环 soak | **11,554 请求，0 错误**，p95 **217.39 ms** | [`soak-c4-600s.json`](benchmark/results/observability/soak-c4-600s.json) |
 
 第二行是这份工作里最容易被忽略、但最值钱的一条：**四个模型总分相同，不代表它们等价。** 200 题单选题不足以证明模型等价（Wilson 95% 区间 63.84%–76.39%），而 INT4 有 26 道题的选择与 BF16 不同。这个区分决定了你敢不敢在业务里换量化方案。
+
+一个 7.49 GiB 的离线包（模型、CUDA/vLLM 用户态、网关、Compose 和校验值）在本机构建并做过 smoke test；它包含模型权重，**没有公开发布**，因此不计入公开可复现声明。公开可复现路径是确定性检查和 CPU-only Compose 演示。
 
 ---
 
@@ -65,7 +67,7 @@
 
 | 路径 | 状态 | 证据 |
 |---|---|---|
-| **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.3`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 认证、v0.2.2 TLS/告警/OTel、v0.2.3 按身份限流）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
+| **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.4`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 认证、v0.2.2 TLS/告警/OTel、v0.2.3 按身份限流、v0.2.4 认证/限流身份与畸形上游响应加固）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
 | **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
 | **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 196%/60%；45s 扩容、80s 缩容；mock 上游，只验证 HPA 机制 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
@@ -116,12 +118,12 @@ flowchart LR
 | **自制 INT4-AWQ v1** | **3.568 GiB** | 1 | **102.99 tok/s** | 0.1% | 72.24 ms | 9.21 ms |
 | **自制 INT4-AWQ v1** | **3.568 GiB** | 4 | **333.90 tok/s** | 0.6% | 251.73 ms | 10.07 ms |
 
-批内极差最大 1.3%、多数 0.1%，说明**同一会话内的测量非常稳定**——所以上表这组数字是可以直接引用的。
+批内极差最大 1.3%、多数 0.1%，说明**这一批内部的测量很稳定**；这是批内精度，不等于外部有效性。下文记录的跨批次漂移说明，绝对数值不应被当作普适结论。
 
 **选型结论：**
 
 - **要在 8GB 上换体积和吞吐 → 自制 INT4-AWQ。**相对第三方 FP8，并发 1 吞吐 **+43.0%**、并发 4 **+30.0%**，两批三次测量下方向与量级都稳定。代价是与 BF16 的逐题一致率更低（87.0% vs 96.5%），这个代价必须在业务侧单独评估。
-- **要更贴近 BF16 的行为 → 自制 FP8 v3。**它的优势**只有质量**（与 BF16 逐题一致率 98.0%，高于第三方 FP8 的 96.5%）。**吞吐与第三方 FP8 在统计上无法区分**（+1.0% / +0.2%，都在批内极差以内）。
+- **要更贴近 BF16 的行为 → 自制 FP8 v3。**它的优势**只有质量**（与 BF16 逐题一致率 98.0%，高于第三方 FP8 的 96.5%）。**吞吐在本次批内极差内等价**（+1.0% / +0.2%，未做正式统计检验）。
 
 > 早先版本写过「自制 FP8 v3 吞吐略高于第三方 FP8」。这个说法已被两批测量共同推翻，**已从全部文档删除**。现在说「两者吞吐等价」是有 3 轮重复测量支撑的结论，而原来那个说法只有单次数据。
 
@@ -145,10 +147,10 @@ flowchart LR
 - `/live`（进程）与 `/health`（上游依赖）分离；`/gateway/status` 观测在途与排队
 - 健康检查使用 `Connection: close` 且禁用 keep-alive 复用（这是 K8s 实测中真实修复的 `RemoteProtocolError` 抖动）
 - Prometheus 计数器、Gauge、延迟直方图；`X-Gateway-Pod` / `X-Gateway-Version` 响应头；单行 JSON 应用日志
-- **15 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份、可选 API Key 认证与按身份限流
+- **19 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份、可选 API Key 认证与按身份限流
 - 非 root Docker 镜像 + Compose；Kubernetes 2 副本、PDB、零停机滚动、按 Pod 的 Prometheus 抓取
 
-离线交付包把模型、vLLM/PyTorch/CUDA 用户态环境、网关、Compose、一键脚本和 SHA-256 校验打在一起，**已在全新的 Docker Desktop 环境中完成镜像导入、GPU 检查、模型启动和网页对话验证**。
+离线交付包把模型、vLLM/PyTorch/CUDA 用户态环境、网关、Compose、一键脚本和 SHA-256 校验打在一起，总大小 **7.49 GiB**。它已在本机完成镜像导入、GPU 检查、模型启动和网页对话验证，但**没有公开发布**，读者无法独立核验。
 
 Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4，**0 错误、326.53 tok/s**；压测中强杀 1 个网关 Pod，300 请求 **0 错误**；坏镜像回滚后两个旧副本始终可用。GPU 本身没有被该集群调度。详见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md)。
 
@@ -184,7 +186,7 @@ Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4�
 ```bash
 # 1. 确定性自测（不需要 GPU、模型或 API Key）
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # 预期：5 个成本测试 + 15 个网关测试
+python scripts/verify_local.py          # 预期：5 个成本测试 + 19 个网关测试
 python scripts/validate_manifests.py    # 预期：16 个 Kubernetes 文档
 
 # 2. 从原始 JSON 复算吞吐与成本（在仓库根执行）
@@ -201,12 +203,12 @@ kubectl apply -k k8s/observability
 
 ## 发布
 
-- 最新版本：**v0.2.3** —— [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.3)
-- 镜像：`ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3`
-- Digest：`sha256:92ce8a06303822c5ce17fcf610de66630a5367f72376c707e96c0a78ce593525`
+- 最新版本：**v0.2.4** —— [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.4)
+- 镜像：`ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4`
+- Digest：由 release workflow 发布，见 release 页面。
 - 详情：[`docs/RELEASE.md`](docs/RELEASE.md)
 
-下面的 K8s 实测是在 **v0.2.0** 上完成的；v0.2.1 增加 API Key 认证，v0.2.2 增加 TLS/告警/OTel，v0.2.3 增加按身份限流，不改变服务路径。
+下面的 K8s 实测是在 **v0.2.0** 上完成的；v0.2.1 增加 API Key 认证，v0.2.2 增加 TLS/告警/OTel，v0.2.3 增加按身份限流，v0.2.4 加固认证/限流身份处理与畸形上游响应，不改变服务路径。
 
 ## 可观测性 demo（不需要 GPU）
 
@@ -265,12 +267,11 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus 告警规则、验证与 runbook |
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing、OTLP 配置、验证与限制 |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
-| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.3 tag、GHCR 镜像、发布验证与部署说明 |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.4 tag、GHCR 镜像、发布验证与部署说明 |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | 可选的推理运维 Agent 实验，不属于已验证交付路径 |
 | [`SECURITY.md`](SECURITY.md) | 漏洞报告、Secret 策略、范围与已知限制 |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 本地检查、可观测性 demo、soak、PR 清单与发布流程 |
 | [`.github/workflows/release.yml`](.github/workflows/release.yml) | tag 触发的 GHCR 镜像构建与发布 |
-| [`.github/dependabot.yml`](.github/dependabot.yml) | 每周更新 pip、GitHub Actions 和 Docker 依赖 |
 | [`deploy/observability/`](deploy/observability/) | CPU-only Compose demo：mock vLLM + 网关 + Prometheus + 已配置的 Grafana dashboard |
 | [`k8s/`](k8s/) | 网关 Deployment / Service / ConfigMap / 探针 / PDB / HPA / Prometheus / 压测 Job |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 测试、清单/工作流校验、Kustomize 渲染与 Docker 构建 |
@@ -369,8 +370,8 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus、HPA 2→4→2；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、10 分钟 gateway soak（11,554 请求、0 错误、p95 217.39 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 soak |
-| CI/CD | CI（测试、清单/工作流校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.3 已发布）+ Dependabot；尚无镜像签名与自动部署 |
+| CI/CD | CI（测试、清单/工作流/文档校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.4 已发布）；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |
 
-网关镜像 `v0.2.3` 已重建并对着真实模型验证。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。
+网关镜像 `v0.2.4` 已重建并对着真实模型验证。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。

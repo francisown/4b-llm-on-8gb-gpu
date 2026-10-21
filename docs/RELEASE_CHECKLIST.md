@@ -1,11 +1,11 @@
-# Release checklist
+﻿# Release checklist
 
 Use this checklist for a gateway image or manifest release. The goal is a
 reproducible artifact and a rollback path that was tested before traffic moves.
 
 ## Pre-release
 
-- [ ] `python scripts/verify_local.py` passes (5 cost tests + 15 gateway tests).
+- [ ] `python scripts/verify_local.py` passes (5 cost tests + 19 gateway tests).
 - [ ] `python scripts/validate_manifests.py` passes.
 - [ ] `python scripts/validate_workflows.py` passes.
 - [ ] `kubectl kustomize k8s` and `kubectl kustomize k8s/observability` render.
@@ -34,7 +34,7 @@ reproducible artifact and a rollback path that was tested before traffic moves.
 - [ ] Verify two Ready replicas and Service endpoints.
 - [ ] If auth is enabled, confirm the `inference-gateway-secret` exists and the key was rotated.
 - [ ] Run a canary request set and compare error rate/TTFT with the previous revision.
-- [ ] Confirm `inference_gateway_upstream_healthy` is 1 on every replica.
+- [ ] Confirm `inference_gateway_upstream_healthy` is 5 on every replica.
 - [ ] Confirm the Prometheus targets are up.
 
 ## Rollback

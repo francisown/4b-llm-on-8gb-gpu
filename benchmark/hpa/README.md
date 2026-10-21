@@ -4,6 +4,10 @@ This is a real HPA test, isolated in the `hpa-demo` namespace. It uses a mock
 OpenAI-compatible upstream, so it validates **HPA mechanics and CPU-based
 scaling**, not vLLM model throughput.
 
+The manifests in this directory pin `ai-inference-gateway:v0.2.2`, the image
+used for the recorded run. For a fresh run, retag the current gateway image or
+update `gateway.yaml` and `loadgen.yaml` together.
+
 ## What it deploys
 
 | Object | Purpose |

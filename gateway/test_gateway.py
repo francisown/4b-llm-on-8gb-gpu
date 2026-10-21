@@ -53,6 +53,8 @@ class FakeUpstream:
                 text="synthetic upstream failure",
                 request=request,
             )
+        if self.behavior == "malformed_json":
+            return httpx.Response(200, text="not-json", request=request)
         return httpx.Response(
             200,
             json={
@@ -167,12 +169,66 @@ def test_health_and_metrics_do_not_require_api_key(
     assert client.get("/metrics").status_code == 200
 
 
-def test_rate_limit_is_per_identity(
+class FakeClock:
+    def __init__(self, now: float = 1_000.0) -> None:
+        self.now = now
+
+    def __call__(self) -> float:
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
+
+
+def test_rate_limiter_window_expires() -> None:
+    clock = FakeClock()
+    limiter = gateway.RateLimiter(2, clock=clock)
+    assert asyncio.run(limiter.check("tenant")) == (True, 0)
+    assert asyncio.run(limiter.check("tenant")) == (True, 0)
+    allowed, retry_after = asyncio.run(limiter.check("tenant"))
+    assert allowed is False
+    assert retry_after == 60
+    clock.advance(60.01)
+    assert asyncio.run(limiter.check("tenant")) == (True, 0)
+
+
+def test_rate_limiter_bounds_identity_map() -> None:
+    clock = FakeClock()
+    limiter = gateway.RateLimiter(5, max_identities=2, clock=clock)
+    for identity in ("a", "b", "c", "d"):
+        assert asyncio.run(limiter.check(identity)) == (True, 0)
+    assert "__overflow__" in limiter._events
+    assert len(limiter._events) <= 3
+
+
+def test_rate_limit_ignores_untrusted_key_when_auth_disabled(
     gateway_client: tuple[TestClient, FakeUpstream],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client, _ = gateway_client
     monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "")
+    monkeypatch.setattr(gateway, "GATEWAY_API_KEYS", ())
+    monkeypatch.setattr(gateway.app.state, "rate_limiter", gateway.RateLimiter(2))
+
+    headers_a = {"X-API-Key": "tenant-a"}
+    assert client.post("/chat", json=request_body(), headers=headers_a).status_code == 200
+    assert client.post("/chat", json=request_body(), headers=headers_a).status_code == 200
+    limited = client.post(
+        "/chat",
+        json=request_body(),
+        headers={"X-API-Key": "tenant-b"},
+    )
+    assert limited.status_code == 429
+    assert int(limited.headers["Retry-After"]) >= 1
+
+
+def test_rate_limit_is_per_authenticated_key(
+    gateway_client: tuple[TestClient, FakeUpstream],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = gateway_client
+    monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "")
+    monkeypatch.setattr(gateway, "GATEWAY_API_KEYS", ("tenant-a", "tenant-b"))
     monkeypatch.setattr(gateway.app.state, "rate_limiter", gateway.RateLimiter(2))
 
     headers_a = {"X-API-Key": "tenant-a"}
@@ -186,6 +242,11 @@ def test_rate_limit_is_per_identity(
         json=request_body(),
         headers={"X-API-Key": "tenant-b"},
     ).status_code == 200
+    assert client.post(
+        "/chat",
+        json=request_body(),
+        headers={"X-API-Key": "not-configured"},
+    ).status_code == 401
 
 
 def test_chat_success_and_request_id_propagation(
@@ -232,6 +293,16 @@ def test_upstream_failures_are_translated(
     response = client.post("/chat", json=request_body())
     assert response.status_code == expected_status
     assert expected_detail in response.json()["detail"]
+
+
+def test_malformed_upstream_response_returns_502(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.behavior = "malformed_json"
+    response = client.post("/chat", json=request_body())
+    assert response.status_code == 502
+    assert "invalid response" in response.json()["detail"]
 
 
 def test_capacity_limit_returns_429(

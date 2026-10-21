@@ -33,8 +33,8 @@ connection to vLLM produced intermittent `RemoteProtocolError` health failures
 even though the pod stayed Ready. The regression test asserts the
 `Connection: close` header.
 
-Authentication and an external Prometheus/Grafana stack remain outside this
-image.
+Authentication is implemented in the image. TLS termination and the external
+Prometheus/Grafana stack remain deployment-layer components.
 
 ## Offline tests
 
@@ -47,7 +47,7 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-Expected result: **15 passed**. `smoke_test.py` remains the separate online test
+Expected result: **19 passed**. `smoke_test.py` remains the separate online test
 for a fully running gateway and vLLM server.
 
 ## Docker
@@ -62,7 +62,7 @@ it builds in a normal CI environment. On a restricted network, override both:
 docker build \
   --build-arg PYTHON_IMAGE=docker.m.daocloud.io/library/python:3.10-slim \
   --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
-  -t ai-inference-gateway:v0.2.3 .
+  -t ai-inference-gateway:v0.2.4 .
 ```
 
 ```bash
@@ -92,9 +92,11 @@ allowing the container to reach vLLM on port 8000. If that route changes, set
 | `GATEWAY_MAX_CONCURRENT` | `4` | Active requests admitted to vLLM |
 | `GATEWAY_MAX_QUEUE` | `4` | Additional requests allowed to wait |
 | `GATEWAY_QUEUE_TIMEOUT_SECONDS` | `10` | Maximum queue wait before 429 |
-| `GATEWAY_VERSION` | `0.2.3` | Version exposed in headers/metrics |
+| `GATEWAY_VERSION` | `0.2.4` | Version exposed in headers/metrics |
 | `GATEWAY_API_KEY` | empty (auth disabled) | Optional bearer/X-API-Key token for `/chat` and `/chat/stream`; health/metrics stay open |
-| `GATEWAY_RATE_LIMIT_PER_MINUTE` | `0` (disabled) | Per-identity sliding-window limit; identity is the API key when present, otherwise the client IP |
+| `GATEWAY_API_KEYS` | empty | Optional comma-separated additional keys; useful for per-tenant/per-key limits |
+| `GATEWAY_RATE_LIMIT_PER_MINUTE` | `0` (disabled) | Per-identity sliding-window limit; identity is an authenticated API key, otherwise the direct client IP |
+| `GATEWAY_RATE_LIMIT_MAX_IDENTITIES` | `10000` | Bound on the in-memory identity map; new identities share an overflow bucket when full |
 | `POD_NAME` | `local` | Pod identity; set from `metadata.name` in Kubernetes |
 | `LOG_LEVEL` | `INFO` | Application log level |
 
@@ -106,8 +108,13 @@ full evidence is in [`../docs/K8S_VERIFICATION.md`](../docs/K8S_VERIFICATION.md)
 
 ## Limitations
 
-- No authentication, TLS, or per-tenant quota.
-- Admission control is process-local; with N replicas the effective global
-  concurrency is roughly `N × GATEWAY_MAX_CONCURRENT`.
+- This reference stack has no TLS termination, per-tenant quota, or shared
+  rate-limit store. TLS is provided by the Compose Nginx layer, not by the
+  gateway image itself.
+- Admission control and rate limiting are process-local; with N replicas the
+  effective global concurrency/limit is roughly `N ×` the configured value.
+- When authentication is disabled, the rate limiter keys on the direct client
+  IP. Behind a reverse proxy that IP is the proxy, so enable `GATEWAY_API_KEYS`
+  for real per-key limits rather than relying on forwarded headers.
 - The gateway does not retry read timeouts, because replaying an inference
   request can duplicate work.

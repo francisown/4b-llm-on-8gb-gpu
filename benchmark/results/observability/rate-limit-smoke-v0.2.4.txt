@@ -1,0 +1,11 @@
+﻿date=2026-10-21T13:46:02.7104416+08:00
+gateway_version=0.2.4
+auth_disabled_rate_limit=5/min
+auth_disabled_tenant_a_statuses=200,200,200,200,200,429
+auth_disabled_tenant_b_status=429 (same direct IP; untrusted key ignored)
+auth_disabled_retry_after=retry-after: 59
+auth_enabled_keys=tenant-a,tenant-b
+auth_enabled_tenant_a_statuses=200,200,200,200,200,429
+auth_enabled_tenant_b_status=200
+auth_enabled_unconfigured_key_status=401
+health={"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.4"}

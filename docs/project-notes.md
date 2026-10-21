@@ -1,4 +1,4 @@
-# 项目详细记录：单卡 vLLM 推理工程实践
+﻿# 项目详细记录：单卡 vLLM 推理工程实践
 
 这份文档是项目的详细记录，门面摘要见[根 README](../README.md)。
 
@@ -20,10 +20,10 @@
 | FP8 / INT4-AWQ 量化 | 完成 | 两个量化脚本、自制模型、`INT4-AWQ实验记录.md` |
 | 量化质量评测 | 完成 | C-Eval `val` 200 题、四模型逐题结果、精度 × 体积 × 吞吐总表 |
 | KV Cache、调度与推测解码 | 完成 | 参数 sweep、Prefix Cache、Chunked Prefill、MTP/N-gram 报告 |
-| Python 生产网关 | 完成 | SSE、超时、错误、探针、背压、指标、JSON 日志、15 个 pytest |
+| Python 生产网关 | 完成 | SSE、超时、错误、探针、背压、指标、JSON 日志、19 个 pytest |
 | Docker 离线交付 | 完成并实机验收 | 模型、两个镜像、Compose、一键脚本、SHA-256 校验 |
 | 成本模型 | 完成 | `tools/cost_calculator.py` + 5 个单元测试 |
-| 正式网关测试、结构化日志 | 完成 | 15 个离线 pytest；关键应用事件为单行 JSON |
+| 正式网关测试、结构化日志 | 完成 | 19 个离线 pytest；关键应用事件为单行 JSON |
 | Kubernetes 网关层 | 2026-10-21 已验证 | 2 副本、探针、PDB、零停机滚动/回滚、Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误；GPU 调度未验证 |
 
 ## 关键结果
@@ -43,7 +43,7 @@
 
 （本表为 2026-09-22 同批重测数据；2026-09-17 的原值及变化幅度见根 README 的「关于数字的可比性」。）
 
-![并发与延迟曲线](benchmark/throughput_latency_curve.png)
+![并发与延迟曲线](../benchmark/throughput_latency_curve.png)
 
 结论：连续批处理让总吞吐随并发显著上升，但每个请求的 TPOT 和 TTFT 同时变差；“能接收 64 个请求”不等于 64 个请求都保持单用户延迟。
 
@@ -67,7 +67,7 @@
 | 自制 FP8 v3 | 141/200（70.5%） | 98.0% | 2 | 2 |
 | 自制 INT4-AWQ v1 | 141/200（70.5%） | 87.0% | 11 | 11 |
 
-四个模型总分相同，不等于完全等价：INT4 有 26 道题的答案不同于 BF16，行为变化明显大于 FP8。200 道单选题也不能代表自由文本、代码和长上下文能力。完整方法、限制、原始报告和机器可读总表见 [量化最终对比](benchmark/eval/README.md)。此前的 32 题结果只保留作探索性回归，不再作为最终选型依据。
+四个模型总分相同，不等于完全等价：INT4 有 26 道题的答案不同于 BF16，行为变化明显大于 FP8。200 道单选题也不能代表自由文本、代码和长上下文能力。完整方法、限制、原始报告和机器可读总表见 [量化最终对比](../benchmark/eval/README.md)。此前的 32 题结果只保留作探索性回归，不再作为最终选型依据。
 
 固定 256 input / 128 output、16 个请求、编译模式：
 
@@ -82,11 +82,11 @@
 
 （本表为 2026-09-22 同一会话内每配置连跑 3 轮的均值。跨批次不可复现的问题见根 README 的「关于数字的可比性」。）
 
-当前选择：更看重贴近 BF16 的行为时使用自制 FP8 v3——**理由是质量（一致率 98.0% vs 96.5%），不是速度**，两者吞吐在统计上无法区分；在 8GB 显存上更看重模型体积和吞吐时使用自制 INT4-AWQ（相对第三方 FP8 并发 1 +43.0%、并发 4 +30.0%），并接受其更大的逐题行为变化。详见 [量化最终对比](benchmark/eval/README.md)和 [INT4-AWQ 实验记录](INT4-AWQ实验记录.md)。
+当前选择：更看重贴近 BF16 的行为时使用自制 FP8 v3——**理由是质量（一致率 98.0% vs 96.5%），不是速度**，两者吞吐在本次批内极差内等价（未做正式统计检验）；在 8GB 显存上更看重模型体积和吞吐时使用自制 INT4-AWQ（相对第三方 FP8 并发 1 +43.0%、并发 4 +30.0%），并接受其更大的逐题行为变化。详见 [量化最终对比](../benchmark/eval/README.md)和 [INT4-AWQ 实验记录](int4-awq-experiment-log.md)。
 
 ### 3. 推测解码
 
-公平实验中，MTP-5 的并发 4 输出吞吐由 104.26 提升到 351.37 tok/s；综合 TTFT、吞吐和接受率更推荐 MTP-4。8GB 显存无法同时保留正式服务的较长上下文、较高并发、CUDA Graph 和激进 MTP，因此稳定部署包使用更保守的 N-gram 配置。详见 [推测解码报告](benchmark/results/speculative/README.md)。
+公平实验中，MTP-5 的并发 4 输出吞吐由 104.26 提升到 351.37 tok/s；综合 TTFT、吞吐和接受率更推荐 MTP-4。8GB 显存无法同时保留正式服务的较长上下文、较高并发、CUDA Graph 和激进 MTP，因此稳定部署包使用更保守的 N-gram 配置。详见 [推测解码报告](../benchmark/results/speculative/README.md)。
 
 ## 生产网关
 
@@ -101,10 +101,10 @@
 - `/live`、`/health`、`/gateway/status`；
 - Prometheus `/metrics`；
 - 单行 JSON 应用日志；
-- 15 个不依赖真实模型的 pytest，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份、可选 API Key 认证与按身份限流；
+- 19 个不依赖真实模型的 pytest，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份、可选 API Key 认证与按身份限流；
 - 非 root Docker 镜像与 Compose。
 
-详见 [网关 README](gateway/README.md)。
+详见 [网关 README](../gateway/README.md)。
 
 ## 目录导航
 
@@ -179,4 +179,4 @@ python tools/cost_calculator.py \
 
 第 1–6 模块已经完成验收，第 7 模块的**网关层**已于 2026-10-21 在 Docker Desktop Kubernetes 上实测：2 副本、Service、探针、PDB、零停机滚动/回滚、Prometheus 按 Pod 抓取；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。GPU 调度未验证——`nvidia.com/gpu` 探针因集群没有 device plugin 而 Pending。完整证据见 [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md)。
 
-下一步是 Linux GPU 节点 + NVIDIA device plugin，把 vLLM 放进集群并验证 GPU 调度；然后补 TensorRT-LLM 同协议对比、Grafana/OpenTelemetry、SLO 和 soak test。网关镜像 `v0.2.1` 已重建并验证；若重新发布离线包，需要刷新镜像与 SHA-256 校验值。
+当前仍待完成的是 Linux GPU 节点 + NVIDIA device plugin 的稳定 in-cluster vLLM，以及 TensorRT-LLM 同协议对比；Prometheus/Grafana、OpenTelemetry、SLO、HPA（mock）和 10 分钟 soak 已完成。网关镜像 `v0.2.3` 已重建并验证；若重新发布离线包，需要刷新镜像与 SHA-256 校验值。

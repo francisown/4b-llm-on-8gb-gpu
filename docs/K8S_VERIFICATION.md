@@ -4,8 +4,9 @@ Verification date: **2026-10-21**
 Repository state: verification run on 2026-10-21; see git history for the exact commit.
 
 > **Version note:** the measured run used **v0.2.0**. v0.2.1 adds auth,
-> v0.2.2 adds TLS/alerting/OTel, and v0.2.3 adds rate limiting; the serving
-> path and the numbers below are unchanged.
+> v0.2.2 adds TLS/alerting/OTel, v0.2.3 adds rate limiting, and v0.2.4 hardens
+> auth/rate-limit identity handling and malformed-upstream responses. The
+> serving path and the numbers below are unchanged.
 
 This document records what was actually run. It deliberately separates the
 **gateway layer** (which Kubernetes did manage) from the **GPU inference layer**
@@ -28,7 +29,9 @@ The deployment in `k8s/` sets:
 - `terminationGracePeriodSeconds: 30`, `preStop` sleep 5 s, Uvicorn graceful shutdown 20 s;
 - CPU/memory requests and limits, non-root user, read-only root filesystem, `/tmp` emptyDir;
 - PodDisruptionBudget `minAvailable: 1`;
-- HPA manifest (2–4 replicas, CPU 70%) — present but **not active** on this cluster;
+- HPA manifest (2–4 replicas, CPU target 70%) — base manifest; HPA mechanics
+  were separately validated in `hpa-demo` with metrics-server and a mock
+  upstream (see [HPA status](#hpa-status));
 - Prometheus scraping by pod, so both replicas are visible separately.
 
 ## Apply and rollout
@@ -188,16 +191,28 @@ The repository does not claim those steps were completed.
 
 ## HPA status
 
-`kubectl get hpa` reports:
+The base `k8s/hpa.yaml` uses a CPU target of 70% and needs metrics-server. The
+base namespace was originally applied on a cluster without metrics-server, so
+the HPA there reported `cpu: <unknown>/70%` and did not scale. That observation
+is why a separate test was run in the isolated `hpa-demo` namespace after
+installing metrics-server.
 
-```text
-cpu: <unknown>/70%
-ScalingActive  False  FailedGetResourceMetric
-```
+The separate test used a 60% CPU target and a mock upstream:
 
-The Docker Desktop cluster has no metrics-server, so the HPA manifest is
-present but **not validated**. Do not describe autoscaling as working until a
-metrics pipeline is installed and a scale-out event is observed.
+| Metric | Result |
+|---|---:|
+| Initial / max replicas | 2 / 4 |
+| Scale-up | **45 s** (2 → 4) |
+| Scale-down | **80 s** (4 → 2, after the 60 s stabilization window) |
+| Load | 8,000 requests at c=32, 0 errors |
+| Observed CPU target | 196% vs 60% |
+| Event | `SuccessfulRescale New size: 4` |
+
+This validates CPU-based HPA mechanics, not model or GPU autoscaling. The
+gateway is stateless and the model server stayed outside the cluster. Evidence:
+[`benchmark/hpa/README.md`](../benchmark/hpa/README.md),
+[`benchmark/results/hpa/summary.json`](../benchmark/results/hpa/summary.json), and
+[`benchmark/results/hpa/scale-out.txt`](../benchmark/results/hpa/scale-out.txt).
 
 ## Reproduce
 
@@ -231,7 +246,8 @@ kubectl logs job/gateway-loadgen -n ai-inference
   single point of failure.
 - No TLS, authentication, per-tenant quota, or network policy.
 - No long-duration soak test, no memory-leak profile, no p99 under sustained load.
-- HPA not validated (no metrics-server).
+- HPA validated only with CPU metrics and a mock upstream; no queue-depth,
+  TTFT, or GPU-based autoscaling was tested.
 - GPU scheduling not validated (no device plugin).
 - TensorRT-LLM was not measured; see
   [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md).

@@ -1,4 +1,4 @@
-# 验证：WSL2 上到底能不能跑 vLLM V2 model runner
+﻿# 验证：WSL2 上到底能不能跑 vLLM V2 model runner
 
 ## 为什么要做这个验证
 
@@ -115,7 +115,7 @@ bash scripts/verify_v2_runner.sh B     # 只跑新方案 V2 + pinned
 > 所以原结论的错误不是"选错了 runner"（事实上选哪个都一样），而是**把可用性问题和性能问题混为一谈**，并且把一个可配置项描述成了平台限制。这是两种不同性质的工程判断误差。
 >
 > **这处错误在仓库里出现了两次，均已加带日期的更正块：**
-> - [`INT4-AWQ实验记录.md`](../INT4-AWQ实验记录.md) 的「vLLM 运行配置与兼容处理」一节
+> - [`INT4-AWQ实验记录.md`](int4-awq-experiment-log.md) 的「vLLM 运行配置与兼容处理」一节
 > - [`benchmark/results/speculative/README.md`](../benchmark/results/speculative/README.md) 的「公平测试条件」一节
 >
 > 两处都**不需要重跑实验**：相关对照组的被测变量分别是量化方案和 MTP 深度，runner 在所有组里都一致，对照关系有效——错的只是给出的理由。这一点在更正工程结论时很重要，别把"理由错了"误当成"数据废了"。

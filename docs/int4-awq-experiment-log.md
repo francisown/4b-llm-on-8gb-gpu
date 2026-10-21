@@ -1,4 +1,4 @@
-# Qwen3.5-4B W4A16 INT4-AWQ 实验记录
+﻿# Qwen3.5-4B W4A16 INT4-AWQ 实验记录
 
 日期：2026-09-17
 
@@ -67,7 +67,7 @@ export VLLM_USE_FLASHINFER_SAMPLER=0
 >
 > 同一批实测还发现本文件的性能数字当前复现不出来（并发 1 差 -6.2%、并发 4 差 -7.5%，参数完全一致），原因待查。
 >
-> 完整证据与复现方式见 [`docs/wsl2-v2-runner-验证指引.md`](docs/wsl2-v2-runner-验证指引.md)。
+> 完整证据与复现方式见 [`docs/wsl2-v2-runner-验证指引.md`](wsl2-runner-verification.md)。
 
 `VLLM_USE_FLASHINFER_SAMPLER=0` 这半条结论仍然成立（本机确实没有完整 CUDA Toolkit）。
 

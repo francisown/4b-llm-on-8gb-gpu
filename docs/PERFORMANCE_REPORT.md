@@ -14,7 +14,7 @@ context lengths, or concurrency levels.
 | Model | Qwen3.5-4B-INT4-AWQ-self |
 | Runtime | vLLM 0.29.0 |
 | Host | Windows + WSL2 Ubuntu 22.04; Docker Desktop Kubernetes for the gateway |
-| Gateway | FastAPI `ai-inference-gateway:v0.2.0` for the measured run; v0.2.1 adds auth, v0.2.2 adds TLS/alerting/OTel, and v0.2.3 adds rate limiting without changing the serving path |
+| Gateway | FastAPI `ai-inference-gateway:v0.2.0` for the measured run; v0.2.1 adds auth, v0.2.2 adds TLS/alerting/OTel, v0.2.3 adds rate limiting, and v0.2.4 hardens auth/rate-limit identity handling without changing the serving path |
 | Model server | vLLM in a Docker container with GPU access; **not** scheduled by Kubernetes |
 | Prometheus | v2.55.1, scraping both gateway pods |
 
@@ -106,15 +106,15 @@ gateway's admission control, connection handling, and gauge cleanup.
 
 | Metric | Result |
 |---|---:|
-| Duration / concurrency | 120.106 s / 4 |
+| Duration / concurrency | 120.119 s / 4 |
 | Requests | **2,329** |
 | Errors | **0** |
-| Throughput | 19.391 req/s |
-| Latency mean / p50 / p95 / p99 | 206.25 / 205.49 / 216.64 / 223.78 ms |
+| Throughput | 19.389 req/s |
+| Latency mean / p50 / p95 / p99 | 206.29 / 205.58 / 215.82 / 221.86 ms |
 | Health before / after | ok / ok |
 | Active / waiting after drain | **0 / 0** |
 
-Raw: [`soak-c4-120s.json`](../benchmark/results/observability/soak-c4-120s.json).
+Raw: [`soak-c4-120s-v0.2.4.json`](../benchmark/results/observability/soak-c4-120s-v0.2.4.json).
 
 The value of this test is the **zero-error completion and gauge recovery**,
 not the latency number: the mock upstream has a fixed delay, so the latency is

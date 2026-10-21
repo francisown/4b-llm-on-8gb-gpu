@@ -37,3 +37,10 @@ The mock stack used by the observability evidence is in
 - A single run is indicative. Mark it as such in reports.
 - Do not compare the 256/128 quantization rows with the 64-token K8s rows.
 - Do not put the custom-CUDA 54 tok/s number next to batched vLLM.
+
+## Historical metadata gap
+
+Many files under `results/` were recorded before the metadata checklist in
+`docs/BENCHMARK_PROTOCOL.md` existed. They are retained as measured, but some do
+not contain a git revision, GPU driver, or CUDA version. They are not
+retroactively edited; new runs must include those fields.

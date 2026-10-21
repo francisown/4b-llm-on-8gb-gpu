@@ -1,0 +1,55 @@
+{
+  "url": "http://gateway-real2:9000/chat",
+  "duration_s": 7200.272,
+  "concurrency": 4,
+  "max_tokens": 32,
+  "requests": 67530,
+  "success": 67530,
+  "rejected_429": 0,
+  "errors": 0,
+  "error_rate": 0.0,
+  "rejection_rate": 0.0,
+  "throughput_rps": 9.379,
+  "success_rps": 9.379,
+  "latency_ms": {
+    "mean": 426.49,
+    "p50": 417.65,
+    "p95": 458.12,
+    "p99": 639.09
+  },
+  "status_counts": {
+    "200": 67530
+  },
+  "health_before": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "real-vllm-docker",
+    "version": "0.2.4"
+  },
+  "health_after": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "real-vllm-docker",
+    "version": "0.2.4"
+  },
+  "status_before": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "real-vllm-docker",
+    "version": "0.2.4"
+  },
+  "status_after": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "real-vllm-docker",
+    "version": "0.2.4"
+  },
+  "rejection_samples": [],
+  "error_samples": []
+}

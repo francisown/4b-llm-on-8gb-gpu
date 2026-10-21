@@ -67,6 +67,25 @@ Raw: [`real-vllm-v0.2.4-3runs-summary.json`](../benchmark/results/real-vllm-v0.2
 Raw: [`real-vllm-docker-soak-c4-600s.json`](../benchmark/results/real-vllm-docker-soak-c4-600s.json).
 This is a real-model gateway soak on one host, not a Kubernetes GPU soak.
 
+### 2-hour real-vLLM soak
+
+| Metric | Result |
+|---|---:|
+| Duration / concurrency | 7200.272 s / 4 |
+| Requests | **67,530** |
+| Errors | **0** |
+| Throughput | 9.379 req/s |
+| Latency mean / p50 / p95 / p99 | 426.49 / 417.65 / 458.12 / 639.09 ms |
+| Health before / after | ok / ok |
+| Active / waiting after drain | **0 / 0** |
+
+Raw: [`real-vllm-docker-soak-c4-7200s.json`](../benchmark/results/real-vllm-docker-soak-c4-7200s.json).
+
+Compared with the 30-minute run below, p95 moved from 433.79 ms to 458.12 ms
+and p99 from 455.82 ms to 639.09 ms while throughput stayed flat. That is the
+shape you expect from a longer window: the median barely moves and the tail
+collects more outliers. No code change sits between the two runs.
+
 ### 30-minute real-vLLM soak
 
 | Metric | Result |

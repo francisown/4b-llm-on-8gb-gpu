@@ -141,8 +141,9 @@ v0.2.4 2-hour soak completed **140,178 requests with 0 errors**, 19.469 req/s,
 p95 **214.82 ms**, p99 220.03 ms, with `active=0`, `waiting=0` after drain. A
 **real-vLLM** 10-minute soak completed **5,992 requests with 0 errors**,
 9.986 req/s, p95 **418.49 ms**, p99 538.67 ms, with the same gauge recovery. A
-30-minute real-vLLM soak completed **17,609 requests with 0 errors**, 9.781
-req/s, p95 **433.79 ms**, p99 455.82 ms, gauges 0. A
+A 2-hour real-vLLM soak completed **67,530 requests with 0 errors**, 9.379
+req/s, p95 **458.12 ms**, p99 639.09 ms, gauges 0; the earlier 30-minute run
+on the same setup did 17,609 requests at 9.781 req/s with p95 433.79 ms. A
 concurrency-16 backpressure run produced 621 successes and 6,544 clean 429s with
 **0 other errors**. These are gateway-stability tests; the first three use the
 mock upstream, the real-vLLM soak uses the model server. Evidence:
@@ -151,6 +152,7 @@ mock upstream, the real-vLLM soak uses the model server. Evidence:
 [`soak-c4-7200s-v0.2.4.json`](../benchmark/results/observability/soak-c4-7200s-v0.2.4.json),
 [`real-vllm-docker-soak-c4-600s.json`](../benchmark/results/real-vllm-docker-soak-c4-600s.json),
 [`real-vllm-docker-soak-c4-1800s.json`](../benchmark/results/real-vllm-docker-soak-c4-1800s.json),
+[`real-vllm-docker-soak-c4-7200s.json`](../benchmark/results/real-vllm-docker-soak-c4-7200s.json),
 [`backpressure-c16-30s.json`](../benchmark/results/observability/backpressure-c16-30s.json).
 
 Evidence: [`benchmark/results/observability/summary.txt`](../benchmark/results/observability/summary.txt),

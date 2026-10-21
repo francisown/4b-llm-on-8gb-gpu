@@ -54,7 +54,7 @@ jobs:
             org.opencontainers.image.title=ai-inference-gateway
             org.opencontainers.image.description=FastAPI gateway for the 8GB LLM inference delivery project
 
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: gateway
           push: true

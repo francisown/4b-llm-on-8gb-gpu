@@ -3,10 +3,11 @@
 Verification date: **2026-10-21**
 Repository state: verification run on 2026-10-21; see git history for the exact commit.
 
-> **Version note:** the measured run used **v0.2.0**. v0.2.1 adds auth,
-> v0.2.2 adds TLS/alerting/OTel, v0.2.3 adds rate limiting, and v0.2.4 hardens
-> auth/rate-limit identity handling and malformed-upstream responses. The
-> serving path and the numbers below are unchanged.
+> **Version note:** the original measured Kubernetes run used **v0.2.0**. The
+> later WSL2 k3s GPU smoke used **v0.2.4** and is labeled separately. v0.2.1
+> adds auth, v0.2.2 adds TLS/alerting/OTel, v0.2.3 adds rate limiting, and
+> v0.2.4 hardens auth/rate-limit identity handling and malformed-upstream
+> responses. The serving path and the original numbers below are unchanged.
 
 This document records what was actually run. It separates the **original
 gateway-layer benchmark** (where the GPU model server stayed outside Docker

@@ -93,6 +93,9 @@ flowchart LR
     B -.-> G["交付面<br/>Docker Compose · K8s 清单 · 离线包"]
 ```
 
+这张图是最早的宿主 vLLM 路径。把 vLLM 和 gateway 都放进集群的 WSL2 k3s
+变体在 [`k8s/gpu-inference/`](k8s/gpu-inference/)，其实测性能低于宿主路径。
+
 ---
 
 ## 关键结果

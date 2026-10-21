@@ -109,7 +109,9 @@ model and is a short smoke test, not a production PVC path.
 
 ## Known reproduction gaps
 
-- The 7.49 GiB offline bundle contains model weights and is not published.
+- The 7.49 GiB offline bundle contains model weights and is not published; its
+  contents and SHA-256 checksums are recorded in
+  [`OFFLINE_BUNDLE.md`](OFFLINE_BUNDLE.md).
 - A single portable lockfile for the CUDA/WSL2 quantization environment is not
   committed; the version table above is the recorded baseline.
 - Stable GPU-in-Kubernetes vLLM and TensorRT-LLM results are not claimed.

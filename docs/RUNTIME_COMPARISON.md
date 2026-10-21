@@ -18,11 +18,12 @@ invalid.
 A same-model TensorRT-LLM benchmark is not currently possible on this host
 without an unsupported build:
 
-- PyPI `tensorrt-llm==1.2.1` requires Python 3.10/3.12, CUDA 13.1,
-  TensorRT 10.14.1, and `torch>=2.9.1,<=2.10.0a0`; the recorded vLLM environment
-  uses CUDA 13.0 and PyTorch 2.13.0.
-- The TensorRT-LLM 1.2.1 support matrix lists **Qwen3**, not **Qwen3.5**, and
-  its hardware table does not list the RTX 5060 / SM120 consumer GPU.
+- The [TensorRT-LLM 1.2.1 support matrix](https://nvidia.github.io/TensorRT-LLM/reference/support-matrix.html)
+  lists **Qwen3**, not **Qwen3.5**, and its hardware table does not list the
+  RTX 5060 / SM120 consumer GPU.
+- The PyPI metadata for `tensorrt-llm==1.2.1` lists CUDA 13.1, TensorRT 10.14.1,
+  and `torch>=2.9.1,<=2.10.0a0`; the recorded vLLM environment uses CUDA 13.0
+  and PyTorch 2.13.0.
 - Installing the package and forcing the Qwen3.5 hybrid architecture through an
   unsupported path would not produce a result comparable to the vLLM row.
 

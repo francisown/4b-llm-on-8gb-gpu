@@ -103,6 +103,11 @@ flowchart LR
     B -.-> G["Delivery<br/>Docker Compose · K8s manifests · offline bundle"]
 ```
 
+The diagram shows the original host-vLLM path. The WSL2 k3s variant that puts
+vLLM and the gateway in-cluster is in
+[`k8s/gpu-inference/`](k8s/gpu-inference/); its measured performance is lower
+than the host path.
+
 ---
 
 ## Key results

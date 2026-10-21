@@ -9,13 +9,14 @@ import json
 import logging
 import os
 from pathlib import Path
+import secrets
 import sys
 import time
 import uuid
 from typing import Any, Literal
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
@@ -37,6 +38,7 @@ HEALTH_TIMEOUT_SECONDS = float(os.getenv("HEALTH_TIMEOUT_SECONDS", "3"))
 UPSTREAM_CONNECT_RETRIES = max(0, int(os.getenv("UPSTREAM_CONNECT_RETRIES", "1")))
 POD_NAME = os.getenv("POD_NAME", "local")
 GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.0")
+GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "")
 APP_DIR = Path(__file__).resolve().parent
 
 LOG_FIELDS = (
@@ -131,6 +133,10 @@ TOKENS_TOTAL = Counter(
 CLIENT_DISCONNECTS_TOTAL = Counter(
     "inference_gateway_client_disconnects_total",
     "Streaming clients that disconnected before completion.",
+)
+AUTH_FAILURES_TOTAL = Counter(
+    "inference_gateway_auth_failures_total",
+    "Requests rejected because the API key was missing or invalid.",
 )
 UPSTREAM_HEALTHY = Gauge(
     "inference_gateway_upstream_healthy",
@@ -431,6 +437,39 @@ async def metrics() -> Response:
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+def require_api_key(
+    authorization: str | None = Header(default=None),
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+) -> None:
+    """Optional bearer/X-API-Key authentication.
+
+    Authentication is disabled when GATEWAY_API_KEY is unset, preserving the
+    local/GPU demo path. Health, liveness, and metrics stay unauthenticated so
+    Kubernetes probes and Prometheus can reach them.
+    """
+    if not GATEWAY_API_KEY:
+        return
+    provided = x_api_key or ""
+    if not provided and authorization:
+        scheme, _, token = authorization.partition(" ")
+        if scheme.lower() == "bearer":
+            provided = token.strip()
+    if not provided or not secrets.compare_digest(provided, GATEWAY_API_KEY):
+        AUTH_FAILURES_TOTAL.inc()
+        log_event(
+            logging.WARNING,
+            "request_rejected",
+            status_code=401,
+            outcome="unauthorized",
+            reason="auth",
+        )
+        raise HTTPException(
+            status_code=401,
+            detail="invalid or missing API key",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
 async def post_with_connect_retry(
     client: httpx.AsyncClient,
     url: str,
@@ -484,7 +523,7 @@ async def send_stream_with_connect_retry(
     raise RuntimeError("unreachable retry loop")
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat", response_model=ChatResponse, dependencies=[Depends(require_api_key)])
 async def chat(
     body: ChatRequest,
     x_request_id: str | None = Header(default=None),
@@ -583,7 +622,7 @@ async def chat(
     )
 
 
-@app.post("/chat/stream")
+@app.post("/chat/stream", dependencies=[Depends(require_api_key)])
 async def chat_stream(
     body: ChatRequest,
     request: Request,

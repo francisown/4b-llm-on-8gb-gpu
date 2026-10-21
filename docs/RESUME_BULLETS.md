@@ -18,7 +18,7 @@ GPU experiment.
 
 - **Built a FastAPI inference gateway with bounded admission, HTTP 429
   backpressure, SSE streaming, TTFT/latency histograms, JSON logs, connect-only
-  retry, and graceful shutdown**; 12 offline tests run without a GPU or model.
+  retry, and graceful shutdown**; 14 offline tests run without a GPU or model.
   Evidence: `gateway/`, `gateway/test_gateway.py`.
 
 - **Deployed the gateway on Kubernetes with 2 replicas, readiness/liveness

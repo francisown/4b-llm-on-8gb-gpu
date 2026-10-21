@@ -156,6 +156,29 @@ Prometheus 使用 Kubernetes pod discovery，直接抓每个网关 Pod，而不�
 Service。这样 `inference_gateway_upstream_healthy`、请求数、TTFT 直方图都能
 按 Pod 区分。原始查询结果在 [`../benchmark/results/k8s/`](../benchmark/results/k8s/)。
 
+## 可选 API Key 认证
+
+`GATEWAY_API_KEY` 为空时认证关闭。要开启：
+
+```powershell
+kubectl create secret generic inference-gateway-secret `
+  -n ai-inference `
+  --from-literal=GATEWAY_API_KEY=replace-with-a-long-random-token
+kubectl rollout restart deployment/inference-gateway -n ai-inference
+```
+
+请求时带上：
+
+```powershell
+curl.exe -H "X-API-Key: replace-with-a-long-random-token" `
+  -H "Content-Type: application/json" `
+  -d '{"message":"hello","max_tokens":8}' `
+  http://127.0.0.1:9001/chat
+```
+
+`/live`、`/health`、`/metrics` 故意保持无认证，供探针和 Prometheus 使用。
+Secret 不要提交到 Git。
+
 ## 已知边界
 
 - HPA 未生效：集群没有 metrics-server，`ScalingActive=False`。

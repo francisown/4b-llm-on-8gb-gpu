@@ -37,6 +37,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: inference-gateway-config
+            - secretRef:
+                name: inference-gateway-secret
+                optional: true
           env:
             - name: POD_NAME
               valueFrom:

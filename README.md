@@ -126,11 +126,12 @@ That conclusion is itself a result: **the optimal configuration and the shippabl
 - Request-ID propagation, Pydantic validation, Unicode sanitization
 - Four independent timeout classes (connect / read / write / pool); upstream error translation; upstream cancellation when the client disconnects
 - Bounded concurrency and queueing with **HTTP 429 backpressure**
+- Optional `Authorization: Bearer` / `X-API-Key` authentication for chat endpoints; `/live`, `/health`, and `/metrics` stay open for probes and Prometheus
 - Connect-only upstream retry: a failed pre-send connection is retried, a read timeout is never replayed
 - Split `/live` (process) and `/health` (upstream dependency); `/gateway/status` for in-flight and queued counts
 - Health checks use `Connection: close` and disable keep-alive reuse, after a real `RemoteProtocolError` flap found on Kubernetes
 - Prometheus counters, gauges, and latency histograms; `X-Gateway-Pod` / `X-Gateway-Version` response headers; single-line JSON logs
-- **12 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, and probe identity
+- **14 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, probe identity, and optional API-key authentication
 - Non-root Docker image + Compose; Kubernetes Deployment with 2 replicas, PDB, zero-downtime rollout, and per-pod Prometheus scraping
 
 The offline bundle packs the model, the vLLM/PyTorch/CUDA userspace environment, the gateway, Compose, one-click scripts, and SHA-256 manifests into **7.49 GiB**, and was verified end to end on a clean Docker Desktop install: image import, GPU check, model startup, browser chat.
@@ -174,7 +175,7 @@ That conclusion is independent of the model generation, and it is the only thing
 ```bash
 # 1. Deterministic checks (no GPU, no model, no API key)
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # expect: 5 cost tests + 12 gateway tests
+python scripts/verify_local.py          # expect: 5 cost tests + 14 gateway tests
 python scripts/validate_manifests.py    # expect: 12 Kubernetes documents
 
 # 2. Recompute throughput and cost from the raw JSON (run at repo root)

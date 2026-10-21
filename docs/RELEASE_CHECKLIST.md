@@ -5,7 +5,7 @@ reproducible artifact and a rollback path that was tested before traffic moves.
 
 ## Pre-release
 
-- [ ] `python scripts/verify_local.py` passes (5 cost tests + 12 gateway tests).
+- [ ] `python scripts/verify_local.py` passes (5 cost tests + 14 gateway tests).
 - [ ] `python scripts/validate_manifests.py` passes.
 - [ ] `kubectl kustomize k8s` and `kubectl kustomize k8s/observability` render.
 - [ ] `docker build -t ai-inference-gateway:<version> gateway/` succeeds.
@@ -31,6 +31,7 @@ reproducible artifact and a rollback path that was tested before traffic moves.
 - [ ] Apply with `kubectl apply -k k8s` (or the environment overlay).
 - [ ] `kubectl rollout status deployment/inference-gateway -n ai-inference`.
 - [ ] Verify two Ready replicas and Service endpoints.
+- [ ] If auth is enabled, confirm the `inference-gateway-secret` exists and the key was rotated.
 - [ ] Run a canary request set and compare error rate/TTFT with the previous revision.
 - [ ] Confirm `inference_gateway_upstream_healthy` is 1 on every replica.
 - [ ] Confirm the Prometheus targets are up.

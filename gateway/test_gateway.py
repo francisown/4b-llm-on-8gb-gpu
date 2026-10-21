@@ -130,6 +130,43 @@ def test_health_probe_disables_connection_reuse(
     assert fake.health_calls[-1]["Connection"] == "close"
 
 
+def test_api_key_is_optional_and_enforced_when_configured(
+    gateway_client: tuple[TestClient, FakeUpstream],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = gateway_client
+    assert client.post("/chat", json=request_body()).status_code == 200
+
+    monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "secret-key")
+    assert client.post("/chat", json=request_body()).status_code == 401
+    assert client.post(
+        "/chat",
+        json=request_body(),
+        headers={"X-API-Key": "wrong"},
+    ).status_code == 401
+    assert client.post(
+        "/chat",
+        json=request_body(),
+        headers={"X-API-Key": "secret-key"},
+    ).status_code == 200
+    assert client.post(
+        "/chat",
+        json=request_body(),
+        headers={"Authorization": "Bearer secret-key"},
+    ).status_code == 200
+
+
+def test_health_and_metrics_do_not_require_api_key(
+    gateway_client: tuple[TestClient, FakeUpstream],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = gateway_client
+    monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "secret-key")
+    assert client.get("/health").status_code == 200
+    assert client.get("/live").status_code == 200
+    assert client.get("/metrics").status_code == 200
+
+
 def test_chat_success_and_request_id_propagation(
     gateway_client: tuple[TestClient, FakeUpstream],
 ) -> None:

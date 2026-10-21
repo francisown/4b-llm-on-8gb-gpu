@@ -38,6 +38,7 @@ indefinitely.
 | Bad rollout keeps old replicas serving | `benchmark/results/k8s/rollback.txt` |
 | Prometheus scrapes both replicas | `benchmark/results/k8s/prometheus-targets.json` |
 | Grafana dashboard and datasource are provisioned | `benchmark/results/observability/summary.txt` |
+| Optional API-key auth returns 401 without a key and 200 with it | `benchmark/results/observability/auth-smoke.txt` |
 | GPU scheduling in K8s was demonstrated on WSL2 k3s; stable serving was blocked by PLEG | [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md) |
 
 ## What is not claimed

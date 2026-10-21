@@ -1,0 +1,6 @@
+﻿date=2026-10-21T11:12:28.1198398+08:00
+health_without_key=200
+chat_without_key=401
+chat_x_api_key=200
+chat_bearer=200
+chat_after_disable=200

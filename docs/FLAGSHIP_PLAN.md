@@ -90,7 +90,8 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 
 | Check | Result |
 |---|---|
-| Gateway offline tests | 12 passed |
+| Gateway offline tests | 14 passed |
+| Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
 | Cost-calculator tests | 5 passed |
 | Manifest validation | 16 documents passed |
 | Kubernetes Service load | 100 requests, 0 errors, 326.53 tok/s |

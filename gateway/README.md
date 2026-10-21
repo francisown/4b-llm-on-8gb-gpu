@@ -7,6 +7,8 @@ the container and, on this host, outside the Kubernetes cluster.
 ## What it implements
 
 - Pydantic request validation and propagation/generation of `X-Request-ID`;
+- optional `Authorization: Bearer` / `X-API-Key` authentication for chat endpoints;
+  `/live`, `/health`, and `/metrics` stay open for probes and Prometheus;
 - separate connect/read/write/pool timeouts;
 - conversion of upstream connection, timeout, and HTTP errors;
 - a dependency-aware `/health` endpoint and a process-only `/live` endpoint;
@@ -45,7 +47,7 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-Expected result: **12 passed**. `smoke_test.py` remains the separate online test
+Expected result: **14 passed**. `smoke_test.py` remains the separate online test
 for a fully running gateway and vLLM server.
 
 ## Docker
@@ -91,6 +93,7 @@ allowing the container to reach vLLM on port 8000. If that route changes, set
 | `GATEWAY_MAX_QUEUE` | `4` | Additional requests allowed to wait |
 | `GATEWAY_QUEUE_TIMEOUT_SECONDS` | `10` | Maximum queue wait before 429 |
 | `GATEWAY_VERSION` | `0.2.0` | Version exposed in headers/metrics |
+| `GATEWAY_API_KEY` | empty (auth disabled) | Optional bearer/X-API-Key token for `/chat` and `/chat/stream`; health/metrics stay open |
 | `POD_NAME` | `local` | Pod identity; set from `metadata.name` in Kubernetes |
 | `LOG_LEVEL` | `INFO` | Application log level |
 

@@ -31,6 +31,7 @@ services:
       GATEWAY_QUEUE_TIMEOUT_SECONDS: "10"
       GATEWAY_VERSION: "0.2.0"
       POD_NAME: compose-gateway
+      GATEWAY_API_KEY: "${GATEWAY_API_KEY:-}"
     depends_on:
       mock-vllm:
         condition: service_healthy

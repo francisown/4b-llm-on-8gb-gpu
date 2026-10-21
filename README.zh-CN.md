@@ -123,11 +123,12 @@ flowchart LR
 - 请求 ID 贯穿、Pydantic 校验、Unicode 清理
 - 连接/读/写/连接池四类独立超时；上游错误转换；客户端断开时取消上游
 - 有界并发与队列，超限返回 HTTP 429 背压
+- 可选 `Authorization: Bearer` / `X-API-Key` 认证；`/live`、`/health`、`/metrics` 保持开放，供探针和 Prometheus 使用
 - 仅对“发送前的连接失败”重试；读超时绝不重放
 - `/live`（进程）与 `/health`（上游依赖）分离；`/gateway/status` 观测在途与排队
 - 健康检查使用 `Connection: close` 且禁用 keep-alive 复用（这是 K8s 实测中真实修复的 `RemoteProtocolError` 抖动）
 - Prometheus 计数器、Gauge、延迟直方图；`X-Gateway-Pod` / `X-Gateway-Version` 响应头；单行 JSON 应用日志
-- **12 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试与探针身份
+- **14 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份与可选 API Key 认证
 - 非 root Docker 镜像 + Compose；Kubernetes 2 副本、PDB、零停机滚动、按 Pod 的 Prometheus 抓取
 
 离线交付包把模型、vLLM/PyTorch/CUDA 用户态环境、网关、Compose、一键脚本和 SHA-256 校验打在一起，**已在全新的 Docker Desktop 环境中完成镜像导入、GPU 检查、模型启动和网页对话验证**。
@@ -166,8 +167,8 @@ Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4�
 ```bash
 # 1. 确定性自测（不需要 GPU、模型或 API Key）
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # 预期：5 个成本测试 + 12 个网关测试
-python scripts/validate_manifests.py    # 预期：12 个 Kubernetes 文档
+python scripts/verify_local.py          # 预期：5 个成本测试 + 14 个网关测试
+python scripts/validate_manifests.py    # 预期：16 个 Kubernetes 文档
 
 # 2. 从原始 JSON 复算吞吐与成本（在仓库根执行）
 python tools/cost_calculator.py \

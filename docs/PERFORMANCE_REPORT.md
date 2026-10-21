@@ -96,7 +96,29 @@ Raw: [`pod-kill.txt`](../benchmark/results/k8s/pod-kill.txt),
 [`rollback.txt`](../benchmark/results/k8s/rollback.txt),
 [`prometheus-targets.json`](../benchmark/results/k8s/prometheus-targets.json).
 
-## 4. What is not in this report
+## 4. Gateway soak (mock upstream)
+
+This is a gateway-stability test, not a model-throughput benchmark. It ran
+against the CPU-only mock OpenAI-compatible upstream, so it isolates the
+gateway's admission control, connection handling, and gauge cleanup.
+
+| Metric | Result |
+|---|---:|
+| Duration / concurrency | 120.197 s / 4 |
+| Requests | **2,352** |
+| Errors | **0** |
+| Throughput | 19.568 req/s |
+| Latency mean / p50 / p95 / p99 | 204.23 / 203.73 / 212.51 / 217.13 ms |
+| Health before / after | ok / ok |
+| Active / waiting after drain | **0 / 0** |
+
+Raw: [`soak-c4-120s.json`](../benchmark/results/observability/soak-c4-120s.json).
+
+The value of this test is the **zero-error completion and gauge recovery**,
+not the latency number: the mock upstream has a fixed delay, so the latency is
+not comparable to vLLM.
+
+## 5. What is not in this report
 
 - **No TensorRT-LLM result.** The comparison protocol and harness exist; no
   engine was built or measured. See [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md).
@@ -109,7 +131,7 @@ Raw: [`pod-kill.txt`](../benchmark/results/k8s/pod-kill.txt),
 - **No cloud cost quote.** The cost calculator is a capacity estimate, not an
   accounting system.
 
-## 5. Reproduce
+## 6. Reproduce
 
 ```bash
 python scripts/verify_local.py

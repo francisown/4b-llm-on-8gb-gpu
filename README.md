@@ -203,6 +203,14 @@ docker compose -f deploy/observability/compose.yaml up -d --build
 
 The provisioned dashboard shows request rate/errors, TTFT p50/p95, end-to-end latency, queue wait, admission control, upstream health, completion tokens/s, and gateway replicas. For the real GPU path, point `VLLM_BASE_URL` at the vLLM server instead of the mock.
 
+A repeatable gateway soak is included:
+
+```bash
+python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
+  --duration 120 --concurrency 4 \
+  --output benchmark/results/observability/soak-c4-120s.json
+```
+
 ---
 
 ## Repository map
@@ -227,6 +235,7 @@ The provisioned dashboard shows request rate/errors, TTFT p50/p95, end-to-end la
 | [`benchmark/eval/`](benchmark/eval/) | Frozen 200-question set, per-question results for four models, combined comparison table |
 | [`benchmark/results/`](benchmark/results/) | All raw performance JSON (concurrency sweeps, long context, speculative decoding, repeat comparisons) |
 | [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | In-cluster / port-forward load generator with TTFT, latency percentiles, error rate, and per-pod counts |
+| [`benchmark/soak_test.py`](benchmark/soak_test.py) | Closed-loop gateway soak with latency percentiles, error rate, and active/waiting gauge recovery |
 | [`gateway/`](gateway/) | FastAPI gateway, web UI, Dockerfile, offline pytest suite |
 | [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probes / PDB / HPA / Prometheus / load-test Job |
 | [`docs/SLO.md`](docs/SLO.md) | SLO targets, PromQL queries, error-budget policy, and dashboard link |
@@ -326,7 +335,7 @@ Model weights and datasets are not committed (see `.gitignore`).
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
 | Kubernetes GPU scheduling | **Partially verified**: Docker Desktop K8s has no GPU device plugin; WSL2 k3s did advertise `nvidia.com/gpu: 1` and run a GPU pod, but stable in-cluster vLLM was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
-| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs; no OpenTelemetry or long soak yet |
+| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs, and a 120 s gateway soak (2,352 requests, 0 errors); no OpenTelemetry or multi-hour soak yet |
 | CI/CD | CI (tests, manifest validation, Kustomize render, Docker build) plus a release/rollback checklist; no registry signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |

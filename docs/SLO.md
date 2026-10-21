@@ -122,6 +122,14 @@ The CPU-only Compose stack was started and exercised end to end:
 - the provisioned datasource was `Prometheus` (`uid=prometheus`, `url=http://prometheus:9090`);
 - the provisioned dashboard was `Inference Gateway` (`uid=inference-gateway`).
 
+### Soak validation
+
+A 2-minute closed-loop soak at concurrency 4 completed **2,352 requests with 0
+errors**, 19.568 req/s, p95 **212.51 ms**, and `active=0`, `waiting=0` after a
+one-second drain. This is a gateway-stability test against the mock upstream;
+it is not a vLLM throughput result. Evidence:
+[`soak-c4-120s.json`](../benchmark/results/observability/soak-c4-120s.json).
+
 Evidence: [`benchmark/results/observability/summary.txt`](../benchmark/results/observability/summary.txt),
 [`prometheus-targets.json`](../benchmark/results/observability/prometheus-targets.json),
 [`prometheus-requests.json`](../benchmark/results/observability/prometheus-requests.json),

@@ -76,7 +76,8 @@ Evidence: [`../results/hpa/summary-v0.2.4.json`](../results/hpa/summary-v0.2.4.j
 - Single-node Docker Desktop cluster; metrics-server is the standard resource
   metrics API, not custom metrics.
 - Mock upstream; latency/tokens are not model numbers.
-- CPU-based HPA only; no queue-depth or TTFT-based custom metrics.
+- CPU-based HPA only. Queue-depth scaling is validated separately in
+  [`../hpa-queue/`](../hpa-queue/); TTFT-based autoscaling is not tested.
 - The scale-down result depends on the 60 s stabilization window.
 
 ## Cleanup

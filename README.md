@@ -294,6 +294,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`benchmark/results/`](benchmark/results/) | All raw performance JSON (concurrency sweeps, long context, speculative decoding, repeat comparisons) |
 | [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) | WSL2 k3s GPU-in-K8s vLLM + gateway validation and raw results |
 | [`benchmark/hpa/README.md`](benchmark/hpa/README.md) | HPA 2→4→2 validation with mock upstream, metrics-server, and load Job |
+| [`benchmark/hpa-queue/README.md`](benchmark/hpa-queue/README.md) | Queue-depth HPA 2→4→6→2 through Prometheus Adapter external metrics |
 | [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | In-cluster / port-forward load generator with TTFT, latency percentiles, error rate, and per-pod counts |
 | [`benchmark/soak_test.py`](benchmark/soak_test.py) | Closed-loop gateway soak with latency percentiles, error rate, and active/waiting gauge recovery |
 | [`gateway/`](gateway/) | FastAPI gateway, web UI, Dockerfile, offline pytest suite |

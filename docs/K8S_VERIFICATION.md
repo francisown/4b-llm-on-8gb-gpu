@@ -239,6 +239,35 @@ inside the cluster. Evidence:
 [`benchmark/results/hpa/summary-v0.2.4.json`](../benchmark/results/hpa/summary-v0.2.4.json), and
 [`benchmark/results/hpa/scale-out-v0.2.4.txt`](../benchmark/results/hpa/scale-out-v0.2.4.txt).
 
+## Queue-depth HPA via external metrics
+
+The CPU target above is the wrong signal for an I/O-bound gateway: CPU stays
+flat while requests pile up in the admission queue. `k8s/hpa-queue-demo/`
+scales on the queue instead, and does not use metrics-server at all — the
+metric comes from Prometheus through the Prometheus Adapter:
+
+| Metric | Result |
+|---|---:|
+| Metric | `inference_gateway_waiting_requests` (External) |
+| Target | `averageValue: 2` per pod |
+| Replicas | **2 → 4 → 6 → 5 → 4 → 3 → 2** |
+| Load | 12,188 requests at c=32, 0 errors |
+| Queue depth peak | 31 |
+
+Scale-up added two pods per 30 s up to `maxReplicas: 6`; scale-down waited out
+the 120 s stabilization window and then removed one pod per 30 s.
+
+Two configuration details are required and both fail quietly when missing —
+the rule must live under the top-level `externalRules` key *and* still map
+`namespace` to the namespace resource. Both are written up in
+[`HPA_QUEUE.md`](HPA_QUEUE.md).
+
+Evidence: [`benchmark/results/k8s-hpa-queue/`](../benchmark/results/k8s-hpa-queue/),
+[`benchmark/hpa-queue/README.md`](../benchmark/hpa-queue/README.md).
+
+This is still a mock upstream on a single node: it validates the autoscaling
+mechanism, not vLLM capacity planning or GPU autoscaling.
+
 ## Reproduce
 
 ```bash
@@ -281,10 +310,14 @@ kubectl logs job/gateway-loadgen -n gpu-inference
 
 - Single node, single GPU, one vLLM instance; the model server itself is still a
   single point of failure.
-- No TLS, authentication, per-tenant quota, or network policy.
+- The base manifest has no authentication, per-tenant quota, or TLS. TLS
+  termination and an enforced NetworkPolicy exist only as a separate demo
+  (`k8s/tls-demo/`, see [K8S_TLS.md](K8S_TLS.md)); they are not wired into the
+  base deployment.
 - No long-duration soak test, no memory-leak profile, no p99 under sustained load.
-- HPA validated only with CPU metrics and a mock upstream; no queue-depth,
-  TTFT, or GPU-based autoscaling was tested.
+- HPA is validated with CPU metrics (base manifest) and queue depth
+  (`k8s/hpa-queue-demo/`), both against a mock upstream. TTFT-based and
+  GPU-based autoscaling were not tested.
 - GPU-in-K8s was validated only on WSL2 k3s with a hostPath model and a
   100-request smoke test; native Linux GPU nodes/PVCs and long GPU soaks are
   not claimed.

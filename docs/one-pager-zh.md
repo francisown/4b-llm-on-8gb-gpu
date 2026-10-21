@@ -32,6 +32,8 @@
 
 **4. 服务化与交付。**FastAPI 网关：SSE 流式（含 TTFT 与端到端延迟）、连接/读/写/连接池四类独立超时、有界并发与队列、HTTP 429 背压、Prometheus 指标、`/live` 与 `/health` 分离、单行 JSON 日志、非 root 镜像。**14 个不依赖真实模型和 GPU 的 pytest**，覆盖正常、校验失败、上游超时/断连/HTTP 错误、容量拒绝、排队超时、连接重试、探针身份与可选 API Key 认证。
 
+**5. 部署实测（2026-10-21）。**两副本 Kubernetes 网关、readiness/liveness、PDB、零停机滚动与回滚：集群内 100 请求 0 错误、326.53 tok/s；压测中强杀 1 个 Pod 的 300 请求 0 错误。Prometheus 抓取两个副本，Grafana dashboard 已配置；120 秒 gateway soak 完成 2,329 请求、0 错误；并发 16 的背压测试产生 6,544 个干净 429、0 个其他错误。GPU 推理仍在集群外，稳定的集群内 GPU vLLM 未完成，不声称成功。
+
 ---
 
 ## 适配的岗位方向

@@ -74,22 +74,30 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         deadline = time.perf_counter() + args.duration
         latencies: list[float] = []
         statuses: Counter[str] = Counter()
+        rejections: list[str] = []
         errors: list[str] = []
+        attempts = 0
         started = time.perf_counter()
 
         async def worker() -> None:
+            nonlocal attempts
             while time.perf_counter() < deadline:
+                attempts += 1
                 request_started = time.perf_counter()
                 try:
                     response = await client.post(args.url, json=payload)
-                    latency_ms = (time.perf_counter() - request_started) * 1_000
-                    latencies.append(latency_ms)
                     statuses[str(response.status_code)] += 1
-                    if response.status_code != 200:
-                        errors.append(f"HTTP {response.status_code}: {response.text[:200]}")
+                    if response.status_code == 200:
+                        latencies.append((time.perf_counter() - request_started) * 1_000)
+                    elif response.status_code == 429:
+                        if len(rejections) < 5:
+                            rejections.append(response.text[:200])
+                    else:
+                        if len(errors) < 5:
+                            errors.append(f"HTTP {response.status_code}: {response.text[:200]}")
                 except Exception as exc:  # noqa: BLE001 - recorded as a soak failure
-                    errors.append(f"{type(exc).__name__}: {exc}")
-
+                    if len(errors) < 5:
+                        errors.append(f"{type(exc).__name__}: {exc}")
         await asyncio.gather(*(worker() for _ in range(args.concurrency)))
         duration = time.perf_counter() - started
 
@@ -98,23 +106,28 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         health_after = await get_json(client, health_url)
         status_after = await get_json(client, status_url)
 
-    total = len(latencies) + len(errors)
+    rejected_count = statuses.get("429", 0)
+    other_error_count = max(0, attempts - len(latencies) - rejected_count)
     summary = {
         "url": args.url,
         "duration_s": round(duration, 3),
         "concurrency": args.concurrency,
         "max_tokens": args.max_tokens,
-        "requests": total,
+        "requests": attempts,
         "success": len(latencies),
-        "errors": len(errors),
-        "error_rate": round(len(errors) / total, 6) if total else None,
-        "throughput_rps": round(len(latencies) / duration, 3) if duration else None,
+        "rejected_429": rejected_count,
+        "errors": other_error_count,
+        "error_rate": round(other_error_count / attempts, 6) if attempts else None,
+        "rejection_rate": round(rejected_count / attempts, 6) if attempts else None,
+        "throughput_rps": round(attempts / duration, 3) if duration else None,
+        "success_rps": round(len(latencies) / duration, 3) if duration else None,
         "latency_ms": summarize(latencies),
         "status_counts": dict(statuses),
         "health_before": health_before,
         "health_after": health_after,
         "status_before": status_before,
         "status_after": status_after,
+        "rejection_samples": rejections,
         "error_samples": errors[:5],
     }
     return summary

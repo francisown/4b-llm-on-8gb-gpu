@@ -32,6 +32,9 @@ jobs:
       - name: Validate Kubernetes manifests
         run: python scripts/validate_manifests.py
 
+      - name: Validate workflow YAML
+        run: python scripts/validate_workflows.py
+
       - uses: azure/setup-kubectl@v4
         with:
           version: v1.31.0

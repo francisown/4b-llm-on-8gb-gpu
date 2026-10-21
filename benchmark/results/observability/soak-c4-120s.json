@@ -1,21 +1,24 @@
 {
   "url": "http://127.0.0.1:9000/chat",
-  "duration_s": 120.197,
+  "duration_s": 120.106,
   "concurrency": 4,
   "max_tokens": 32,
-  "requests": 2352,
-  "success": 2352,
+  "requests": 2329,
+  "success": 2329,
+  "rejected_429": 0,
   "errors": 0,
   "error_rate": 0.0,
-  "throughput_rps": 19.568,
+  "rejection_rate": 0.0,
+  "throughput_rps": 19.391,
+  "success_rps": 19.391,
   "latency_ms": {
-    "mean": 204.23,
-    "p50": 203.73,
-    "p95": 212.51,
-    "p99": 217.13
+    "mean": 206.25,
+    "p50": 205.49,
+    "p95": 216.64,
+    "p99": 223.78
   },
   "status_counts": {
-    "200": 2352
+    "200": 2329
   },
   "health_before": {
     "status": "ok",
@@ -47,5 +50,6 @@
     "pod": "compose-gateway",
     "version": "0.2.0"
   },
+  "rejection_samples": [],
   "error_samples": []
 }

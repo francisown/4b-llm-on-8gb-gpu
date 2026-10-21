@@ -39,7 +39,8 @@ indefinitely.
 | Prometheus scrapes both replicas | `benchmark/results/k8s/prometheus-targets.json` |
 | Grafana dashboard and datasource are provisioned | `benchmark/results/observability/summary.txt` |
 | Optional API-key auth returns 401 without a key and 200 with it | `benchmark/results/observability/auth-smoke.txt` |
-| Gateway soak: 2,352 requests in 120 s, 0 errors, p95 212.51 ms, gauges return to 0 | `benchmark/results/observability/soak-c4-120s.json` |
+| Gateway soak: 2,329 requests in 120 s, 0 errors, p95 216.64 ms, gauges return to 0 | `benchmark/results/observability/soak-c4-120s.json` |
+| Backpressure: 6,544 clean 429s at c=16, 0 other errors, gauges return to 0 | `benchmark/results/observability/backpressure-c16-30s.json` |
 | GPU scheduling in K8s was demonstrated on WSL2 k3s; stable serving was blocked by PLEG | [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md) |
 
 ## What is not claimed

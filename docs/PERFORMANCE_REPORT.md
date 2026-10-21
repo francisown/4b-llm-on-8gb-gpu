@@ -104,11 +104,11 @@ gateway's admission control, connection handling, and gauge cleanup.
 
 | Metric | Result |
 |---|---:|
-| Duration / concurrency | 120.197 s / 4 |
-| Requests | **2,352** |
+| Duration / concurrency | 120.106 s / 4 |
+| Requests | **2,329** |
 | Errors | **0** |
-| Throughput | 19.568 req/s |
-| Latency mean / p50 / p95 / p99 | 204.23 / 203.73 / 212.51 / 217.13 ms |
+| Throughput | 19.391 req/s |
+| Latency mean / p50 / p95 / p99 | 206.25 / 205.49 / 216.64 / 223.78 ms |
 | Health before / after | ok / ok |
 | Active / waiting after drain | **0 / 0** |
 
@@ -117,6 +117,24 @@ Raw: [`soak-c4-120s.json`](../benchmark/results/observability/soak-c4-120s.json)
 The value of this test is the **zero-error completion and gauge recovery**,
 not the latency number: the mock upstream has a fixed delay, so the latency is
 not comparable to vLLM.
+
+### Backpressure at concurrency 16
+
+| Metric | Result |
+|---|---:|
+| Attempts / concurrency | 7,165 / 16 |
+| Success (200) | 621 |
+| Rejected (429) | 6,544 |
+| Other errors | **0** |
+| Rejection rate | 91.3% |
+| Successful-request p95 | 473.89 ms |
+| Active / waiting after drain | **0 / 0** |
+
+At concurrency 16 against a gateway configured for 4 active + 4 queued
+requests, most requests are shed with **429** instead of timing out or
+returning 5xx. This is the intended backpressure behavior; the 429s are
+counted separately from unexpected errors. Raw:
+[`backpressure-c16-30s.json`](../benchmark/results/observability/backpressure-c16-30s.json).
 
 ## 5. What is not in this report
 

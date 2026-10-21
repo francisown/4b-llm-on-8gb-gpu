@@ -53,13 +53,14 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Keep quality and performance results separate and show the per-question deltas.
 - [x] Deploy Prometheus and scrape both gateway replicas by pod.
 - [x] Deploy a Grafana dashboard and document SLOs/error budget.
-- [x] Add a repeatable gateway soak and run a 2-minute test (2,352 requests, 0 errors).
+- [x] Add a repeatable gateway soak and run a 2-minute test (2,329 requests, 0 errors).
 
 ### 4. Container and Linux delivery
 
 - [x] Validate the gateway image and Compose topology on Linux/WSL2.
 - [x] Add a clean startup path with explicit model/runtime checks.
 - [x] Add a release checklist for images, model artifacts, checksums, and configuration.
+- [x] Add a tag-triggered release workflow, Dependabot, and security/contribution docs.
 - [x] Document the offline delivery boundary and what remains hardware-specific.
 
 ### 5. Kubernetes deployment
@@ -92,6 +93,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Check | Result |
 |---|---|
 | Gateway offline tests | 14 passed |
+| Workflow validation | 2 workflow files passed |
 | Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
 | Cost-calculator tests | 5 passed |
 | Manifest validation | 16 documents passed |
@@ -101,7 +103,8 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Bad-image rollback | Old replicas stayed Ready; `rollout undo` recovered |
 | Prometheus | Both gateway pods `up`, both `upstream_healthy=1` |
 | Grafana demo | Datasource `Prometheus`; dashboard `Inference Gateway`; 20 non-stream + 5 stream smoke requests; health ok |
-| Gateway soak (mock upstream) | 120 s, 2,352 requests, 0 errors, 19.568 req/s, p95 212.51 ms; active/waiting 0 after drain |
+| Gateway soak (mock upstream) | 120 s, 2,329 requests, 0 errors, 19.391 req/s, p95 216.64 ms; active/waiting 0 after drain |
+| Backpressure (c=16) | 621 success / 6,544 clean 429 / 0 other errors; gauges 0 after drain |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
 | Stable in-cluster vLLM | Not achieved: `PLEG is not healthy`; see [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md) |
 | TensorRT-LLM | Not measured; protocol documented in [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md) |

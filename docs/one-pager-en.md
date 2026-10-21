@@ -30,7 +30,9 @@ The finding worth reporting: four models — BF16, third-party FP8, self-made FP
 
 > The optimal configuration and the shippable configuration are not the same thing. That boundary was measured, not guessed.
 
-**4. Serving and delivery.** A FastAPI gateway with SSE streaming (including TTFT and end-to-end latency), four independent timeout classes, bounded concurrency and queueing with HTTP 429 backpressure, Prometheus metrics, separate `/live` and `/health` probes, single-line JSON logs, and a non-root image. **Nine pytest cases that need neither a model nor a GPU**, covering success, validation failure, upstream timeout/disconnect/HTTP error, capacity rejection, and queue timeout.
+**4. Serving and delivery.** A FastAPI gateway with SSE streaming (including TTFT and end-to-end latency), four independent timeout classes, bounded concurrency and queueing with HTTP 429 backpressure, Prometheus metrics, separate `/live` and `/health` probes, single-line JSON logs, and a non-root image. **Fourteen pytest cases that need neither a model nor a GPU**, covering success, validation failure, upstream timeout/disconnect/HTTP error, capacity rejection, queue timeout, connect retry, probe identity, and optional API-key authentication. Optional bearer/`X-API-Key` auth protects chat endpoints; health and metrics stay open for probes and Prometheus.
+
+**5. Deployed and measured (2026-10-21).** A two-replica Kubernetes gateway with readiness/liveness, PDB, zero-downtime rollout, and rollback completed 100 in-cluster requests at 0 errors and 326.53 tok/s; 300 requests during a deliberate pod kill completed at 0 errors. Prometheus scrapes both replicas, and a provisioned Grafana dashboard shows request rate, errors, TTFT, latency, admission control, and upstream health. A 120 s gateway soak completed 2,329 requests with 0 errors; a concurrency-16 backpressure run produced 6,544 clean 429s with 0 other errors. GPU inference still runs outside the cluster; stable in-cluster GPU vLLM was blocked by WSL2/k3s `PLEG` and is not claimed.
 
 ---
 

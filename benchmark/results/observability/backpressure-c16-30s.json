@@ -1,0 +1,62 @@
+{
+  "url": "http://127.0.0.1:9000/chat",
+  "duration_s": 30.343,
+  "concurrency": 16,
+  "max_tokens": 8,
+  "requests": 7165,
+  "success": 621,
+  "rejected_429": 6544,
+  "errors": 0,
+  "error_rate": 0.0,
+  "rejection_rate": 0.913329,
+  "throughput_rps": 236.132,
+  "success_rps": 20.466,
+  "latency_ms": {
+    "mean": 423.09,
+    "p50": 415.2,
+    "p95": 473.89,
+    "p99": 589.69
+  },
+  "status_counts": {
+    "429": 6544,
+    "200": 621
+  },
+  "health_before": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "compose-gateway",
+    "version": "0.2.0"
+  },
+  "health_after": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "compose-gateway",
+    "version": "0.2.0"
+  },
+  "status_before": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "compose-gateway",
+    "version": "0.2.0"
+  },
+  "status_after": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "compose-gateway",
+    "version": "0.2.0"
+  },
+  "rejection_samples": [
+    "{\"detail\":\"gateway is busy; retry later\"}",
+    "{\"detail\":\"gateway is busy; retry later\"}",
+    "{\"detail\":\"gateway is busy; retry later\"}",
+    "{\"detail\":\"gateway is busy; retry later\"}",
+    "{\"detail\":\"gateway is busy; retry later\"}"
+  ],
+  "error_samples": []
+}

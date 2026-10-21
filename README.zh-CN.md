@@ -230,9 +230,14 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`gateway/`](gateway/) | FastAPI 网关、网页、Dockerfile、离线 pytest |
 | [`docs/SLO.md`](docs/SLO.md) | SLO 目标、PromQL、错误预算策略与 dashboard 链接 |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
+| [`SECURITY.md`](SECURITY.md) | 漏洞报告、Secret 策略、范围与已知限制 |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | 本地检查、可观测性 demo、soak、PR 清单与发布流程 |
+| [`.github/workflows/release.yml`](.github/workflows/release.yml) | tag 触发的 GHCR 镜像构建与发布 |
+| [`.github/dependabot.yml`](.github/dependabot.yml) | 每周更新 pip、GitHub Actions 和 Docker 依赖 |
 | [`deploy/observability/`](deploy/observability/) | CPU-only Compose demo：mock vLLM + 网关 + Prometheus + 已配置的 Grafana dashboard |
 | [`k8s/`](k8s/) | 网关 Deployment / Service / ConfigMap / 探针 / PDB / HPA / Prometheus / 压测 Job |
-| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 测试、清单校验、Kustomize 渲染与 Docker 构建 |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 测试、清单/工作流校验、Kustomize 渲染与 Docker 构建 |
+| [`scripts/validate_workflows.py`](scripts/validate_workflows.py) | 确定性的 GitHub Actions YAML 校验 |
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK 量化脚本 |
 | [`quantize_int4_awq.py`](quantize_int4_awq.py) | W4A16 INT4-AWQ 量化脚本（C-Eval 校准、逐层校准、CPU offload） |
 | [`ceval_quality_eval.py`](ceval_quality_eval.py) | 评测入口：固定题集、断点续跑、逐题原子保存 |
@@ -326,8 +331,8 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
 | Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
-| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、120 秒 gateway soak（2,352 请求、0 错误）；尚无 OpenTelemetry 与多小时 soak |
-| CI/CD | CI（测试、清单校验、Kustomize 渲染、Docker 构建）+ 发布/回滚清单；尚无镜像签名与自动部署 |
+| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、120 秒 gateway soak（2,329 请求、0 错误；c=16 背压返回干净 429）；尚无 OpenTelemetry 与多小时 soak |
+| CI/CD | CI（测试、清单/工作流校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流 + Dependabot；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |
 

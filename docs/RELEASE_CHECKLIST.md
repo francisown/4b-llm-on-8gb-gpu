@@ -7,6 +7,7 @@ reproducible artifact and a rollback path that was tested before traffic moves.
 
 - [ ] `python scripts/verify_local.py` passes (5 cost tests + 14 gateway tests).
 - [ ] `python scripts/validate_manifests.py` passes.
+- [ ] `python scripts/validate_workflows.py` passes.
 - [ ] `kubectl kustomize k8s` and `kubectl kustomize k8s/observability` render.
 - [ ] `docker build -t ai-inference-gateway:<version> gateway/` succeeds.
 - [ ] The mock observability stack starts:

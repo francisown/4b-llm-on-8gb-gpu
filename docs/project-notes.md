@@ -179,4 +179,4 @@ python tools/cost_calculator.py \
 
 第 1–6 模块已经完成验收，第 7 模块的**网关层**已于 2026-10-21 在 Docker Desktop Kubernetes 上实测：2 副本、Service、探针、PDB、零停机滚动/回滚、Prometheus 按 Pod 抓取；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。GPU 调度未验证——`nvidia.com/gpu` 探针因集群没有 device plugin 而 Pending。完整证据见 [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md)。
 
-下一步是 Linux GPU 节点 + NVIDIA device plugin，把 vLLM 放进集群并验证 GPU 调度；然后补 TensorRT-LLM 同协议对比、Grafana/OpenTelemetry、SLO 和 soak test。网关镜像 `v0.2.0` 已重建并验证；若重新发布离线包，需要刷新镜像与 SHA-256 校验值。
+下一步是 Linux GPU 节点 + NVIDIA device plugin，把 vLLM 放进集群并验证 GPU 调度；然后补 TensorRT-LLM 同协议对比、Grafana/OpenTelemetry、SLO 和 soak test。网关镜像 `v0.2.1` 已重建并验证；若重新发布离线包，需要刷新镜像与 SHA-256 校验值。

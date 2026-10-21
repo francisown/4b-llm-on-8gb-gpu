@@ -12,6 +12,14 @@ Quantize, benchmark, serve, and package a 4B model on a **single RTX 5060 with 8
 
 `vLLM serving → concurrency benchmarking → quantization (FP8 / INT4-AWQ) → quality evaluation → KV cache & scheduling tuning → speculative decoding → FastAPI gateway → Docker offline delivery → Kubernetes`
 
+## Start here
+
+- [Four numbers](#four-numbers-that-define-the-delivery)
+- [Reproduce in 5 minutes](#reproduce-in-5-minutes)
+- [Benchmark protocol](docs/BENCHMARK_PROTOCOL.md)
+- [Kubernetes verification](docs/K8S_VERIFICATION.md)
+- [Performance report](docs/PERFORMANCE_REPORT.md)
+
 ## Scope
 
 This repository is deliberately about **one 8 GB inference delivery path**.
@@ -60,7 +68,7 @@ The second row is the most valuable thing this project produced: **four models s
 
 | Path | Status | Evidence |
 |---|---|---|
-| **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.0`, real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
+| **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.1` (same serving path as the measured `v0.2.0`; v0.2.1 adds optional API-key auth), real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
 | **GPU scheduled by Kubernetes** | **Partially verified** | Docker Desktop K8s: `Pending` (`Insufficient nvidia.com/gpu`). WSL2 k3s: node advertised `nvidia.com/gpu: 1`, a GPU pod ran `nvidia-smi -L`, and vLLM loaded the model; stable in-cluster serving was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
@@ -241,6 +249,10 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) | WSL2 k3s GPU attempt: what worked, the PLEG blocker, and why no in-cluster serving number is claimed |
 | [`docs/LINUX_GPU_RUNBOOK.md`](docs/LINUX_GPU_RUNBOOK.md) | Step-by-step native Linux GPU node path: driver, toolkit, device plugin, PVC, vLLM, TensorRT-LLM |
 | [`docs/PERFORMANCE_REPORT.md`](docs/PERFORMANCE_REPORT.md) | Concise performance report with quantization, K8s gateway, failure, and non-claims |
+| [`docs/BENCHMARK_PROTOCOL.md`](docs/BENCHMARK_PROTOCOL.md) | Single protocol matrix for every headline number and comparability rules |
+| [`benchmark/README.md`](benchmark/README.md) | Which benchmark/eval files are authoritative and which are historical |
+| [`scripts/README.md`](scripts/README.md) | Script inventory: current checks, experiment drivers, and historical tools |
+| [`CHANGELOG.md`](CHANGELOG.md) | Versioned changes and release notes |
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | Current flagship plan and verification checklist |
 | [`benchmark/eval/`](benchmark/eval/) | Frozen 200-question set, per-question results for four models, combined comparison table |
 | [`benchmark/results/`](benchmark/results/) | All raw performance JSON (concurrency sweeps, long context, speculative decoding, repeat comparisons) |
@@ -355,4 +367,4 @@ Model weights and datasets are not committed (see `.gitignore`).
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |
 
-The gateway image `v0.2.0` is rebuilt and verified against the real model. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.
+The gateway image `v0.2.1` is rebuilt and verified against the real model. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.

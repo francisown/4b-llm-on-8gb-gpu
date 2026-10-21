@@ -1,11 +1,5 @@
-﻿date=2026-10-21T11:07:50.2257547+08:00
-gateway_health={"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.0"}
-
-grafana_health={
-  "database": "ok",
-  "version": "11.2.0",
-  "commit": "2a88694fd3ced0335bf3726cc5d0adc2d1858855"
-}
+﻿date=2026-10-21T11:38:20.7381533+08:00
+gateway_health={"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.1"}
 
 grafana_version=11.2.0
 dashboard_title=Inference Gateway

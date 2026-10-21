@@ -11,6 +11,14 @@
 
 `vLLM 服务 → 并发压测 → 量化（FP8 / INT4-AWQ）→ 质量评测 → KV Cache 与调度调优 → 推测解码 → FastAPI 生产网关 → Docker 离线交付 → Kubernetes`
 
+## 从这里开始
+
+- [四个数字](#先看四个能说明交付结果的数字)
+- [5 分钟复现](#5-分钟复现路径)
+- [基准协议](docs/BENCHMARK_PROTOCOL.md)
+- [Kubernetes 实测](docs/K8S_VERIFICATION.md)
+- [性能报告](docs/PERFORMANCE_REPORT.md)
+
 ## 范围
 
 这个仓库只讲**一条 8GB 推理交付路径**。
@@ -57,7 +65,7 @@
 
 | 路径 | 状态 | 证据 |
 |---|---|---|
-| **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.0` + 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
+| **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.1`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 增加可选 API Key 认证）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
 | **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
 | **Kubernetes 调度 GPU** | **部分验证** | Docker Desktop K8s：`Insufficient nvidia.com/gpu`，一直 Pending。WSL2 k3s：节点广告 `nvidia.com/gpu: 1`，GPU Pod 跑通 `nvidia-smi -L`，vLLM 也加载了模型；但稳定 serving 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
@@ -227,6 +235,10 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) | WSL2 k3s GPU 尝试：做成了什么、PLEG 阻塞、为什么不声称集群内 serving 数字 |
 | [`docs/LINUX_GPU_RUNBOOK.md`](docs/LINUX_GPU_RUNBOOK.md) | 真实 Linux GPU 节点步骤：驱动、toolkit、device plugin、PVC、vLLM、TensorRT-LLM |
 | [`docs/PERFORMANCE_REPORT.md`](docs/PERFORMANCE_REPORT.md) | 性能报告：量化、K8s 网关、故障处理与不声称的内容 |
+| [`docs/BENCHMARK_PROTOCOL.md`](docs/BENCHMARK_PROTOCOL.md) | 所有主数字的单一协议矩阵与可比性规则 |
+| [`benchmark/README.md`](benchmark/README.md) | 哪些 benchmark/eval 文件是权威结果，哪些是历史归档 |
+| [`scripts/README.md`](scripts/README.md) | 脚本清单：当前校验、实验驱动与历史工具 |
+| [`CHANGELOG.md`](CHANGELOG.md) | 版本变更与发布说明 |
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | 当前旗舰计划与验证清单 |
 | [`benchmark/eval/`](benchmark/eval/) | 冻结的 200 题清单、四个模型的逐题原始结果、三向总表 |
 | [`benchmark/results/`](benchmark/results/) | 全部性能原始 JSON（并发 sweep、长上下文、推测解码、真实多轮对话） |
@@ -341,4 +353,4 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |
 
-网关镜像 `v0.2.0` 已重建并对着真实模型验证。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。
+网关镜像 `v0.2.1` 已重建并对着真实模型验证。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。

@@ -62,7 +62,7 @@ it builds in a normal CI environment. On a restricted network, override both:
 docker build \
   --build-arg PYTHON_IMAGE=docker.m.daocloud.io/library/python:3.10-slim \
   --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
-  -t ai-inference-gateway:v0.2.0 .
+  -t ai-inference-gateway:v0.2.1 .
 ```
 
 ```bash
@@ -92,7 +92,7 @@ allowing the container to reach vLLM on port 8000. If that route changes, set
 | `GATEWAY_MAX_CONCURRENT` | `4` | Active requests admitted to vLLM |
 | `GATEWAY_MAX_QUEUE` | `4` | Additional requests allowed to wait |
 | `GATEWAY_QUEUE_TIMEOUT_SECONDS` | `10` | Maximum queue wait before 429 |
-| `GATEWAY_VERSION` | `0.2.0` | Version exposed in headers/metrics |
+| `GATEWAY_VERSION` | `0.2.1` | Version exposed in headers/metrics |
 | `GATEWAY_API_KEY` | empty (auth disabled) | Optional bearer/X-API-Key token for `/chat` and `/chat/stream`; health/metrics stay open |
 | `POD_NAME` | `local` | Pod identity; set from `metadata.name` in Kubernetes |
 | `LOG_LEVEL` | `INFO` | Application log level |

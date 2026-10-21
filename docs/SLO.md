@@ -115,7 +115,7 @@ metric pipeline, not model quality or GPU performance.
 
 The CPU-only Compose stack was started and exercised end to end:
 
-- gateway `/health` returned `{"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.0"}`;
+- gateway `/health` returned `{"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.1"}`;
 - Prometheus target `inference-gateway` was `up`;
 - 20 non-streaming and 5 streaming requests completed successfully and appeared in `inference_gateway_requests_total`;
 - Grafana 11.2.0 health was `ok`;

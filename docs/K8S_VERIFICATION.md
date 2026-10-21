@@ -3,6 +3,10 @@
 Verification date: **2026-10-21**
 Repository revision: working tree based on `566eb18` plus the changes in this commit.
 
+> **Version note:** the measured run used **v0.2.0**. **v0.2.1** adds optional
+> API-key authentication and a versioned image tag; the serving path and the
+> numbers below are unchanged.
+
 This document records what was actually run. It deliberately separates the
 **gateway layer** (which Kubernetes did manage) from the **GPU inference layer**
 (which stayed outside the cluster on this single-GPU Windows/WSL2 host).

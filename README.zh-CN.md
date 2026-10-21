@@ -211,7 +211,7 @@ kubectl apply -k k8s/observability
 - Digest：`sha256:4453ef462ac426b6abe239819d41a4171454f7ebffacaf90ffb481a8f95e1365`
 - 详情：[`docs/RELEASE.md`](docs/RELEASE.md)
 
-下面的 K8s 实测是在 **v0.2.0** 上完成的；v0.2.1 增加 API Key 认证，v0.2.2 增加 TLS/告警/OTel，v0.2.3 增加按身份限流，v0.2.4 加固认证/限流身份处理与畸形上游响应，不改变服务路径。
+最早的 K8s 网关实测是在 **v0.2.0** 上完成的；v0.2.1 增加 API Key 认证，v0.2.2 增加 TLS/告警/OTel，v0.2.3 增加按身份限流，v0.2.4 加固认证/限流身份处理与畸形上游响应，不改变服务路径。
 
 ## 可观测性 demo（不需要 GPU）
 
@@ -222,6 +222,7 @@ bash deploy/observability/generate-certs.sh
 docker compose -f deploy/observability/compose.yaml up -d --build
 # Grafana:    http://localhost:3000  (admin/admin)
 # Prometheus: http://localhost:9090
+# Alertmanager: http://localhost:9093
 # Jaeger:     http://localhost:16686
 # HTTPS:      https://localhost:9443  (自签证书；curl -k)
 # Gateway:    http://localhost:9000

@@ -55,6 +55,16 @@ services:
       timeout: 3s
       retries: 10
 
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+
   prometheus:
     image: prom/prometheus:v2.55.1
     ports:
@@ -65,6 +75,8 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
+      alertmanager:
+        condition: service_started
 
   grafana:
     image: grafana/grafana:11.2.0

@@ -27,7 +27,8 @@ GatewayUpstreamUnhealthy, GatewayErrorRateHigh, GatewayTTFTP95High,
 GatewayQueueWaitP95High, GatewayNoSuccessfulRequests
 ```
 
-Evidence: [`benchmark/results/observability/prometheus-rules.json`](../benchmark/results/observability/prometheus-rules.json).
+Evidence: [`benchmark/results/observability/prometheus-rules.json`](../benchmark/results/observability/prometheus-rules.json)
+and [`alertmanager-smoke.txt`](../benchmark/results/observability/alertmanager-smoke.txt).
 
 The test verified **rule loading**, not a fired page. To exercise an alert,
 stop the mock upstream for more than one minute and query
@@ -49,8 +50,10 @@ stop the mock upstream for more than one minute and query
 
 ## Production notes
 
-- This demo runs Prometheus without Alertmanager. Add Alertmanager or Grafana
-  Alerting for notification routing, silences, and on-call.
+- The Compose demo now wires Prometheus to a local Alertmanager
+  (`prom/alertmanager:v0.28.1`, port 9093) with a null receiver. This proves
+  routing connectivity, not notification delivery. Add a Slack/PagerDuty/
+  webhook receiver for real paging.
 - The thresholds are reference-workload starting points, not universal SLOs.
 - The 429 alerts should exclude synthetic load tests; the backpressure test is
   expected to produce 429s.

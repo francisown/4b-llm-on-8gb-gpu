@@ -228,7 +228,7 @@ The full pipeline (needs a GPU + WSL2 + vLLM) is documented in [`docs/REPRODUCE.
 - Digest: `sha256:4453ef462ac426b6abe239819d41a4171454f7ebffacaf90ffb481a8f95e1365`
 - Details: [`docs/RELEASE.md`](docs/RELEASE.md)
 
-The K8s benchmark below was measured on **v0.2.0**; v0.2.1 adds API-key auth, v0.2.2 adds TLS/alerting/OTel, v0.2.3 adds per-identity rate limiting, and v0.2.4 hardens auth/rate-limit identity handling and malformed-upstream responses without changing the serving path.
+The original K8s gateway benchmark was measured on **v0.2.0**; v0.2.1 adds API-key auth, v0.2.2 adds TLS/alerting/OTel, v0.2.3 adds per-identity rate limiting, and v0.2.4 hardens auth/rate-limit identity handling and malformed-upstream responses without changing the serving path.
 
 ## Observability demo (no GPU)
 
@@ -239,6 +239,7 @@ bash deploy/observability/generate-certs.sh
 docker compose -f deploy/observability/compose.yaml up -d --build
 # Grafana:    http://localhost:3000  (admin/admin)
 # Prometheus: http://localhost:9090
+# Alertmanager: http://localhost:9093
 # Jaeger:     http://localhost:16686
 # HTTPS:      https://localhost:9443  (self-signed; curl -k)
 # Gateway:    http://localhost:9000

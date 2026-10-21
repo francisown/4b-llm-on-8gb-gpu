@@ -179,4 +179,4 @@ python tools/cost_calculator.py \
 
 第 1–6 模块已经完成验收，第 7 模块的**网关层**已于 2026-10-21 在 Docker Desktop Kubernetes 上实测：2 副本、Service、探针、PDB、零停机滚动/回滚、Prometheus 按 Pod 抓取；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。WSL2 k3s 另做了短 smoke：vLLM Pod 占 `nvidia.com/gpu: 1`，2 个 gateway 副本，100 请求 0 错误、147.17 tok/s；性能明显低于宿主路径，不是生产/等价声明。完整证据见 [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md) 与 [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/)。
 
-当前仍待完成的是 Linux GPU 节点 + NVIDIA device plugin 的稳定 in-cluster vLLM，以及 TensorRT-LLM 同协议对比；Prometheus/Grafana、OpenTelemetry、SLO、HPA（mock）和 10 分钟 soak 已完成。网关镜像 `v0.2.3` 已重建并验证；若重新发布离线包，需要刷新镜像与 SHA-256 校验值。
+当前仍待完成的是原生 Linux GPU 节点/GPU node pool + PVC 的稳定 in-cluster vLLM，以及 TensorRT-LLM 同协议对比（其 support matrix 暂不覆盖 Qwen3.5/RTX 5060）。WSL2 k3s 已做过 100 请求短 smoke；Prometheus/Grafana、OpenTelemetry、SLO、HPA（mock）和 10 分钟 soak 已完成。网关镜像 `v0.2.4` 已验证；若重新发布离线包，需要刷新镜像与 SHA-256 校验值。

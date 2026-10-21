@@ -45,6 +45,8 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 - WSL2 k3s GPU-in-K8s short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway
   replicas, 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s; host
   path 327.51 tok/s / p95 513 ms. Functional validation only.
+- Alertmanager ready on 9093; Prometheus reports it as an active Alertmanager
+  (null receiver, routing connectivity only).
 - Rate limit on v0.2.4: auth disabled, rotating `X-API-Key` no longer creates a
   new bucket (same direct IP); auth enabled, tenant A 5×200 then 429 while
   tenant B remains 200.
@@ -82,5 +84,7 @@ docker tag ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4 \
   not model performance.
 - The self-signed TLS certificate is not public-production ready.
 - Jaeger all-in-one uses in-memory storage; traces are not durable.
-- The 7.49 GiB offline bundle is local and not published.
-- No TensorRT-LLM result is included.
+- The 7.49 GiB offline bundle's weights/image archive are not published;
+  checksums and contents are in [`OFFLINE_BUNDLE.md`](OFFLINE_BUNDLE.md).
+- No TensorRT-LLM result is included; the 1.2.1 support matrix does not cover
+  Qwen3.5 or RTX 5060/SM120.

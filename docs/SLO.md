@@ -126,6 +126,8 @@ The CPU-only Compose stack was started and exercised end to end:
 - Prometheus loaded five alert rules (`GatewayUpstreamUnhealthy`,
   `GatewayErrorRateHigh`, `GatewayTTFTP95High`, `GatewayQueueWaitP95High`,
   `GatewayNoSuccessfulRequests`).
+- Alertmanager was ready on 9093 and Prometheus reported it as an active
+  Alertmanager (null receiver; routing connectivity only).
 - Jaeger received traces from `inference-gateway`: 5 traces, first trace
   4 spans, no OTel export errors.
 

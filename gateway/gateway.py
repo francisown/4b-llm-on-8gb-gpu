@@ -1,4 +1,4 @@
-"""A small production-facing gateway in front of a local vLLM server."""
+﻿"""A small production-facing gateway in front of a local vLLM server."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ QUEUE_TIMEOUT_SECONDS = float(os.getenv("GATEWAY_QUEUE_TIMEOUT_SECONDS", "10"))
 HEALTH_TIMEOUT_SECONDS = float(os.getenv("HEALTH_TIMEOUT_SECONDS", "3"))
 UPSTREAM_CONNECT_RETRIES = max(0, int(os.getenv("UPSTREAM_CONNECT_RETRIES", "1")))
 POD_NAME = os.getenv("POD_NAME", "local")
-GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.1")
+GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.2")
 GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "")
 APP_DIR = Path(__file__).resolve().parent
 

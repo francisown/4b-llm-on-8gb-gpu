@@ -1,4 +1,4 @@
-name: ai-inference-observability
+﻿name: ai-inference-observability
 
 services:
   mock-vllm:
@@ -20,7 +20,7 @@ services:
     build:
       context: ../../gateway
       dockerfile: Dockerfile
-    image: ai-inference-gateway:v0.2.1
+    image: ai-inference-gateway:v0.2.2
     ports:
       - "9000:9000"
     environment:
@@ -29,9 +29,16 @@ services:
       GATEWAY_MAX_CONCURRENT: "4"
       GATEWAY_MAX_QUEUE: "4"
       GATEWAY_QUEUE_TIMEOUT_SECONDS: "10"
-      GATEWAY_VERSION: "0.2.1"
+      GATEWAY_VERSION: "0.2.2"
       POD_NAME: compose-gateway
       GATEWAY_API_KEY: "${GATEWAY_API_KEY:-}"
+      OTEL_SDK_DISABLED: "false"
+      OTEL_SERVICE_NAME: inference-gateway
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
     depends_on:
       mock-vllm:
         condition: service_healthy
@@ -81,3 +88,11 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"

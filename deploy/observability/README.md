@@ -12,6 +12,7 @@ model weights**.
 | `tls-proxy` | 9443 | Nginx HTTPS terminator with a self-signed local certificate |
 | `prometheus` | 9090 | Scrapes `gateway:9000/metrics` and evaluates alert rules |
 | `grafana` | 3000 | Provisioned Prometheus datasource and `Inference Gateway` dashboard |
+| `jaeger` | 16686 / 4318 | Jaeger UI/API and OTLP HTTP trace receiver |
 | `mock-vllm` | internal 8000 | Mock OpenAI-compatible upstream; not a model |
 
 ## Start
@@ -26,6 +27,7 @@ docker compose -f deploy/observability/compose.yaml up -d --build
 Open:
 
 - Grafana: <http://localhost:3000> (`admin` / `admin`)
+- Jaeger: <http://localhost:16686>
 - Prometheus: <http://localhost:9090>
 - HTTPS gateway: <https://localhost:9443> (self-signed; use `curl -k`)
 - HTTP gateway: <http://localhost:9000>
@@ -51,4 +53,6 @@ docker compose -f deploy/observability/compose.yaml down
   trusted ingress/ACME certificate. See [`../../docs/TLS.md`](../../docs/TLS.md).
 - Alert rules are in `prometheus/alerts.yml`; see
   [`../../docs/ALERTING.md`](../../docs/ALERTING.md).
+- Traces are exported to Jaeger over OTLP HTTP; see
+  [`../../docs/OTEL.md`](../../docs/OTEL.md).
 - Certificates are ignored by `.gitignore` under `nginx/certs/`.

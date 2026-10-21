@@ -1,11 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.2.2 — 2026-10-21
 
 - Add a local Nginx TLS terminator with a self-signed certificate and HTTPS
   health/chat verification.
 - Add five Prometheus alert rules (upstream health, error rate, TTFT p95,
   queue-wait p95, no-successful-requests) and a runbook.
+- Add OpenTelemetry auto-instrumentation and Jaeger OTLP tracing, with a
+  Grafana Jaeger datasource and trace verification.
+- Enable OTel only in the Compose observability stack; the image defaults to
+  `OTEL_SDK_DISABLED=true` for standalone/Kubernetes runs.
 
 ## 0.2.1 — 2026-10-21
 

@@ -54,6 +54,7 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Deploy Prometheus and scrape both gateway replicas by pod.
 - [x] Deploy a Grafana dashboard and document SLOs/error budget.
 - [x] Add TLS termination and Prometheus alert rules.
+- [x] Add OpenTelemetry tracing with Jaeger and a Grafana datasource.
 - [x] Add a repeatable gateway soak and run a 2-minute test (2,329 requests, 0 errors).
 
 ### 4. Container and Linux delivery
@@ -110,6 +111,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Grafana demo | Datasource `Prometheus`; dashboard `Inference Gateway`; 20 non-stream + 5 stream smoke requests; health ok |
 | TLS | HTTPS `/health` and `/chat` returned 200 through Nginx with a self-signed cert |
 | Alert rules | 5 rules loaded in Prometheus (upstream, errors, TTFT, queue wait, no-success) |
+| OTel/Jaeger | `inference-gateway` service; 5 traces; first trace 4 spans; no export errors |
 | Gateway soak (mock upstream) | 120 s, 2,329 requests, 0 errors, 19.391 req/s, p95 216.64 ms; active/waiting 0 after drain |
 | Backpressure (c=16) | 621 success / 6,544 clean 429 / 0 other errors; gauges 0 after drain |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |

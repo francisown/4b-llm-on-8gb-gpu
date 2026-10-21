@@ -1,9 +1,9 @@
-# Kubernetes verification: gateway layer, not GPU scheduling
+﻿# Kubernetes verification: gateway layer, not GPU scheduling
 
 Verification date: **2026-10-21**
 Repository state: verification run on 2026-10-21; see git history for the exact commit.
 
-> **Version note:** the measured run used **v0.2.0**. **v0.2.1** adds optional
+> **Version note:** the measured run used **v0.2.0**. **v0.2.2** adds optional
 > API-key authentication and a versioned image tag; the serving path and the
 > numbers below are unchanged.
 

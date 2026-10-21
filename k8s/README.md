@@ -1,4 +1,4 @@
-# Kubernetes 部署：网关层已实测，GPU 调度未验证
+﻿# Kubernetes 部署：网关层已实测，GPU 调度未验证
 
 这份 README 记录 **2026-10-21** 在本机 Docker Desktop Kubernetes 上真实跑过的结果，
 不是“清单写好了”的同义词。
@@ -8,7 +8,7 @@
 | 项目 | 结果 |
 |---|---|
 | 集群 | Docker Desktop 4.91.0，Kubernetes v1.36.1，单节点 `desktop-control-plane` |
-| 网关 | `ai-inference-gateway:v0.2.1`，2 副本，全部 Ready |
+| 网关 | `ai-inference-gateway:v0.2.2`，2 副本，全部 Ready |
 | 模型服务 | vLLM 0.29.0 + Qwen3.5-4B-INT4-AWQ，**在集群外**的宿主 Docker 中运行 |
 | 集群内 Service 压测 | 100 请求 / 并发 4，**0 错误，326.53 tok/s**，两个 Pod 分别收到 25 / 75 请求 |
 | 压测中强杀 1 个 Pod | 300 请求 / 并发 4，**0 错误，315.46 tok/s** |
@@ -55,8 +55,8 @@ Docker Desktop 的 Kubernetes 节点使用自己的 containerd，宿主 Docker �
 不会自动出现。用 `cmd` 管道导入，避免 PowerShell 破坏 tar 二进制：
 
 ```powershell
-docker build -t ai-inference-gateway:v0.2.1 .\gateway
-cmd /c "docker save ai-inference-gateway:v0.2.1 | docker exec -i desktop-control-plane ctr -n k8s.io images import -"
+docker build -t ai-inference-gateway:v0.2.2 .\gateway
+cmd /c "docker save ai-inference-gateway:v0.2.2 | docker exec -i desktop-control-plane ctr -n k8s.io images import -"
 docker exec desktop-control-plane ctr -n k8s.io images list | Select-String ai-inference-gateway
 ```
 
@@ -67,7 +67,7 @@ Deployment 使用 `imagePullPolicy: IfNotPresent`。本地节点已有镜像时�
 对于有镜像仓库的集群，可以直接使用 GHCR 镜像：
 
 ```yaml
-image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.1
+image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.2
 imagePullPolicy: IfNotPresent
 ```
 

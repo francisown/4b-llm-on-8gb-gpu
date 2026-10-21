@@ -1,0 +1,5 @@
+﻿date=2026-10-21T12:00:40.9567531+08:00
+services=inference-gateway, jaeger-all-in-one
+trace_count=5
+first_trace_id=7cdd037e69b944154b4a322b08fb28c6
+first_trace_spans=4

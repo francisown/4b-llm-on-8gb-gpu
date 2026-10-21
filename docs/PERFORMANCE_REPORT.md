@@ -1,4 +1,4 @@
-# Performance report: 8 GB inference delivery
+﻿# Performance report: 8 GB inference delivery
 
 This is a concise, portfolio-facing report. Every number below is tied to a
 raw result file and a fixed environment. See
@@ -14,7 +14,7 @@ context lengths, or concurrency levels.
 | Model | Qwen3.5-4B-INT4-AWQ-self |
 | Runtime | vLLM 0.29.0 |
 | Host | Windows + WSL2 Ubuntu 22.04; Docker Desktop Kubernetes for the gateway |
-| Gateway | FastAPI `ai-inference-gateway:v0.2.0` for the measured run; `v0.2.1` adds optional API-key auth without changing the serving path |
+| Gateway | FastAPI `ai-inference-gateway:v0.2.0` for the measured run; `v0.2.2` adds optional API-key auth without changing the serving path |
 | Model server | vLLM in a Docker container with GPU access; **not** scheduled by Kubernetes |
 | Prometheus | v2.55.1, scraping both gateway pods |
 

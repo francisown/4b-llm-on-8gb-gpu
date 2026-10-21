@@ -1,4 +1,4 @@
-# Service-level objectives (reference workload)
+﻿# Service-level objectives (reference workload)
 
 These SLOs apply to the **gateway + vLLM reference deployment**, not to every
 possible workload. They are written for the measured environment:
@@ -115,17 +115,19 @@ metric pipeline, not model quality or GPU performance.
 
 The CPU-only Compose stack was started and exercised end to end:
 
-- gateway `/health` returned `{"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.1"}`;
+- gateway `/health` returned `{"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.2"}`;
 - Prometheus target `inference-gateway` was `up`;
 - 20 non-streaming and 5 streaming requests completed successfully and appeared in `inference_gateway_requests_total`;
 - Grafana 11.2.0 health was `ok`;
 - the provisioned datasource was `Prometheus` (`uid=prometheus`, `url=http://prometheus:9090`);
 - the provisioned dashboard was `Inference Gateway` (`uid=inference-gateway`).
 - HTTPS `/health` through the Nginx TLS terminator returned 200 for gateway
-  `0.2.1`; HTTPS `/chat` returned 200.
+  `0.2.2`; HTTPS `/chat` returned 200.
 - Prometheus loaded five alert rules (`GatewayUpstreamUnhealthy`,
   `GatewayErrorRateHigh`, `GatewayTTFTP95High`, `GatewayQueueWaitP95High`,
   `GatewayNoSuccessfulRequests`).
+- Jaeger received traces from `inference-gateway`: 5 traces, first trace
+  4 spans, no OTel export errors.
 
 ### Soak validation
 

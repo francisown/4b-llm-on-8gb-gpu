@@ -1,5 +1,5 @@
 <p align="right">
-  <a href="https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.1"><img src="https://img.shields.io/github/v/release/francisown/8gb-llm-inference-delivery?style=flat-square" alt="Latest release"></a>
+  <a href="https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.2"><img src="https://img.shields.io/github/v/release/francisown/8gb-llm-inference-delivery?style=flat-square" alt="Latest release"></a>
   <a href="https://github.com/francisown/8gb-llm-inference-delivery/actions/workflows/ci.yml"><img src="https://github.com/francisown/8gb-llm-inference-delivery/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Language-English-555?style=flat-square" alt="Language: English">
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/%E8%AF%AD%E8%A8%80-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-2f81f7?style=flat-square" alt="Read in Simplified Chinese"></a>
@@ -69,7 +69,7 @@ The second row is the most valuable thing this project produced: **four models s
 
 | Path | Status | Evidence |
 |---|---|---|
-| **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.1` (same serving path as the measured `v0.2.0`; v0.2.1 adds optional API-key auth), real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
+| **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.2` (same serving path as the measured `v0.2.0`; v0.2.1 adds auth, v0.2.2 adds TLS/alerting/OTel deployment layers), real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
 | **GPU scheduled by Kubernetes** | **Partially verified** | Docker Desktop K8s: `Pending` (`Insufficient nvidia.com/gpu`). WSL2 k3s: node advertised `nvidia.com/gpu: 1`, a GPU pod ran `nvidia-smi -L`, and vLLM loaded the model; stable in-cluster serving was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
@@ -213,12 +213,12 @@ The full pipeline (needs a GPU + WSL2 + vLLM) is documented in the "Reproducible
 
 ## Release
 
-- Latest: **v0.2.1** — [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.1)
-- Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.1`
-- Digest: `sha256:908a6feacaa8ed1f4e10056102f006bb008930fffa1f4a93ef6ba05f45450ac0`
+- Latest: **v0.2.2** — [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.2)
+- Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.2`
+- Digest: published by the release workflow; see the release page.
 - Details: [`docs/RELEASE.md`](docs/RELEASE.md)
 
-The K8s benchmark below was measured on **v0.2.0**; v0.2.1 adds optional API-key auth and a versioned image tag without changing the serving path.
+The K8s benchmark below was measured on **v0.2.0**; v0.2.1 adds optional API-key auth and v0.2.2 adds TLS, alerting, and OTel deployment layers without changing the serving path.
 
 ## Observability demo (no GPU)
 
@@ -229,6 +229,7 @@ bash deploy/observability/generate-certs.sh
 docker compose -f deploy/observability/compose.yaml up -d --build
 # Grafana:    http://localhost:3000  (admin/admin)
 # Prometheus: http://localhost:9090
+# Jaeger:     http://localhost:16686
 # HTTPS:      https://localhost:9443  (self-signed; curl -k)
 # Gateway:    http://localhost:9000
 ```
@@ -275,8 +276,9 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/SLO.md`](docs/SLO.md) | SLO targets, PromQL queries, error-budget policy, and dashboard link |
 | [`docs/TLS.md`](docs/TLS.md) | Local TLS terminator, verification, and production guidance |
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus alert rules, verification, and runbook |
+| [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing, OTLP configuration, verification, and limits |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |
-| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.1 tag, GHCR image/digest, release verification, and deployment notes |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | v0.2.2 tag, GHCR image, release verification, and deployment notes |
 | [`experiments/inference-ops-agent/`](experiments/inference-ops-agent/) | Optional inference-ops agent experiment; not part of the validated delivery path |
 | [`SECURITY.md`](SECURITY.md) | Vulnerability reporting, secrets policy, scope, and known limitations |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Local checks, observability demo, soak test, PR checklist, and release flow |
@@ -378,9 +380,9 @@ Model weights and datasets are not committed (see `.gitignore`).
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
 | Kubernetes GPU scheduling | **Partially verified**: Docker Desktop K8s has no GPU device plugin; WSL2 k3s did advertise `nvidia.com/gpu: 1` and run a GPU pod, but stable in-cluster vLLM was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
-| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs, and a 120 s gateway soak (2,329 requests, 0 errors; c=16 backpressure returns clean 429s); no OpenTelemetry or multi-hour soak yet |
-| CI/CD | CI (tests, manifest/workflow validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.1 published), and Dependabot; no image signing or automated deployment yet |
+| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs, a 120 s gateway soak (2,329 requests, 0 errors; c=16 backpressure returns clean 429s), and OTel/Jaeger tracing; no multi-hour soak yet |
+| CI/CD | CI (tests, manifest/workflow validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.2 published), and Dependabot; no image signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |
 
-The gateway image `v0.2.1` is rebuilt and verified against the real model. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.
+The gateway image `v0.2.2` is rebuilt and verified against the real model. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.

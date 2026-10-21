@@ -1,4 +1,4 @@
-apiVersion: v1
+﻿apiVersion: v1
 kind: ConfigMap
 metadata:
   name: inference-gateway-config
@@ -14,5 +14,5 @@ data:
   UPSTREAM_TIMEOUT_SECONDS: "60"
   HEALTH_TIMEOUT_SECONDS: "3"
   UPSTREAM_CONNECT_RETRIES: "1"
-  GATEWAY_VERSION: "0.2.1"
+  GATEWAY_VERSION: "0.2.2"
   LOG_LEVEL: INFO

@@ -201,7 +201,7 @@ kubectl apply -k k8s/observability
 
 - 最新版本：**v0.2.2** —— [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.2)
 - 镜像：`ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.2`
-- Digest：由 release workflow 发布，见 release 页面。
+- Digest：`sha256:c1765502e546e61c5fa3a7a968ae0d7e8f1f9cc218ffc0e6396a2d80ca197ded`
 - 详情：[`docs/RELEASE.md`](docs/RELEASE.md)
 
 下面的 K8s 实测是在 **v0.2.0** 上完成的；v0.2.1 增加可选 API Key 认证，v0.2.2 增加 TLS、告警与 OTel 部署层，不改变服务路径。

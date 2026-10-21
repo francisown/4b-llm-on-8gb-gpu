@@ -215,7 +215,7 @@ The full pipeline (needs a GPU + WSL2 + vLLM) is documented in the "Reproducible
 
 - Latest: **v0.2.2** — [release notes](https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.2)
 - Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.2`
-- Digest: published by the release workflow; see the release page.
+- Digest: `sha256:c1765502e546e61c5fa3a7a968ae0d7e8f1f9cc218ffc0e6396a2d80ca197ded`
 - Details: [`docs/RELEASE.md`](docs/RELEASE.md)
 
 The K8s benchmark below was measured on **v0.2.0**; v0.2.1 adds optional API-key auth and v0.2.2 adds TLS, alerting, and OTel deployment layers without changing the serving path.

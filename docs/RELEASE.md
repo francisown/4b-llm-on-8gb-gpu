@@ -5,7 +5,7 @@ Release date: **2026-10-21**
 - GitHub Release: <https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.2>
 - Tag: `v0.2.2`
 - Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.2`
-- Digest: published by the release workflow; see the GitHub Release/package page.
+- Digest: `sha256:c1765502e546e61c5fa3a7a968ae0d7e8f1f9cc218ffc0e6396a2d80ca197ded`
 
 ## Pull
 
@@ -30,8 +30,8 @@ from BuildKit (`sbom: true`, `provenance: true`).
 
 ## Verification at release
 
-- CI: see the repository Actions page for the latest `ci` run.
-- Release workflow: tag-triggered; see the Actions page for the `release` run.
+- CI: successful (run 32).
+- Release workflow: successful (run 2); GHCR image pull verified locally.
 - TLS: HTTPS `/health` and `/chat` returned 200 through Nginx with a
   self-signed certificate.
 - Alert rules: 5 rules loaded in Prometheus.

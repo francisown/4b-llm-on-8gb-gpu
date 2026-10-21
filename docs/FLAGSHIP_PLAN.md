@@ -99,7 +99,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 |---|---|
 | Gateway offline tests | 14 passed |
 | Workflow validation | 2 workflow files passed |
-| Release v0.2.1 | GHCR image pull verified; GitHub Release created; release workflow succeeded |
+| Release v0.2.2 | GHCR image pull verified; GitHub Release created; release workflow succeeded |
 | Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
 | Cost-calculator tests | 5 passed |
 | Manifest validation | 16 documents passed |

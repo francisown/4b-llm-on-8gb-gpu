@@ -181,6 +181,19 @@ kubectl apply -k k8s/observability
 
 要跑完整链路（需要 GPU + WSL2 + vLLM）见 [docs/project-notes.md](docs/project-notes.md) 的「可复现环境」一节。四份逐题的量化评测原始结果在 [`benchmark/eval/`](benchmark/eval/)，性能原始 JSON 在 [`benchmark/results/`](benchmark/results/)。
 
+## 可观测性 demo（不需要 GPU）
+
+CPU-only 栈用 mock OpenAI 兼容上游，不需要模型权重就能验证指标链路：
+
+```bash
+docker compose -f deploy/observability/compose.yaml up -d --build
+# Grafana:    http://localhost:3000  (admin/admin)
+# Prometheus: http://localhost:9090
+# Gateway:    http://localhost:9000
+```
+
+Dashboard 包含请求速率/错误率、TTFT p50/p95、端到端延迟、排队等待、准入控制、上游健康、completion tokens/s 和网关副本。真实 GPU 路径把 `VLLM_BASE_URL` 指向 vLLM 服务即可。
+
 ---
 
 ## 目录导航
@@ -205,6 +218,9 @@ kubectl apply -k k8s/observability
 | [`benchmark/results/`](benchmark/results/) | 全部性能原始 JSON（并发 sweep、长上下文、推测解码、真实多轮对话） |
 | [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | 集群内/端口转发压测脚本：TTFT、延迟分位、错误率、Pod 分布 |
 | [`gateway/`](gateway/) | FastAPI 网关、网页、Dockerfile、离线 pytest |
+| [`docs/SLO.md`](docs/SLO.md) | SLO 目标、PromQL、错误预算策略与 dashboard 链接 |
+| [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
+| [`deploy/observability/`](deploy/observability/) | CPU-only Compose demo：mock vLLM + 网关 + Prometheus + 已配置的 Grafana dashboard |
 | [`k8s/`](k8s/) | 网关 Deployment / Service / ConfigMap / 探针 / PDB / HPA / Prometheus / 压测 Job |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 测试、清单校验、Kustomize 渲染与 Docker 构建 |
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK 量化脚本 |
@@ -300,8 +316,8 @@ kubectl apply -k k8s/observability
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
 | Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
-| 可观测性与 SRE | 部分完成：Prometheus 抓取与按 Pod 指标；HPA 清单存在但因无 metrics-server 未生效；尚无 Grafana/OpenTelemetry/SLO |
-| CI/CD | 已加 CI（测试、清单校验、Kustomize 渲染、Docker 构建）；尚无镜像签名与自动部署 |
+| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档；尚无 OpenTelemetry 与长时间 soak |
+| CI/CD | CI（测试、清单校验、Kustomize 渲染、Docker 构建）+ 发布/回滚清单；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |
 

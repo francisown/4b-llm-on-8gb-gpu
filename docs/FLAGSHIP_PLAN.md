@@ -52,12 +52,13 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Produce a small report from machine-readable benchmark results.
 - [x] Keep quality and performance results separate and show the per-question deltas.
 - [x] Deploy Prometheus and scrape both gateway replicas by pod.
+- [x] Deploy a Grafana dashboard and document SLOs/error budget.
 
 ### 4. Container and Linux delivery
 
 - [x] Validate the gateway image and Compose topology on Linux/WSL2.
 - [x] Add a clean startup path with explicit model/runtime checks.
-- [ ] Add a release checklist for images, model artifacts, checksums, and configuration.
+- [x] Add a release checklist for images, model artifacts, checksums, and configuration.
 - [x] Document the offline delivery boundary and what remains hardware-specific.
 
 ### 5. Kubernetes deployment
@@ -97,6 +98,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Pod replacement | Ready after 7.6 s |
 | Bad-image rollback | Old replicas stayed Ready; `rollout undo` recovered |
 | Prometheus | Both gateway pods `up`, both `upstream_healthy=1` |
+| Grafana demo | Datasource `Prometheus`; dashboard `Inference Gateway`; 20 non-stream + 5 stream smoke requests; health ok |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
 | Stable in-cluster vLLM | Not achieved: `PLEG is not healthy`; see [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md) |
 | TensorRT-LLM | Not measured; protocol documented in [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md) |

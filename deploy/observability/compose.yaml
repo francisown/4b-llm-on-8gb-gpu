@@ -1,0 +1,70 @@
+name: ai-inference-observability
+
+services:
+  mock-vllm:
+    image: python:3.10-slim
+    command: ["python", "/app/mock_vllm.py"]
+    volumes:
+      - ./mock_vllm.py:/app/mock_vllm.py:ro
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    build:
+      context: ../../gateway
+      dockerfile: Dockerfile
+    image: ai-inference-gateway:v0.2.0
+    ports:
+      - "9000:9000"
+    environment:
+      VLLM_BASE_URL: http://mock-vllm:8000
+      MODEL_NAME: mock-qwen
+      GATEWAY_MAX_CONCURRENT: "4"
+      GATEWAY_MAX_QUEUE: "4"
+      GATEWAY_QUEUE_TIMEOUT_SECONDS: "10"
+      GATEWAY_VERSION: "0.2.0"
+      POD_NAME: compose-gateway
+    depends_on:
+      mock-vllm:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/live')"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus:
+        condition: service_started

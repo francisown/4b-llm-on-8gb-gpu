@@ -1,0 +1,136 @@
+# Service-level objectives (reference workload)
+
+These SLOs apply to the **gateway + vLLM reference deployment**, not to every
+possible workload. They are written for the measured environment:
+
+- Qwen3.5-4B-INT4-AWQ-self on one RTX 5060 8 GB;
+- vLLM 0.29.0;
+- concurrency 4, 256 input / 128 output tokens unless stated otherwise;
+- one gateway replica or two replicas behind a Service, as stated.
+
+They are not a production SLA. Change the targets when the model, GPU,
+context length, concurrency, or tenant mix changes.
+
+## Objectives
+
+| SLO | Target | Measured reference |
+|---|---|---|
+| Successful request ratio | **≥ 99.9%** over 30 days | 100/100 and 300/300 in the failure tests |
+| TTFT p95 | **< 300 ms** at concurrency 4 | 138.6 ms (streaming) |
+| End-to-end p95 | **< 1 s** for 64 output tokens at concurrency 4 | 565.6 ms (stream) / 513.8 ms (non-stream) |
+| Gateway error rate | **< 0.5%** | 0% in the load tests |
+| Queue wait p95 | **< 100 ms** at nominal load | not independently measured; dashboard exposes it |
+| 429 rate | **< 1%** at nominal load | not independently measured; dashboard exposes it |
+
+The measured numbers come from
+[`PERFORMANCE_REPORT.md`](PERFORMANCE_REPORT.md) and the raw files under
+`benchmark/results/k8s/`.
+
+## PromQL
+
+Use `inference_gateway_*` metrics from `/metrics`.
+
+### Successful request ratio
+
+```promql
+sum(rate(inference_gateway_requests_total{outcome="success"}[5m]))
+/
+sum(rate(inference_gateway_requests_total[5m]))
+```
+
+### Error rate
+
+```promql
+sum(rate(inference_gateway_requests_total{
+  outcome=~"timeout|unavailable|upstream_error|rejected|stream_error|disconnected"
+}[5m]))
+```
+
+### TTFT p95
+
+```promql
+histogram_quantile(
+  0.95,
+  sum by (le) (rate(inference_gateway_ttft_seconds_bucket[5m]))
+)
+```
+
+### End-to-end p95
+
+```promql
+histogram_quantile(
+  0.95,
+  sum by (le) (rate(inference_gateway_request_duration_seconds_bucket[5m]))
+)
+```
+
+### Queue wait p95
+
+```promql
+histogram_quantile(
+  0.95,
+  sum by (le) (rate(inference_gateway_queue_wait_seconds_bucket[5m]))
+)
+```
+
+### Saturation signals
+
+```promql
+inference_gateway_active_requests
+inference_gateway_waiting_requests
+inference_gateway_upstream_healthy
+```
+
+## Error budget policy
+
+- Window: 30 days.
+- If 50% of the error budget is consumed in 24 hours, freeze non-essential
+  changes and investigate.
+- If 100% is consumed, stop feature work; only reliability fixes are allowed
+  until the budget recovers.
+- A 429 caused by a deliberate load test is not a production error; exclude
+  synthetic tests from the budget.
+
+## Dashboard
+
+The Grafana dashboard is provisioned from
+[`deploy/observability/grafana/dashboards/gateway-dashboard.json`](../deploy/observability/grafana/dashboards/gateway-dashboard.json).
+It shows request rate by outcome, error rate, TTFT p50/p95, end-to-end
+p50/p95, queue-wait p95, admission-control gauges, upstream health, completion
+tokens/s, and gateway replicas.
+
+Run the CPU-only demo:
+
+```bash
+docker compose -f deploy/observability/compose.yaml up -d --build
+# Grafana: http://localhost:3000 (admin/admin)
+# Prometheus: http://localhost:9090
+# Gateway: http://localhost:9000
+```
+
+The demo uses a mock OpenAI-compatible upstream. It validates the dashboard and
+metric pipeline, not model quality or GPU performance.
+
+## Demo validation (2026-10-21)
+
+The CPU-only Compose stack was started and exercised end to end:
+
+- gateway `/health` returned `{"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.0"}`;
+- Prometheus target `inference-gateway` was `up`;
+- 20 non-streaming and 5 streaming requests completed successfully and appeared in `inference_gateway_requests_total`;
+- Grafana 11.2.0 health was `ok`;
+- the provisioned datasource was `Prometheus` (`uid=prometheus`, `url=http://prometheus:9090`);
+- the provisioned dashboard was `Inference Gateway` (`uid=inference-gateway`).
+
+Evidence: [`benchmark/results/observability/summary.txt`](../benchmark/results/observability/summary.txt),
+[`prometheus-targets.json`](../benchmark/results/observability/prometheus-targets.json),
+[`prometheus-requests.json`](../benchmark/results/observability/prometheus-requests.json),
+[`grafana-dashboard-api.json`](../benchmark/results/observability/grafana-dashboard-api.json).
+
+## Limits
+
+- Single GPU, single model server; the model server is a single point of failure.
+- No multi-tenant isolation, quota, authentication, or TLS in the reference stack.
+- No long-duration soak result; the error budget is a policy template, not a
+  measured 30-day history.
+- The SLO targets are for the stated reference workload only.

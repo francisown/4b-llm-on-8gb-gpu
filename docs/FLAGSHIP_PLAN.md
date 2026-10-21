@@ -100,7 +100,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 |---|---|
 | Gateway offline tests | 15 passed |
 | Workflow validation | 2 workflow files passed |
-| Release v0.2.3 | GHCR image, GitHub Release, and release workflow pending/verified after publish |
+| Release v0.2.3 | GHCR image `sha256:92ce8a06303822c5ce17fcf610de66630a5367f72376c707e96c0a78ce593525`; GitHub Release created; release workflow run 3 succeeded; CI runs 35/36 succeeded |
 | Optional API-key auth | 401 without key; 200 with `X-API-Key` or `Authorization: Bearer`; health/metrics stay open |
 | Per-identity rate limit | Tenant A gets 2 allowed then 429 with `Retry-After`; tenant B remains allowed |
 | Cost-calculator tests | 5 passed |

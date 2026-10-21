@@ -5,7 +5,7 @@ Release date: **2026-10-21**
 - GitHub Release: <https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.3>
 - Tag: `v0.2.3`
 - Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3`
-- Digest: published by the release workflow; see the release/package page.
+- Digest: `sha256:92ce8a06303822c5ce17fcf610de66630a5367f72376c707e96c0a78ce593525`
 
 ## Pull
 
@@ -27,8 +27,11 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.3
 
 ## Verification at release
 
-- CI: see the repository Actions page for the latest `ci` run.
-- Release workflow: tag-triggered; see the Actions page for the `release` run.
+- CI: run 35 (`main`) and run 36 (`v0.2.3`) succeeded.
+- Release workflow: run 3 succeeded; GitHub Release published
+  `2026-10-21T04:34:39Z`.
+- GHCR: `docker pull ...:v0.2.3` succeeded; digest
+  `sha256:92ce8a06303822c5ce17fcf610de66630a5367f72376c707e96c0a78ce593525`.
 - Rate limit: tenant A got 5×200 then 429 with `Retry-After: 59`; tenant B
   remained 200.
 - HPA: 2→4 in 45s, 4→2 in 80s; HPA event `SuccessfulRescale New size: 4`.

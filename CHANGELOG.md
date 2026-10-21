@@ -34,6 +34,13 @@
 - Add CI quality gates: ruff (E/F), mypy on `gateway/gateway.py`, and a 65%
   coverage floor (actual 71%).
 
+Post-tag commits on `main` are documentation, evidence, the two Kubernetes
+demos, the CI gates, and one formatting-only line wrap in `gateway.py` (the
+`/chat` decorator exceeded 100 columns). The `v0.2.4` tag, its GHCR image, and
+its digest are unchanged, so the published numbers still describe the published
+image. No 0.2.5 release: a version bump whose only payload is indentation would
+make the tag history less useful, not more.
+
 ## 0.2.3 — 2026-10-21
 
 - Add optional per-identity rate limiting (`GATEWAY_RATE_LIMIT_PER_MINUTE`),

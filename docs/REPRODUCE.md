@@ -102,6 +102,11 @@ The full vLLM startup and benchmark commands are in
 revision, GPU driver, or CUDA version; new runs must include them
 ([`BENCHMARK_PROTOCOL.md`](BENCHMARK_PROTOCOL.md)).
 
+For the WSL2 k3s GPU-in-K8s path, see
+[`k8s/gpu-inference/`](../k8s/gpu-inference/). It requires an NVIDIA runtime
+class and a node advertising `nvidia.com/gpu`; the recorded run used a hostPath
+model and is a short smoke test, not a production PVC path.
+
 ## Known reproduction gaps
 
 - The 7.49 GiB offline bundle contains model weights and is not published.

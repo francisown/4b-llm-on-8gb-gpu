@@ -1,4 +1,4 @@
-﻿# Kubernetes verification: gateway layer, not GPU scheduling
+﻿# Kubernetes verification: gateway layer and WSL2 GPU-in-K8s
 
 Verification date: **2026-10-21**
 Repository state: verification run on 2026-10-21; see git history for the exact commit.
@@ -8,9 +8,10 @@ Repository state: verification run on 2026-10-21; see git history for the exact 
 > auth/rate-limit identity handling and malformed-upstream responses. The
 > serving path and the numbers below are unchanged.
 
-This document records what was actually run. It deliberately separates the
-**gateway layer** (which Kubernetes did manage) from the **GPU inference layer**
-(which stayed outside the cluster on this single-GPU Windows/WSL2 host).
+This document records what was actually run. It separates the **original
+gateway-layer benchmark** (where the GPU model server stayed outside Docker
+Desktop Kubernetes) from the later **WSL2 k3s GPU-in-K8s smoke test**, where
+vLLM ran inside the cluster.
 
 ## What was deployed
 
@@ -163,10 +164,10 @@ After the fix and a new rollout, both pods reported `upstream_healthy=1` and no
 new `health_check_failed` events appeared. A regression test asserts that the
 health request sends `Connection: close`.
 
-## What Kubernetes did **not** do on this host
+## Original Docker Desktop run: GPU outside the cluster
 
-The GPU inference workload was **not** scheduled by Kubernetes. A pod requesting
-`nvidia.com/gpu: 1` stayed Pending:
+In the original Docker Desktop benchmark, the GPU inference workload was **not**
+scheduled by Kubernetes. A pod requesting `nvidia.com/gpu: 1` stayed Pending:
 
 ```text
 Warning  FailedScheduling  0/1 nodes are available:
@@ -175,19 +176,38 @@ Warning  FailedScheduling  0/1 nodes are available:
 
 Raw output: [`gpu-probe.txt`](../benchmark/results/k8s/gpu-probe.txt).
 
-Docker Desktop's Kubernetes node has no NVIDIA device plugin or GPU resource
+Docker Desktop's Kubernetes node had no NVIDIA device plugin or GPU resource
 advertisement. vLLM therefore ran as a host Docker container with `--gpus all`,
-and the gateway pods reached it through `host.docker.internal:8000`.
-This is a **validated gateway deployment**, not a validated GPU-scheduling
-deployment. Moving vLLM into the cluster requires:
+and the gateway pods reached it through `host.docker.internal:8000`. That part
+is a **validated gateway deployment**, not a validated GPU-scheduling
+deployment.
 
-1. a Linux GPU node with the NVIDIA driver and container toolkit;
-2. the NVIDIA device plugin (or GPU operator) advertising `nvidia.com/gpu`;
-3. a model artifact mounted from a PVC or a pre-baked image;
-4. a GPU-aware runtime class and resource requests;
-5. a readiness probe that tolerates the model's cold-start time.
+## WSL2 k3s GPU-in-K8s validation (short smoke)
 
-The repository does not claim those steps were completed.
+Later on the same host, WSL2 k3s advertised `nvidia.com/gpu: 1` and ran both
+vLLM and the gateway inside the cluster:
+
+| Metric | Result |
+|---|---:|
+| Node / runtime | WSL2 Ubuntu 22.04, k3s v1.37.1, containerd 2.3.4 |
+| GPU | RTX 5060 8 GB, driver 595.97, `nvidia.com/gpu: 1` |
+| vLLM | 1 pod, `ai-inference-vllm:0.29.0-cu130`, runtime class `nvidia` |
+| Gateway | 2 pods, `ai-inference-gateway:v0.2.4` |
+| In-cluster load | 100 requests, c=4, 64 output tokens, **0 errors** |
+| Output throughput | **147.17 tok/s** |
+| Latency p50 / p95 | 561.64 / 3019.92 ms |
+| Pod distribution | 50 / 50 |
+| Stream TTFT p50 / p95 | 91.8 / 113.2 ms |
+| Stream errors | 0 / 20 |
+
+The engine initially crashed because Kubernetes injected
+`VLLM_PORT=tcp://<service-ip>:8000`; vLLM expects an integer. Setting
+`VLLM_PORT=8000` and `enableServiceLinks: false` fixed startup. The model is
+mounted with `hostPath`, and the namespace uses Pod Security audit/warn rather
+than enforce. This is a short functional smoke test, not a production or
+performance-parity claim; the host path measured 327.51 tok/s and p95 513 ms.
+Evidence: [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/) and
+[`k8s/gpu-inference/`](../k8s/gpu-inference/).
 
 ## HPA status
 
@@ -208,8 +228,9 @@ The separate test used a 60% CPU target and a mock upstream:
 | Observed CPU target | 198% vs 60% |
 | Event | `SuccessfulRescale New size: 4` |
 
-This validates CPU-based HPA mechanics, not model or GPU autoscaling. The
-gateway is stateless and the model server stayed outside the cluster. Evidence:
+This validates CPU-based HPA mechanics, not model or GPU autoscaling. The HPA
+test used a mock upstream; the separate WSL2 k3s smoke test above put vLLM
+inside the cluster. Evidence:
 [`benchmark/hpa/README.md`](../benchmark/hpa/README.md),
 [`benchmark/results/hpa/summary-v0.2.4.json`](../benchmark/results/hpa/summary-v0.2.4.json), and
 [`benchmark/results/hpa/scale-out-v0.2.4.txt`](../benchmark/results/hpa/scale-out-v0.2.4.txt).
@@ -218,8 +239,8 @@ gateway is stateless and the model server stayed outside the cluster. Evidence:
 
 ```bash
 # 1. Build and import the gateway image into the Docker Desktop node
-docker build -t ai-inference-gateway:v0.2.0 ./gateway
-docker save ai-inference-gateway:v0.2.0 | \
+docker build -t ai-inference-gateway:v0.2.4 ./gateway
+docker save ai-inference-gateway:v0.2.4 | \
   docker exec -i desktop-control-plane ctr -n k8s.io images import -
 
 # 2. Start vLLM on the host with GPU access (see README for the model path)
@@ -240,6 +261,18 @@ kubectl wait --for=condition=complete job/gateway-loadgen -n ai-inference --time
 kubectl logs job/gateway-loadgen -n ai-inference
 ```
 
+For the WSL2 k3s GPU-in-K8s path:
+
+```bash
+kubectl apply -k k8s/gpu-inference
+kubectl create configmap loadgen-script -n gpu-inference \
+  --from-file=k8s_load_test.py=benchmark/k8s_load_test.py \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f k8s/gpu-inference/loadgen-job.yaml
+kubectl wait --for=condition=complete job/gateway-loadgen -n gpu-inference --timeout=300s
+kubectl logs job/gateway-loadgen -n gpu-inference
+```
+
 ## Limits of this verification
 
 - Single node, single GPU, one vLLM instance; the model server itself is still a
@@ -248,6 +281,8 @@ kubectl logs job/gateway-loadgen -n ai-inference
 - No long-duration soak test, no memory-leak profile, no p99 under sustained load.
 - HPA validated only with CPU metrics and a mock upstream; no queue-depth,
   TTFT, or GPU-based autoscaling was tested.
-- GPU scheduling not validated (no device plugin).
+- GPU-in-K8s was validated only on WSL2 k3s with a hostPath model and a
+  100-request smoke test; native Linux GPU nodes/PVCs and long GPU soaks are
+  not claimed.
 - TensorRT-LLM was not measured; see
   [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md).

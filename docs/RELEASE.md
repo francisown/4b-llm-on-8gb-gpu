@@ -35,13 +35,16 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 ## Verification
 
 - Deterministic path: `python scripts/verify_local.py` (5 cost + 19 gateway
-  tests), manifest validation (17 documents), workflow validation, docs
+  tests), manifest validation (25 documents), workflow validation, docs
   validation, generated-CSV check.
 - v0.2.4 2-minute mock soak: 2,329 requests, 0 errors, p95 215.82 ms.
 - v0.2.4 10-minute mock soak: 11,717 requests, 0 errors, 19.525 req/s,
   p95 213.62 ms.
 - HPA re-run on v0.2.4 with CPU metrics + mock upstream: 2→4 in 45 s,
   4→2 in 90 s, 8,000 requests at c=32 with 0 errors, CPU 198%/60%.
+- WSL2 k3s GPU-in-K8s short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway
+  replicas, 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s; host
+  path 327.51 tok/s / p95 513 ms. Functional validation only.
 - Rate limit on v0.2.4: auth disabled, rotating `X-API-Key` no longer creates a
   new bucket (same direct IP); auth enabled, tenant A 5×200 then 429 while
   tenant B remains 200.
@@ -73,8 +76,8 @@ docker tag ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4 \
 
 ## Do not claim
 
-- The K8s throughput numbers were measured on v0.2.0; later releases add
-  gateway features without changing the serving path.
+- The original K8s gateway throughput numbers were measured on v0.2.0; the
+  WSL2 k3s GPU-in-K8s smoke used v0.2.4 and is labeled separately.
 - HPA and soak results use a mock upstream; they validate gateway mechanics,
   not model performance.
 - The self-signed TLS certificate is not public-production ready.

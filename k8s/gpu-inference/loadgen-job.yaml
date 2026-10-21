@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gateway-loadgen
+  namespace: gpu-inference
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: gateway-loadgen
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: loadgen
+          image: ai-inference-gateway:v0.2.4
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/scripts/k8s_load_test.py"]
+          args:
+            - --url
+            - http://inference-gateway:9000/chat
+            - --requests
+            - "100"
+            - --concurrency
+            - "4"
+            - --max-tokens
+            - "64"
+            - --warmup
+            - "2"
+            - --output
+            - /tmp/loadgen.json
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: loadgen-script

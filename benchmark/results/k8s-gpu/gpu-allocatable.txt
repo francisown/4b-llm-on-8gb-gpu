@@ -1,0 +1,22 @@
+﻿  hugepages-2Mi:      0
+  memory:             16259752Ki
+  nvidia.com/gpu:     1
+  pods:               110
+Allocatable:
+--
+  hugepages-2Mi:      0
+  memory:             16259752Ki
+  nvidia.com/gpu:     1
+  pods:               110
+System Info:
+--
+  kube-system                 local-path-provisioner-6858d854cf-2w7fd    0 (0%)        0 (0%)      0 (0%)           0 (0%)         6h48m
+  kube-system                 metrics-server-778c4649b4-rlpr6            100m (0%)     0 (0%)      70Mi (0%)        0 (0%)         6h48m
+  kube-system                 nvidia-device-plugin-daemonset-248w2       0 (0%)        0 (0%)      0 (0%)           0 (0%)         5h53m
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+--
+  hugepages-1Gi      0 (0%)        0 (0%)
+  hugepages-2Mi      0 (0%)        0 (0%)
+  nvidia.com/gpu     1             1
+Events:              <none>

@@ -15,7 +15,7 @@ context lengths, or concurrency levels.
 | Runtime | vLLM 0.29.0 |
 | Host | Windows + WSL2 Ubuntu 22.04; Docker Desktop Kubernetes for the gateway |
 | Gateway | FastAPI `ai-inference-gateway:v0.2.0` for the measured run; v0.2.1 adds auth, v0.2.2 adds TLS/alerting/OTel, v0.2.3 adds rate limiting, and v0.2.4 hardens auth/rate-limit identity handling without changing the serving path |
-| Model server | vLLM in a Docker container with GPU access; **not** scheduled by Kubernetes |
+| Model server | vLLM host container for the original K8s numbers; a separate short WSL2 k3s GPU smoke also ran vLLM in-cluster |
 | Prometheus | v2.55.1, scraping both gateway pods |
 
 ## 1. Quantization quality
@@ -84,6 +84,24 @@ large throughput penalty, not a claim of a speedup.
 | Pod distribution | victim 54 / survivor 246 |
 
 Raw: [`pod-kill-under-load.json`](../benchmark/results/k8s/pod-kill-under-load.json).
+
+### WSL2 k3s GPU-in-K8s smoke
+
+A later short run put vLLM inside WSL2 k3s with `nvidia.com/gpu: 1`, behind two
+gateway replicas:
+
+| Metric | Result |
+|---|---:|
+| Requests / concurrency | 100 / 4 |
+| Errors | **0 / 100** |
+| Output throughput | **147.17 tok/s** |
+| Latency mean / p50 / p95 / p99 | 1112.54 / 561.64 / 3019.92 / 3040.28 ms |
+| Pod distribution | 50 / 50 |
+| Stream requests / TTFT p50 / p95 | 20 / **91.8 / 113.2 ms** |
+
+This is functional validation, not parity: the host path measured 327.51 tok/s
+and p95 513 ms. The in-cluster gap is not yet isolated. Raw:
+[`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/).
 
 ## 3. Failure handling
 
@@ -157,10 +175,12 @@ counted separately from unexpected errors. Raw:
 
 - **No TensorRT-LLM result.** The comparison protocol and harness exist; no
   engine was built or measured. See [`RUNTIME_COMPARISON.md`](RUNTIME_COMPARISON.md).
-- **No stable in-cluster GPU vLLM result.** The WSL2 k3s attempt scheduled a GPU
-  pod and loaded the model, but the node failed with `PLEG is not healthy`.
-  No in-cluster serving numbers are claimed. See
-  [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md).
+- **Short in-cluster GPU smoke, not a production result.** A WSL2 k3s run put
+  vLLM and the gateway inside the cluster: 100 in-cluster requests, 0 errors,
+  **147.17 tok/s**, p95 **3019.92 ms**; stream TTFT p50 **91.8 ms**. The host
+  path measured 327.51 tok/s and p95 513 ms. The cause of the in-cluster gap is
+  not isolated, and this is not a performance-parity claim. See
+  [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/).
 - **No multi-node or multi-GPU result.**
 - **No long-duration soak or memory-leak result.**
 - **No cloud cost quote.** The cost calculator is a capacity estimate, not an

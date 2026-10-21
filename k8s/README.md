@@ -1,4 +1,4 @@
-﻿# Kubernetes 部署：网关层已实测，GPU 调度未验证
+﻿# Kubernetes 部署：网关层已实测，WSL2 GPU-in-K8s 短验证
 
 这份 README 记录 **2026-10-21** 在本机 Docker Desktop Kubernetes 上真实跑过的结果，
 不是“清单写好了”的同义词。
@@ -16,7 +16,7 @@
 | 坏版本回滚 | 新 Pod `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 后恢复 |
 | Prometheus | 两个网关 Pod 均 `up`，`upstream_healthy=1`，按 Pod 抓取 |
 | HPA | 基础清单需要 metrics-server；已在独立 `hpa-demo` 命名空间用 metrics-server + mock upstream 验证 2→4→2（45s / 80s），不是 GPU/推理指标扩缩容 |
-| K8s 调度 GPU | `nvidia.com/gpu: 1` 探针一直 Pending：`Insufficient nvidia.com/gpu`，**未验证** |
+| K8s 调度 GPU | WSL2 k3s 已验证：节点广告 `nvidia.com/gpu: 1`，GPU Pod 跑通；vLLM + 2 gateway 副本短 smoke 100 请求 0 错误，147.17 tok/s；性能低于宿主路径 |
 
 完整原始结果与限制见 [`../docs/K8S_VERIFICATION.md`](../docs/K8S_VERIFICATION.md)。
 
@@ -198,7 +198,7 @@ Secret 不要提交到 Git。
 ## 已知边界
 
 - HPA 只在独立 `hpa-demo` 命名空间用 CPU 指标 + mock upstream 验证；基础清单需要 metrics-server，且没有队列/GPU 指标。
-- GPU 未由 Kubernetes 调度：没有 NVIDIA device plugin。
+- GPU-in-K8s 只在 WSL2 k3s + hostPath 模型上做了 100 请求短 smoke；不是原生 Linux GPU 节点、PVC 或长时间 GPU soak。
 - vLLM 仍是单实例，模型服务本身没有高可用。
 - K8s 基础清单没有 TLS、认证或 NetworkPolicy；认证/TLS 只在 Compose 演示栈验证。
 - 没有长时间 soak test、内存泄漏分析或持续负载 p99；10 分钟 soak 只针对 mock upstream 的网关。
@@ -218,3 +218,4 @@ Secret 不要提交到 Git。
 | `observability/prometheus.yaml` | Prometheus、RBAC、按 Pod 抓取 |
 | `benchmark/loadgen-job.yaml` | 100 请求 / 并发 4 Service 压测 |
 | `benchmark/loadgen-kill-job.yaml` | 压测中强杀 Pod 的 300 请求测试 |
+| [`gpu-inference/`](gpu-inference/) | WSL2 k3s：vLLM-on-GPU + 2 gateway 副本 + 短压测 |

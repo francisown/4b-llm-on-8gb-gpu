@@ -68,14 +68,14 @@
 
 | 路径 | 状态 | 证据 |
 |---|---|---|
-| **Docker + 宿主 vLLM（RTX 5060）** | 已验证（v0.2.3 镜像） | 网关镜像 `v0.2.3`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 认证、v0.2.2 TLS/告警/OTel、v0.2.3 按身份限流）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms**。v0.2.4 改了认证/限流身份和畸形响应处理，使用 fake/mock upstream 验证，未重新跑真实 vLLM |
-| **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
+| **Docker + 宿主 vLLM（RTX 5060）** | 已验证（v0.2.4 镜像） | 网关镜像 `v0.2.4` + 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；20 请求 c=4、0 错误、**327.51 tok/s**、p95 513 ms；流式 TTFT p50 **85.5 ms**、p95 101.9 ms |
+| **Kubernetes 网关，2 副本 + Prometheus** | 已验证（宿主 vLLM） | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取；模型服务在集群外 |
+| **GPU-in-K8s vLLM + gateway（WSL2 k3s）** | 已验证（短 smoke） | vLLM Pod 占 `nvidia.com/gpu: 1`，2 个 gateway Pod；集群内 100 请求 0 错误、**147.17 tok/s**、p95 3.02s；流式 TTFT p50 91.8 ms、p95 113.2 ms；性能明显低于宿主路径，不是生产/等价声明。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 198%/60%；45s 扩容、90s 缩容；mock 上游，只验证 HPA 机制 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
-| **Kubernetes 调度 GPU** | **部分验证** | Docker Desktop K8s：`Insufficient nvidia.com/gpu`，一直 Pending。WSL2 k3s：节点广告 `nvidia.com/gpu: 1`，GPU Pod 跑通 `nvidia-smi -L`，vLLM 也加载了模型；但稳定 serving 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | **TensorRT-LLM 对比** | 未测量 | 只记录方法和 harness，不声称结果；见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 
-完整命令、原始结果和限制见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md)。这台机器上 GPU 推理容器仍在集群外，Kubernetes 管理的是无状态网关层。
+完整命令、原始结果和限制见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/)。最早的 gateway benchmark 用宿主 vLLM；WSL2 k3s 这一轮把 vLLM 也放进了集群，短 smoke 功能通过，但吞吐和尾延迟明显差于宿主路径，因此不声称生产可用或性能等价。
 
 ---
 
@@ -188,7 +188,7 @@ Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4�
 # 1. 确定性自测（不需要 GPU、模型或 API Key）
 python -m pip install -r gateway/requirements-dev.txt pyyaml
 python scripts/verify_local.py          # 预期：5 个成本测试 + 19 个网关测试
-python scripts/validate_manifests.py    # 预期：17 个 Kubernetes 文档
+python scripts/validate_manifests.py    # 预期：25 个 Kubernetes 文档
 
 # 2. 从原始 JSON 复算吞吐与成本（在仓库根执行）
 python tools/cost_calculator.py \
@@ -249,7 +249,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/project-notes.md`](docs/project-notes.md) | 主文档：模块状态、可复现环境、量化与推测解码细节 |
 | [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) | Kubernetes 实测记录：部署、压测、Pod 强杀、回滚、Prometheus 与 GPU 调度边界 |
 | [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) | vLLM / TensorRT-LLM / 自研 CUDA 的对比状态与不可比原因 |
-| [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) | WSL2 k3s GPU 尝试：做成了什么、PLEG 阻塞、为什么不声称集群内 serving 数字 |
+| [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) | WSL2 k3s GPU 尝试：PLEG 失败、VLLM_PORT 修复与后续短验证 |
 | [`docs/LINUX_GPU_RUNBOOK.md`](docs/LINUX_GPU_RUNBOOK.md) | 真实 Linux GPU 节点步骤：驱动、toolkit、device plugin、PVC、vLLM、TensorRT-LLM |
 | [`docs/PERFORMANCE_REPORT.md`](docs/PERFORMANCE_REPORT.md) | 性能报告：量化、K8s 网关、故障处理与不声称的内容 |
 | [`docs/BENCHMARK_PROTOCOL.md`](docs/BENCHMARK_PROTOCOL.md) | 所有主数字的单一协议矩阵与可比性规则 |
@@ -259,6 +259,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | 当前旗舰计划与验证清单 |
 | [`benchmark/eval/`](benchmark/eval/) | 冻结的 200 题清单、四个模型的逐题原始结果、三向总表 |
 | [`benchmark/results/`](benchmark/results/) | 全部性能原始 JSON（并发 sweep、长上下文、推测解码、真实多轮对话） |
+| [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) | WSL2 k3s GPU-in-K8s vLLM + gateway 验证与原始结果 |
 | [`benchmark/hpa/README.md`](benchmark/hpa/README.md) | HPA 2→4→2 实测：mock 上游、metrics-server、压测 Job |
 | [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | 集群内/端口转发压测脚本：TTFT、延迟分位、错误率、Pod 分布 |
 | [`benchmark/soak_test.py`](benchmark/soak_test.py) | 闭环 gateway soak：延迟分位、错误率、active/waiting 归零检查 |
@@ -277,6 +278,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`.github/workflows/release.yml`](.github/workflows/release.yml) | tag 触发的 GHCR 镜像构建与发布 |
 | [`deploy/observability/`](deploy/observability/) | CPU-only Compose demo：mock vLLM + 网关 + Prometheus + 已配置的 Grafana dashboard |
 | [`k8s/`](k8s/) | 网关 Deployment / Service / ConfigMap / 探针 / PDB / HPA / NetworkPolicy / Prometheus / 压测 Job |
+| [`k8s/gpu-inference/`](k8s/gpu-inference/) | WSL2 k3s 的 vLLM-on-GPU + 2 gateway 副本清单 |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 测试、清单/工作流校验、Kustomize 渲染与 Docker 构建 |
 | [`scripts/validate_workflows.py`](scripts/validate_workflows.py) | 确定性的 GitHub Actions YAML 校验 |
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK 量化脚本 |
@@ -371,10 +373,10 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 |---|---|
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus、HPA 2→4→2；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
-| Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
+| Kubernetes 调度 GPU | **WSL2 k3s 短 smoke 已验证**：节点广告 `nvidia.com/gpu: 1`；vLLM Pod 服务真实 Qwen3.5-4B-INT4-AWQ；2 个 gateway Pod；100 请求 0 错误、147.17 tok/s、p95 3.02s。性能明显低于宿主路径，不是生产/等价声明。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、10 分钟 gateway soak（11,717 请求、0 错误、p95 213.62 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 soak |
 | CI/CD | CI（测试、清单/工作流/文档校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.4 已发布）；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |
 
-网关镜像 `v0.2.3` 已对着真实模型验证；`v0.2.4` 使用 fake/mock upstream 和 19 个网关测试验证，未重新跑真实模型。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。
+网关镜像 `v0.2.4` 已重新对着真实模型验证：20 请求 c=4、0 错误、327.51 tok/s、流式 TTFT p50 85.5 ms。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。

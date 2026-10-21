@@ -28,7 +28,7 @@ Qwen3-0.6B 的 5,693 tok/s（c=64）只作为引擎批处理测试负载放在�
 
 **4. 服务化。**FastAPI 网关：SSE 流式（含 TTFT 与端到端延迟）、连接/读/写/连接池四类独立超时、有界并发与队列、HTTP 429 背压、Prometheus 指标、`/live` 与 `/health` 分离、单行 JSON 日志、可选 API Key 认证、按身份限流、非 root 镜像。**19 个 pytest** 不依赖真实模型和 GPU。
 
-**5. 部署。**两副本 Kubernetes 网关、readiness/liveness、PDB、零停机滚动与回滚：集群内 100 请求 0 错误、326.53 tok/s；压测中强杀 1 个 Pod 的 300 请求 0 错误。HPA 2→4→2 另用 CPU 指标 + mock upstream 验证（45s / 90s）。GPU 推理仍在集群外，稳定的集群内 GPU vLLM 不声称成功。
+**5. 部署。**两副本 Kubernetes 网关、readiness/liveness、PDB、零停机滚动与回滚：集群内 100 请求 0 错误、326.53 tok/s；压测中强杀 1 个 Pod 的 300 请求 0 错误。HPA 2→4→2 另用 CPU 指标 + mock upstream 验证（45s / 90s）。后续 WSL2 k3s smoke test 把 vLLM 放进集群，占 `nvidia.com/gpu: 1`，配 2 个 gateway 副本：100 请求 0 错误、147.17 tok/s（宿主路径 327.51 tok/s）。这是功能验证，不是性能等价或生产 GPU serving。
 
 离线包 7.49 GiB（含模型权重）已在本机构建并 smoke test，但**未公开发布**，因此不计入公开可复现声明。
 

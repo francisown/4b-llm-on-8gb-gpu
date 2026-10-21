@@ -24,7 +24,7 @@
 | Docker 离线交付 | 完成并实机验收 | 模型、两个镜像、Compose、一键脚本、SHA-256 校验 |
 | 成本模型 | 完成 | `tools/cost_calculator.py` + 5 个单元测试 |
 | 正式网关测试、结构化日志 | 完成 | 19 个离线 pytest；关键应用事件为单行 JSON |
-| Kubernetes 网关层 | 2026-10-21 已验证 | 2 副本、探针、PDB、零停机滚动/回滚、Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误；GPU 调度未验证 |
+| Kubernetes 网关层 | 2026-10-21 已验证 | 2 副本、探针、PDB、零停机滚动/回滚、Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误；WSL2 k3s 短 smoke 另把 vLLM 放进集群，100 请求 0 错误 |
 
 ## 关键结果
 
@@ -177,6 +177,6 @@ python tools/cost_calculator.py \
 
 ## 下一阶段
 
-第 1–6 模块已经完成验收，第 7 模块的**网关层**已于 2026-10-21 在 Docker Desktop Kubernetes 上实测：2 副本、Service、探针、PDB、零停机滚动/回滚、Prometheus 按 Pod 抓取；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。GPU 调度未验证——`nvidia.com/gpu` 探针因集群没有 device plugin 而 Pending。完整证据见 [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md)。
+第 1–6 模块已经完成验收，第 7 模块的**网关层**已于 2026-10-21 在 Docker Desktop Kubernetes 上实测：2 副本、Service、探针、PDB、零停机滚动/回滚、Prometheus 按 Pod 抓取；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。WSL2 k3s 另做了短 smoke：vLLM Pod 占 `nvidia.com/gpu: 1`，2 个 gateway 副本，100 请求 0 错误、147.17 tok/s；性能明显低于宿主路径，不是生产/等价声明。完整证据见 [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md) 与 [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/)。
 
 当前仍待完成的是 Linux GPU 节点 + NVIDIA device plugin 的稳定 in-cluster vLLM，以及 TensorRT-LLM 同协议对比；Prometheus/Grafana、OpenTelemetry、SLO、HPA（mock）和 10 分钟 soak 已完成。网关镜像 `v0.2.3` 已重建并验证；若重新发布离线包，需要刷新镜像与 SHA-256 校验值。

@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-gateway
+  namespace: gpu-inference
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: inference-gateway
+  template:
+    metadata:
+      labels:
+        app: inference-gateway
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gateway
+          image: ai-inference-gateway:v0.2.4
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: VLLM_BASE_URL
+              value: http://vllm:8000
+            - name: MODEL_NAME
+              value: Qwen3.5-4B-INT4-AWQ-self
+            - name: GATEWAY_VERSION
+              value: "0.2.4"
+            - name: GATEWAY_RATE_LIMIT_PER_MINUTE
+              value: "0"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - name: http
+              containerPort: 9000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          startupProbe:
+            httpGet:
+              path: /live
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inference-gateway
+  namespace: gpu-inference
+spec:
+  selector:
+    app: inference-gateway
+  ports:
+    - name: http
+      port: 9000
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: inference-gateway
+  namespace: gpu-inference
+spec:
+  podSelector:
+    matchLabels:
+      app: inference-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: gpu-inference
+      ports:
+        - protocol: TCP
+          port: 9000

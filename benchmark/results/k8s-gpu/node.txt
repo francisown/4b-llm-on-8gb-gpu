@@ -1,0 +1,2 @@
+﻿NAME              STATUS   ROLES           AGE     VERSION        INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION                              CONTAINER-RUNTIME
+chinami-daca7eb   Ready    control-plane   7h37m   v1.37.1+k3s1   10.28.111.62   <none>        Ubuntu 22.04.5 LTS   6.18.33.2-microsoft-standard-WSL2 (amd64)   containerd://2.3.4-k3s1

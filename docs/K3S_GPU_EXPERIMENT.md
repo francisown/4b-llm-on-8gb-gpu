@@ -1,7 +1,18 @@
-# WSL2 k3s GPU experiment: partial validation, not a success claim
+# WSL2 k3s GPU experiment: from PLEG failure to a short validation
 
 Date: **2026-10-21**
 Host: Windows + WSL2 Ubuntu 22.04, NVIDIA RTX 5060 8 GB, driver 595.97, CUDA 13.2.
+
+> **Update (later on 2026-10-21).** A short in-cluster validation now succeeds:
+> the vLLM pod runs with `nvidia.com/gpu: 1`, two gateway replicas serve 100
+> in-cluster requests with 0 errors, and the stream TTFT p50 is 91.8 ms. Two
+> concrete fixes mattered: deleting an older crash-looping `ai-inference`
+> namespace, and overriding the Kubernetes-injected
+> `VLLM_PORT=tcp://...` with `VLLM_PORT=8000` (plus
+> `enableServiceLinks: false`). The PLEG failure below is kept as the earlier
+> attempt; it did not recur in the final short run. See
+> [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/) for the current
+> evidence and limits.
 
 This document records an attempt to answer a specific question:
 
@@ -13,9 +24,10 @@ The answer is split:
 - **Docker Desktop Kubernetes**: no. A pod requesting `nvidia.com/gpu: 1`
   stays Pending with `Insufficient nvidia.com/gpu`; the node has no NVIDIA
   device plugin or GPU resource advertisement.
-- **WSL2 k3s**: **partially yes**. A real NVIDIA device plugin advertised
-  `nvidia.com/gpu: 1`, and a GPU pod successfully ran `nvidia-smi -L`.
-  Stable in-cluster vLLM serving, however, was **not** achieved.
+- **WSL2 k3s**: **partially yes** initially. A real NVIDIA device plugin advertised
+  `nvidia.com/gpu: 1`, and a GPU pod successfully ran `nvidia-smi -L`. Stable
+  in-cluster vLLM serving was **not** achieved in that attempt; a later short
+  validation succeeded after the fixes described above.
 
 ## What worked
 
@@ -82,11 +94,13 @@ the WSL GPU at all, so it cannot be used as a fallback.
 
 ## Conclusion
 
-- **GPU scheduling in Kubernetes: demonstrated once** on WSL2 k3s.
-- **Stable in-cluster vLLM serving: not achieved.**
-- **No in-cluster throughput or TTFT number is claimed.**
-- The Docker-based vLLM + Kubernetes gateway path remains the validated
-  serving architecture in this repository.
+- **GPU scheduling in Kubernetes: demonstrated** on WSL2 k3s.
+- **Short in-cluster vLLM serving: achieved** after cleaning the old namespace
+  and setting `VLLM_PORT=8000`; 100 requests, 0 errors, 147.17 tok/s.
+- **Production/native-Linux serving: not claimed.** This was a 100-request smoke
+  test with a hostPath model, not a PVC-based production deployment or soak.
+- The host path remains faster (327.51 tok/s, p95 513 ms) than the WSL2 k3s path
+  (147.17 tok/s, p95 3020 ms); the cause of the gap is not isolated.
 
 The next step is a native Linux GPU node. See
 [`LINUX_GPU_RUNBOOK.md`](LINUX_GPU_RUNBOOK.md). The manifests used in this

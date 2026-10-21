@@ -1,0 +1,31 @@
+{
+  "url": "http://127.0.0.1:9101/chat/stream",
+  "stream": true,
+  "requests": 20,
+  "concurrency": 4,
+  "max_tokens": 64,
+  "warmup": 2,
+  "duration_s": 10.016,
+  "success": 20,
+  "errors": 0,
+  "error_rate": 0.0,
+  "throughput_rps": 1.997,
+  "completion_tokens": 817,
+  "tokens_per_second": 81.572,
+  "latency_ms": {
+    "mean": 2001.55,
+    "p50": 2861.62,
+    "p95": 3114.24,
+    "p99": 3116.64
+  },
+  "ttft_ms": {
+    "mean": 94.09,
+    "p50": 91.8,
+    "p95": 113.2,
+    "p99": 117.4
+  },
+  "pods": {
+    "inference-gateway-78bc5f8b97-59hdk": 20
+  },
+  "error_samples": []
+}

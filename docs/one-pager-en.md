@@ -28,7 +28,7 @@ A Qwen3-0.6B run (5,693 tok/s at c=64) appears in the appendix of the main READM
 
 **4. Serving.** A FastAPI gateway with SSE streaming (TTFT and end-to-end latency), four independent timeout classes, bounded concurrency and queueing with HTTP 429 backpressure, Prometheus metrics, split `/live` and `/health` probes, single-line JSON logs, optional API-key auth, per-identity rate limiting, and a non-root image. **19 pytest cases** need neither a model nor a GPU.
 
-**5. Deployment.** A two-replica Kubernetes gateway with readiness/liveness, PDB, zero-downtime rollout, and rollback completed 100 in-cluster requests at 0 errors and 326.53 tok/s; 300 requests during a deliberate pod kill completed at 0 errors. HPA 2→4→2 was validated separately with CPU metrics and a mock upstream (45 s / 90 s). GPU inference still runs outside the cluster; stable in-cluster GPU vLLM is not claimed.
+**5. Deployment.** A two-replica Kubernetes gateway with readiness/liveness, PDB, zero-downtime rollout, and rollback completed 100 in-cluster requests at 0 errors and 326.53 tok/s; 300 requests during a deliberate pod kill completed at 0 errors. HPA 2→4→2 was validated separately with CPU metrics and a mock upstream (45 s / 90 s). A later WSL2 k3s smoke test ran vLLM inside the cluster with `nvidia.com/gpu: 1` and 2 gateway replicas: 100 requests, 0 errors, 147.17 tok/s (host path: 327.51 tok/s). That is functional validation, not performance parity or production GPU serving.
 
 The offline bundle (7.49 GiB, including model weights) was built and smoke-tested locally. It is **not published**, so it is not part of the public reproduction claim.
 

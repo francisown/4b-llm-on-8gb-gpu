@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+  namespace: gpu-inference
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      runtimeClassName: nvidia
+      enableServiceLinks: false
+      containers:
+        - name: vllm
+          image: ai-inference-vllm:0.29.0-cu130
+          imagePullPolicy: IfNotPresent
+          args:
+            - /model
+            - --served-model-name
+            - Qwen3.5-4B-INT4-AWQ-self
+            - --max-model-len
+            - "2048"
+            - --max-num-seqs
+            - "16"
+            - --gpu-memory-utilization
+            - "0.80"
+            - --enable-prefix-caching
+            - --enable-chunked-prefill
+          env:
+            # Kubernetes injects VLLM_PORT=tcp://... for a Service named vllm.
+            # vLLM expects a port number, so override it explicitly.
+            - name: VLLM_PORT
+              value: "8000"
+            - name: VLLM_USE_FLASHINFER_SAMPLER
+              value: "0"
+            - name: VLLM_WSL2_ENABLE_PIN_MEMORY
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 8000
+          resources:
+            requests:
+              cpu: "4"
+              memory: 4Gi
+            limits:
+              cpu: "8"
+              memory: 10Gi
+              nvidia.com/gpu: 1
+          volumeMounts:
+            - name: model
+              mountPath: /model
+              readOnly: true
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model
+          hostPath:
+            path: /mnt/e/Desktop/subjects/qwen3.5/model/qwen3.5-4b-int4-awq-self-v1
+            type: Directory
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm
+  namespace: gpu-inference
+spec:
+  selector:
+    app: vllm
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http

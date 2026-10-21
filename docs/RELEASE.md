@@ -47,6 +47,9 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
   p95 458.12 ms, p99 639.09 ms.
 - HPA re-run on v0.2.4 with CPU metrics + mock upstream: 2→4 in 45 s,
   4→2 in 90 s, 8,000 requests at c=32 with 0 errors, CPU 198%/60%.
+- Queue-depth HPA on v0.2.4 through Prometheus Adapter external metrics:
+  12,188 requests at c=32, 0 errors, replicas 2→4→6→2, mock upstream. This
+  scales the gateway admission queue, not vLLM or the GPU.
 - WSL2 k3s GPU-in-K8s short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway
   replicas, 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s; host
   path 327.51 tok/s / p95 513 ms. Short functional validation only; the node

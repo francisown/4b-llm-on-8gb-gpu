@@ -24,3 +24,29 @@ inference-gateway-queue   Deployment/inference-gateway   0/2 (avg)   2         6
 gateway_pods=2
 
 scope=gateway admission queue with a MOCK upstream; this is not vLLM or GPU autoscaling
+
+==========================================================echo SATURATION RUN (c=32), same session
+==========================================================
+SATURATION RUN (c=32), same session
+==========================================================
+date=2026-10-22T02:39:23+08:00
+method=in-cluster Job queue-loadgen, LOADGEN_WORKERS=32, LOADGEN_SECONDS=240
+url=http://gateway:9000/chat (cluster-local Service, no port-forward)
+result=12,188 requests in 240.7 s, outcomes={200: 12188}, 0 errors, 0 non-200
+queue_depth_peak=31 (32 concurrent clients, 6 replicas x 2 capacity = 12 slots)
+
+scale events, in order:
+8m27s       Normal   SuccessfulRescale   horizontalpodautoscaler/inference-gateway-queue   New size: 4; reason: external metric inference_gateway_waiting_requests(&LabelSelector{MatchLabels:map[string]string{namespace: k8s-hpa-queue-demo,},MatchExpressions:[]LabelSelectorRequirement{},}) above target
+7m57s       Normal   SuccessfulRescale   horizontalpodautoscaler/inference-gateway-queue   New size: 6; reason: external metric inference_gateway_waiting_requests(&LabelSelector{MatchLabels:map[string]string{namespace: k8s-hpa-queue-demo,},MatchExpressions:[]LabelSelectorRequirement{},}) above target
+2m42s       Normal   SuccessfulRescale   horizontalpodautoscaler/inference-gateway-queue   New size: 5; reason: All metrics below target
+2m12s       Normal   SuccessfulRescale   horizontalpodautoscaler/inference-gateway-queue   New size: 4; reason: All metrics below target
+102s        Normal   SuccessfulRescale   horizontalpodautoscaler/inference-gateway-queue   New size: 3; reason: All metrics below target
+72s         Normal   SuccessfulRescale   horizontalpodautoscaler/inference-gateway-queue   New size: 2; reason: All metrics below target
+
+final state:
+NAME                      REFERENCE                      TARGETS     MINPODS   MAXPODS   REPLICAS   AGE
+inference-gateway-queue   Deployment/inference-gateway   0/2 (avg)   2         6         2          100m
+deployment_replicas=2
+gateway_pods=2
+
+trace=2 -> 4 -> 6 (scale up, +2 per 30 s) then 6 -> 5 -> 4 -> 3 -> 2 (scale down, -1 per 30 s after a 120 s stabilization window)

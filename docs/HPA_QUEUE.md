@@ -121,9 +121,42 @@ Delete and re-apply the Job to run it again (Job specs are mostly immutable).
 
 ## Result
 
-Observed on 2026-10-22 with a short smoke-scale run: 8 concurrent clients for
-30 s through a port-forward, 310 requests, all `200`. The point is the signal
-path, not peak throughput.
+Two runs on 2026-10-22. The saturation run is the real evidence; the smoke run
+was used to confirm the signal path without loading the machine during a
+concurrent GPU soak.
+
+### Saturation run (c=32)
+
+An in-cluster Job with 32 workers for 240 s against the cluster-local Service
+(no port-forward in the path):
+
+| Metric | Result |
+|---|---:|
+| Requests | **12,188** |
+| Non-200 responses | **0** |
+| Queue depth (peak) | 31 |
+| Replicas | **2 → 4 → 6 → 5 → 4 → 3 → 2** |
+
+With 6 replicas × 2 admission slots = 12, thirty-two concurrent clients leave
+about 20 waiting, so the per-pod average stays above the target of 2 and the
+HPA holds at `maxReplicas`. Scale events, in order:
+
+```text
+New size: 4; reason: external metric ... above target
+New size: 6; reason: external metric ... above target
+New size: 5; reason: All metrics below target
+New size: 4; reason: All metrics below target
+New size: 3; reason: All metrics below target
+New size: 2; reason: All metrics below target
+```
+
+Scale-up added two pods per 30 s until it hit the ceiling; scale-down waited
+out the 120 s stabilization window and then removed one pod per 30 s.
+
+### Smoke run (8 workers)
+
+Eight concurrent clients for 30 s through a port-forward, 310 requests, all
+`200`:
 
 | Phase | Queue depth | HPA readout | Replicas |
 |---|---:|---|---:|
@@ -131,18 +164,13 @@ path, not peak throughput.
 | Under load | 6 | `2/2` | 2 → 3 |
 | After load | 0 | `0/2` | 3 → 2 |
 
-Eight concurrent clients against a capacity of 2 per replica × 2 replicas
-leaves 6 waiting, so the per-pod average lands at 3 against a target of 2.
-Two `SuccessfulRescale` events followed, in order:
+### One thing that looks like a bug but is not
 
-```text
-New size: 3; reason: external metric inference_gateway_waiting_requests(...) above target
-New size: 2; reason: All metrics below target
-```
-
-The scale-down waited out the 120 s stabilization window before dropping a
-pod, which is the intended behaviour: a short burst should not shrink the pool
-underneath in-flight work.
+During scale-down, `kubectl get hpa` kept reporting `REPLICAS 6` for tens of
+seconds while pods were already terminating. The Deployment spec and the pod
+count dropped correctly; only the HPA status lagged. When the replica count
+matters, read `deployment.spec.replicas` or the pod list rather than the HPA
+status column.
 
 Evidence: [`scale-test.txt`](../benchmark/results/k8s-hpa-queue/scale-test.txt),
 [`setup.txt`](../benchmark/results/k8s-hpa-queue/setup.txt).

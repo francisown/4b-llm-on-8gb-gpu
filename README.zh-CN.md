@@ -68,7 +68,7 @@
 
 | 路径 | 状态 | 证据 |
 |---|---|---|
-| **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.4`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 认证、v0.2.2 TLS/告警/OTel、v0.2.3 按身份限流、v0.2.4 认证/限流身份与畸形上游响应加固）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
+| **Docker + 宿主 vLLM（RTX 5060）** | 已验证（v0.2.3 镜像） | 网关镜像 `v0.2.3`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 认证、v0.2.2 TLS/告警/OTel、v0.2.3 按身份限流）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms**。v0.2.4 改了认证/限流身份和畸形响应处理，使用 fake/mock upstream 验证，未重新跑真实 vLLM |
 | **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
 | **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 198%/60%；45s 扩容、90s 缩容；mock 上游，只验证 HPA 机制 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
@@ -377,4 +377,4 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |
 
-网关镜像 `v0.2.4` 已重建并对着真实模型验证。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。
+网关镜像 `v0.2.3` 已对着真实模型验证；`v0.2.4` 使用 fake/mock upstream 和 19 个网关测试验证，未重新跑真实模型。若重新发布离线包，需要刷新其中的网关镜像与 SHA-256 校验值。

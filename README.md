@@ -72,7 +72,7 @@ A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Co
 
 | Path | Status | Evidence |
 |---|---|---|
-| **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.4` (same serving path as the measured `v0.2.0`; v0.2.1 auth, v0.2.2 TLS/alerting/OTel, v0.2.3 rate limiting, v0.2.4 auth/rate-limit hardening), real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
+| **Docker + host vLLM on RTX 5060** | Verified (v0.2.3 image) | Gateway image `v0.2.3` (same serving path as the measured `v0.2.0`; v0.2.1 auth, v0.2.2 TLS/alerting/OTel, v0.2.3 rate limiting) with real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms**. v0.2.4 changes auth/rate-limit identity and malformed-response handling and was verified with the fake/mock upstream, not re-run against vLLM |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods |
 | **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 198%/60%; scale-up 45s, scale-down 90s; mock upstream, HPA mechanics only |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
@@ -392,4 +392,4 @@ Model weights and datasets are not committed (see `.gitignore`).
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |
 
-The gateway image `v0.2.4` is rebuilt and verified against the real model. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.
+The v0.2.3 gateway image was verified against the real model. v0.2.4 was verified with the fake/mock upstream and 19 gateway tests; real-model smoke was not re-run for v0.2.4. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.

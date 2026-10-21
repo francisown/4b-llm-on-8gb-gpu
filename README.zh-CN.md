@@ -67,6 +67,7 @@
 |---|---|---|
 | **Docker + 宿主 vLLM（RTX 5060）** | 已验证 | 网关镜像 `v0.2.2`（服务路径与实测的 `v0.2.0` 相同；v0.2.1 增加认证，v0.2.2 增加 TLS/告警/OTel 部署层）+ 真实 Qwen3.5-4B-INT4-AWQ，`/health` 与 `/chat` 正常；流式 TTFT p50 **96.1 ms** |
 | **Kubernetes 网关，2 副本 + Prometheus** | 已验证 | 集群内 100 请求 0 错误、**326.53 tok/s**；压测中强杀 1 个 Pod，300 请求 0 错误；两个 Pod 均被 Prometheus 抓取 |
+| **HPA 2→4 / 4→2** | 已验证 | c=32 的 8,000 请求 0 错误；CPU 196%/60%；45s 扩容、80s 缩容；mock 上游，只验证 HPA 机制 |
 | **滚动更新 / 回滚** | 已验证 | 坏镜像 `v2` 停在 `ImagePullBackOff`，两个旧副本继续服务；`rollout undo` 恢复 |
 | **Kubernetes 调度 GPU** | **部分验证** | Docker Desktop K8s：`Insufficient nvidia.com/gpu`，一直 Pending。WSL2 k3s：节点广告 `nvidia.com/gpu: 1`，GPU Pod 跑通 `nvidia-smi -L`，vLLM 也加载了模型；但稳定 serving 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | **TensorRT-LLM 对比** | 未测量 | 只记录方法和 harness，不声称结果；见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
@@ -254,6 +255,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | 当前旗舰计划与验证清单 |
 | [`benchmark/eval/`](benchmark/eval/) | 冻结的 200 题清单、四个模型的逐题原始结果、三向总表 |
 | [`benchmark/results/`](benchmark/results/) | 全部性能原始 JSON（并发 sweep、长上下文、推测解码、真实多轮对话） |
+| [`benchmark/hpa/README.md`](benchmark/hpa/README.md) | HPA 2→4→2 实测：mock 上游、metrics-server、压测 Job |
 | [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | 集群内/端口转发压测脚本：TTFT、延迟分位、错误率、Pod 分布 |
 | [`benchmark/soak_test.py`](benchmark/soak_test.py) | 闭环 gateway soak：延迟分位、错误率、active/waiting 归零检查 |
 | [`gateway/`](gateway/) | FastAPI 网关、网页、Dockerfile、离线 pytest |
@@ -363,7 +365,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | 模块 | 状态 |
 |---|---|
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
-| Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
+| Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus、HPA 2→4→2；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes 调度 GPU | **部分验证**：Docker Desktop K8s 没有 NVIDIA device plugin；WSL2 k3s 曾广告 `nvidia.com/gpu: 1` 并跑通 GPU Pod，但稳定集群内 vLLM 被 `PLEG is not healthy` 阻塞。见 [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、SLO/错误预算文档、120 秒 gateway soak（2,329 请求、0 错误；c=16 背压返回干净 429）+ OTel/Jaeger tracing；尚无多小时 soak |
 | CI/CD | CI（测试、清单/工作流校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.2 已发布）+ Dependabot；尚无镜像签名与自动部署 |

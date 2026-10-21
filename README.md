@@ -71,6 +71,7 @@ The second row is the most valuable thing this project produced: **four models s
 |---|---|---|
 | **Docker + host vLLM on RTX 5060** | Verified | Gateway image `v0.2.2` (same serving path as the measured `v0.2.0`; v0.2.1 adds auth, v0.2.2 adds TLS/alerting/OTel deployment layers), real Qwen3.5-4B-INT4-AWQ, `/health` and `/chat` returning `OK`; raw stream TTFT p50 **96.1 ms** |
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods |
+| **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 196%/60%; scale-up 45s, scale-down 80s; mock upstream, HPA mechanics only |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
 | **GPU scheduled by Kubernetes** | **Partially verified** | Docker Desktop K8s: `Pending` (`Insufficient nvidia.com/gpu`). WSL2 k3s: node advertised `nvidia.com/gpu: 1`, a GPU pod ran `nvidia-smi -L`, and vLLM loaded the model; stable in-cluster serving was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | **TensorRT-LLM comparison** | Not measured | Harness and protocol documented; no result claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
@@ -269,6 +270,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | Current flagship plan and verification checklist |
 | [`benchmark/eval/`](benchmark/eval/) | Frozen 200-question set, per-question results for four models, combined comparison table |
 | [`benchmark/results/`](benchmark/results/) | All raw performance JSON (concurrency sweeps, long context, speculative decoding, repeat comparisons) |
+| [`benchmark/hpa/README.md`](benchmark/hpa/README.md) | HPA 2→4→2 validation with mock upstream, metrics-server, and load Job |
 | [`benchmark/k8s_load_test.py`](benchmark/k8s_load_test.py) | In-cluster / port-forward load generator with TTFT, latency percentiles, error rate, and per-pod counts |
 | [`benchmark/soak_test.py`](benchmark/soak_test.py) | Closed-loop gateway soak with latency percentiles, error rate, and active/waiting gauge recovery |
 | [`gateway/`](gateway/) | FastAPI gateway, web UI, Dockerfile, offline pytest suite |
@@ -378,7 +380,7 @@ Model weights and datasets are not committed (see `.gitignore`).
 | Area | Status |
 |---|---|
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
-| Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) |
+| Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus, HPA 2→4→2; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) and [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes GPU scheduling | **Partially verified**: Docker Desktop K8s has no GPU device plugin; WSL2 k3s did advertise `nvidia.com/gpu: 1` and run a GPU pod, but stable in-cluster vLLM was blocked by `PLEG is not healthy`. See [`docs/K3S_GPU_EXPERIMENT.md`](docs/K3S_GPU_EXPERIMENT.md) |
 | Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, SLO/error-budget docs, a 120 s gateway soak (2,329 requests, 0 errors; c=16 backpressure returns clean 429s), and OTel/Jaeger tracing; no multi-hour soak yet |
 | CI/CD | CI (tests, manifest/workflow validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.2 published), and Dependabot; no image signing or automated deployment yet |

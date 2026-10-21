@@ -77,7 +77,7 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Demonstrate GPU scheduling on WSL2 k3s with the NVIDIA device plugin and a GPU smoke pod.
 - [x] Create a model PVC and load vLLM inside the cluster (model loaded; stable serving not achieved).
 - [ ] Validate stable GPU scheduling and serving on a native Linux GPU node.
-- [ ] Validate HPA with a working metrics-server.
+- [x] Validate HPA with a working metrics-server.
 - [ ] Move vLLM into a stable in-cluster serving path with a model PVC and GPU runtime class.
 
 Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
@@ -108,6 +108,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Pod replacement | Ready after 7.6 s |
 | Bad-image rollback | Old replicas stayed Ready; `rollout undo` recovered |
 | Prometheus | Both gateway pods `up`, both `upstream_healthy=1` |
+| HPA | 2→4 in 45s, 4→2 in 80s; 8,000 requests at c=32, 0 errors, CPU 196%/60% (mock upstream) |
 | Grafana demo | Datasource `Prometheus`; dashboard `Inference Gateway`; 20 non-stream + 5 stream smoke requests; health ok |
 | TLS | HTTPS `/health` and `/chat` returned 200 through Nginx with a self-signed cert |
 | Alert rules | 5 rules loaded in Prometheus (upstream, errors, TTFT, queue wait, no-success) |

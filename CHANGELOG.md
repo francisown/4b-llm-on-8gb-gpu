@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Validate HPA 2→4→2 on Docker Desktop Kubernetes with metrics-server and a
+  mock upstream: 8,000 requests at c=32, 0 errors; CPU 196%/60%; scale-up 45s,
+  scale-down 80s.
+
 ## 0.2.2 — 2026-10-21
 
 - Add a local Nginx TLS terminator with a self-signed certificate and HTTPS

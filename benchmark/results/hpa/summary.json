@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-21",
+  "environment": "Docker Desktop Kubernetes v1.36.1, metrics-server v1beta1",
+  "initial_replicas": 2,
+  "max_replicas": 4,
+  "min_replicas": 2,
+  "cpu_target_percent": 60,
+  "cpu_observed_percent": 196,
+  "scale_up_seconds": 45,
+  "scale_down_seconds": 80,
+  "load": {
+    "requests": 8000,
+    "concurrency": 32,
+    "max_tokens": 8,
+    "errors": 0,
+    "throughput_rps": 158.859,
+    "tokens_per_second": 1270.875,
+    "latency_p95_ms": 207.58,
+    "duration_s": 50.359
+  },
+  "note": "Mock upstream. This validates HPA mechanics and CPU-based scaling, not vLLM model performance. The HPA scaled 2->4 and back to 2."
+}

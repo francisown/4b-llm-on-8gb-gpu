@@ -1,0 +1,180 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-adapter
+  namespace: k8s-hpa-queue-demo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hpa-queue-prometheus-adapter
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "namespaces", "services", "configmaps", "endpoints"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: hpa-queue-prometheus-adapter
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: hpa-queue-prometheus-adapter
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-adapter
+    namespace: k8s-hpa-queue-demo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: hpa-queue-prometheus-adapter-auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-adapter
+    namespace: k8s-hpa-queue-demo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hpa-queue-prometheus-adapter-auth-reader
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["extension-apiserver-authentication"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hpa-queue-prometheus-adapter-auth-reader
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: hpa-queue-prometheus-adapter-auth-reader
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-adapter
+    namespace: k8s-hpa-queue-demo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-adapter-config
+  namespace: k8s-hpa-queue-demo
+data:
+  config.yaml: |
+    # Two things must both be true for external metrics:
+    #   1. the rule sits under the top-level `externalRules` key (under `rules`
+    #      it is only ever served as a custom metric), and
+    #   2. it still maps `namespace` -> the namespace resource, otherwise the
+    #      adapter cannot turn the request namespace into a label matcher and
+    #      logs "no generic resource label form specified for this metric".
+    rules: []
+    externalRules:
+      - seriesQuery: 'inference_gateway_waiting_requests{namespace!=""}'
+        resources:
+          overrides:
+            namespace:
+              resource: namespace
+        name:
+          matches: '^inference_gateway_waiting_requests$'
+          as: 'inference_gateway_waiting_requests'
+        metricsQuery: 'sum(<<.Series>>{<<.LabelMatchers>>}) by (namespace)'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-adapter
+  namespace: k8s-hpa-queue-demo
+  labels:
+    app: prometheus-adapter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-adapter
+  template:
+    metadata:
+      labels:
+        app: prometheus-adapter
+    spec:
+      serviceAccountName: prometheus-adapter
+      containers:
+        - name: prometheus-adapter
+          image: registry.k8s.io/prometheus-adapter/prometheus-adapter:v0.12.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --cert-dir=/tmp/cert
+            - --secure-port=6443
+            - --prometheus-url=http://prometheus.k8s-hpa-queue-demo.svc:9090
+            - --metrics-relist-interval=15s
+            - --config=/etc/adapter/config.yaml
+            - --v=2
+          ports:
+            - name: https
+              containerPort: 6443
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: https
+              scheme: HTTPS
+            periodSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /etc/adapter
+            - name: cert
+              mountPath: /tmp/cert
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-adapter-config
+        - name: cert
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-adapter
+  namespace: k8s-hpa-queue-demo
+  labels:
+    app: prometheus-adapter
+spec:
+  type: ClusterIP
+  selector:
+    app: prometheus-adapter
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+      protocol: TCP
+---
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1beta1.external.metrics.k8s.io
+spec:
+  service:
+    name: prometheus-adapter
+    namespace: k8s-hpa-queue-demo
+    port: 443
+  group: external.metrics.k8s.io
+  version: v1beta1
+  insecureSkipTLSVerify: true
+  groupPriorityMinimum: 100
+  versionPriority: 100

@@ -1,0 +1,38 @@
+date=2026-10-22T01:06:02+08:00
+cluster=docker-desktop v1.36.1
+
+--- apiservice ---
+NAME                              SERVICE                                 AVAILABLE   AGE
+v1beta1.external.metrics.k8s.io   k8s-hpa-queue-demo/prometheus-adapter   True        7m24s
+
+--- hpa (external metric, not <unknown>) ---
+NAME                      REFERENCE                      TARGETS     MINPODS   MAXPODS   REPLICAS   AGE
+inference-gateway-queue   Deployment/inference-gateway   0/2 (avg)   2         6         2          7m24s
+
+--- hpa describe (metric block) ---
+Metrics:                                                        ( current / target )
+  "inference_gateway_waiting_requests" (target average value):  0 / 2
+Min replicas:                                                   2
+Max replicas:                                                   6
+Behavior:
+  Scale Up:
+    Stabilization Window: 0 seconds
+    Select Policy: Max
+    Policies:
+      - Type: Pods  Value: 2  Period: 30 seconds
+  Scale Down:
+    Stabilization Window: 120 seconds
+    Select Policy: Max
+    Policies:
+      - Type: Pods  Value: 1  Period: 30 seconds
+Deployment pods:    2 current / 2 desired
+Conditions:
+  Type            Status  Reason            Message
+  ----            ------  ------            -------
+  AbleToScale     True    ReadyForNewScale  recommended size matches current size
+  ScalingActive   True    ValidMetricFound  the HPA was able to successfully calculate a replica count from external metric inference_gateway_waiting_requests(&LabelSelector{MatchLabels:map[string]string{namespace: k8s-hpa-queue-demo,},MatchExpressions:[]LabelSelectorRequirement{},})
+  ScalingLimited  True    TooFewReplicas    the desired replica count is less than the minimum replica count
+Events:
+  Warning  FailedComputeMetricsReplicas  4m24s (x12 over 7m9s)  horizontal-pod-autoscaler  invalid metrics (1 invalid out of 1), first error is: failed to get inference_gateway_waiting_requests external metric value: failed to get inference_gateway_waiting_requests external metric: unable to get external metric k8s-hpa-queue-demo/inference_gateway_waiting_requests/&LabelSelector{MatchLabels:map[string]string{namespace: k8s-hpa-queue-demo,},MatchExpressions:[]LabelSelectorRequirement{},}: unable to fetch metrics from external metrics API: the server is currently unable to handle the request (get inference_gateway_waiting_requests.external.metrics.k8s.io)
+  Warning  FailedGetExternalMetric       4m9s (x13 over 7m9s)   horizontal-pod-autoscaler  unable to get external metric k8s-hpa-queue-demo/inference_gateway_waiting_requests/&LabelSelector{MatchLabels:map[string]string{namespace: k8s-hpa-queue-demo,},MatchExpressions:[]LabelSelectorRequirement{},}: unable to fetch metrics from external metrics API: the server is currently unable to handle the request (get inference_gateway_waiting_requests.external.metrics.k8s.io)
+  Warning  FailedGetExternalMetric       2m9s (x2 over 2m24s)   horizontal-pod-autoscaler  unable to get external metric k8s-hpa-queue-demo/inference_gateway_waiting_requests/&LabelSelector{MatchLabels:map[string]string{namespace: k8s-hpa-queue-demo,},MatchExpressions:[]LabelSelectorRequirement{},}: unable to fetch metrics from external metrics API: Internal error occurred: unable to fetch metrics

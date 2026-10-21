@@ -1,0 +1,40 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: inference-gateway-queue
+  namespace: k8s-hpa-queue-demo
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: inference-gateway
+  minReplicas: 2
+  maxReplicas: 6
+  # Slower than the default 300s so a short burst does not immediately shrink
+  # the pool again, and a scale-down is still observable inside a test window.
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 120
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 30
+  metrics:
+    # Queue depth, not CPU. The gateway is I/O bound, so CPU stays flat while
+    # requests pile up in the admission queue.
+    - type: External
+      external:
+        metric:
+          name: inference_gateway_waiting_requests
+          selector:
+            matchLabels:
+              namespace: k8s-hpa-queue-demo
+        target:
+          type: AverageValue
+          averageValue: "2"

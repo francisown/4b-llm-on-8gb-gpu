@@ -35,7 +35,7 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 ## Verification
 
 - Deterministic path: `python scripts/verify_local.py` (5 cost + 19 gateway
-  tests), manifest validation (34 documents), workflow validation, docs
+  tests), manifest validation (58 documents), workflow validation, docs
   validation, generated-CSV check.
 - v0.2.4 2-minute mock soak: 2,329 requests, 0 errors, p95 215.82 ms.
 - v0.2.4 10-minute mock soak: 11,717 requests, 0 errors, 19.525 req/s,

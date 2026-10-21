@@ -1,0 +1,26 @@
+date=2026-10-22T01:17:31+08:00
+cluster=docker-desktop v1.36.1 (single node)
+metric=inference_gateway_waiting_requests via external.metrics.k8s.io
+target=averageValue 2 (per gateway pod); minReplicas 2, maxReplicas 6
+
+--- load generation ---
+method=host-side loadgen.py through kubectl port-forward to svc/gateway
+workers=8 duration_s=30.7 requests=310 outcomes={200: 310}
+note=this is a smoke-scale run, not a saturation run; the point is the
+     signal path (queue gauge -> adapter -> HPA -> Deployment), not peak load
+
+--- observed queue depth during load ---
+waiting=6 steady (8 concurrent clients, capacity 2 per replica x 2 replicas)
+hpa_target_readout=2/2 (avg)  -> 3 replicas
+
+--- scale events ---
+LAST SEEN   TYPE     REASON              OBJECT                                            MESSAGE
+3m37s       Normal   SuccessfulRescale   horizontalpodautoscaler/inference-gateway-queue   New size: 3; reason: external metric inference_gateway_waiting_requests(&LabelSelector{MatchLabels:map[string]string{namespace: k8s-hpa-queue-demo,},MatchExpressions:[]LabelSelectorRequirement{},}) above target
+82s         Normal   SuccessfulRescale   horizontalpodautoscaler/inference-gateway-queue   New size: 2; reason: All metrics below target
+
+--- final state ---
+NAME                      REFERENCE                      TARGETS     MINPODS   MAXPODS   REPLICAS   AGE
+inference-gateway-queue   Deployment/inference-gateway   0/2 (avg)   2         6         2          18m
+gateway_pods=2
+
+scope=gateway admission queue with a MOCK upstream; this is not vLLM or GPU autoscaling

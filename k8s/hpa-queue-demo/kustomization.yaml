@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# No global `namespace:` here on purpose. adapter.yaml creates a Role and a
+# RoleBinding in kube-system; a kustomize namespace transformer would rewrite
+# those and break the API service auth.
+
+resources:
+  - namespace.yaml
+  - mock-vllm.yaml
+  - gateway.yaml
+  - prometheus.yaml
+  - adapter.yaml
+  - hpa.yaml
+  - loadgen-job.yaml
+
+configMapGenerator:
+  # The namespace must be set here too: a generated ConfigMap without it lands
+  # in `default`, and kustomize will not rewrite the Deployment's reference
+  # because the two resources would sit in different namespaces.
+  - name: mock-vllm-script
+    namespace: k8s-hpa-queue-demo
+    files:
+      - mock_vllm.py
+  - name: loadgen-script
+    namespace: k8s-hpa-queue-demo
+    files:
+      - loadgen.py

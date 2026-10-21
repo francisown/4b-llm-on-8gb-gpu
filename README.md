@@ -212,7 +212,12 @@ That conclusion is independent of the model generation, and it is the only thing
 # 1. Deterministic checks (no GPU, no model, no API key)
 python -m pip install -r gateway/requirements-dev.txt pyyaml
 python scripts/verify_local.py          # expect: 5 cost tests + 19 gateway tests
-python scripts/validate_manifests.py    # expect: 34 Kubernetes documents
+python scripts/validate_manifests.py    # expect: 58 Kubernetes documents
+
+# 1b. Quality gates (the same commands CI runs)
+python -m ruff check gateway tools tests                    # expect: All checks passed
+python -m mypy gateway/gateway.py                           # expect: no issues found
+python -m pytest -q gateway --cov=gateway --cov-fail-under=65
 
 # 2. Recompute throughput and cost from the raw JSON (run at repo root)
 python tools/cost_calculator.py \
@@ -294,9 +299,11 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`k8s/`](k8s/) | Gateway Deployment / Service / ConfigMap / probes / PDB / HPA / NetworkPolicy / Prometheus / load-test Job |
 | [`k8s/gpu-inference/`](k8s/gpu-inference/) | WSL2 k3s manifests for vLLM-on-GPU + 2 gateway replicas |
 | [`k8s/tls-demo/`](k8s/tls-demo/) | Nginx TLS terminator and enforced NetworkPolicy on Docker Desktop Kubernetes |
+| [`k8s/hpa-queue-demo/`](k8s/hpa-queue-demo/) | Queue-depth HPA via Prometheus Adapter external metrics |
 | [`docs/SLO.md`](docs/SLO.md) | SLO targets, PromQL queries, error-budget policy, and dashboard link |
 | [`docs/TLS.md`](docs/TLS.md) | Local TLS terminator, verification, and production guidance |
 | [`docs/K8S_TLS.md`](docs/K8S_TLS.md) | Kubernetes TLS termination and the NetworkPolicy toggle matrix |
+| [`docs/HPA_QUEUE.md`](docs/HPA_QUEUE.md) | Queue-depth HPA, external-metric configuration traps, and scale test |
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus alert rules, verification, and runbook |
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing, OTLP configuration, verification, and limits |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | Pre-release, canary, rollback, artifacts, and post-release checklist |

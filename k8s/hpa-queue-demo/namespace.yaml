@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-hpa-queue-demo
+  labels:
+    app.kubernetes.io/part-of: ai-inference-lab
+    kubernetes.io/metadata.name: k8s-hpa-queue-demo

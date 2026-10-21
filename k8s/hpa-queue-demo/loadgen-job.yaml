@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: queue-loadgen
+  namespace: k8s-hpa-queue-demo
+  labels:
+    app: queue-loadgen
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  # Suspended so `kubectl apply -k` never starts load on its own. Un-suspend it
+  # to run the scale test:
+  #   kubectl -n k8s-hpa-queue-demo patch job queue-loadgen --type merge \
+  #     -p '{"spec":{"suspend":false}}'
+  suspend: true
+  template:
+    metadata:
+      labels:
+        app: queue-loadgen
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: loadgen
+          # The gateway image already carries Python + httpx.
+          image: ai-inference-gateway:v0.2.4
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/scripts/loadgen.py"]
+          env:
+            - name: LOADGEN_URL
+              value: http://gateway:9000/chat
+            - name: LOADGEN_WORKERS
+              value: "32"
+            - name: LOADGEN_SECONDS
+              value: "240"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: scripts
+          configMap:
+            name: loadgen-script

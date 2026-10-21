@@ -193,7 +193,12 @@ Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4�
 # 1. 确定性自测（不需要 GPU、模型或 API Key）
 python -m pip install -r gateway/requirements-dev.txt pyyaml
 python scripts/verify_local.py          # 预期：5 个成本测试 + 19 个网关测试
-python scripts/validate_manifests.py    # 预期：34 个 Kubernetes 文档
+python scripts/validate_manifests.py    # 预期：58 个 Kubernetes 文档
+
+# 1b. 质量门禁（与 CI 相同）
+python -m ruff check gateway tools tests                    # 预期：All checks passed
+python -m mypy gateway/gateway.py                           # 预期：no issues found
+python -m pytest -q gateway --cov=gateway --cov-fail-under=65
 
 # 2. 从原始 JSON 复算吞吐与成本（在仓库根执行）
 python tools/cost_calculator.py \
@@ -274,6 +279,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`docs/SLO.md`](docs/SLO.md) | SLO 目标、PromQL、错误预算策略与 dashboard 链接 |
 | [`docs/TLS.md`](docs/TLS.md) | 本地 TLS 终止、验证与生产建议 |
 | [`docs/K8S_TLS.md`](docs/K8S_TLS.md) | Kubernetes 上的 TLS 终止与 NetworkPolicy 开关对照 |
+| [`docs/HPA_QUEUE.md`](docs/HPA_QUEUE.md) | 队列深度 HPA、外部指标配置陷阱与扩容测试 |
 | [`docs/ALERTING.md`](docs/ALERTING.md) | Prometheus 告警规则、验证与 runbook |
 | [`docs/OTEL.md`](docs/OTEL.md) | Jaeger tracing、OTLP 配置、验证与限制 |
 | [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) | 发布前、canary、回滚、制品与发布后检查清单 |
@@ -291,6 +297,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`k8s/`](k8s/) | 网关 Deployment / Service / ConfigMap / 探针 / PDB / HPA / NetworkPolicy / Prometheus / 压测 Job |
 | [`k8s/gpu-inference/`](k8s/gpu-inference/) | WSL2 k3s 的 vLLM-on-GPU + 2 gateway 副本清单 |
 | [`k8s/tls-demo/`](k8s/tls-demo/) | Docker Desktop Kubernetes 上的 Nginx TLS 终止与生效的 NetworkPolicy |
+| [`k8s/hpa-queue-demo/`](k8s/hpa-queue-demo/) | 通过 Prometheus Adapter 外部指标实现的队列深度 HPA |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | 测试、清单/工作流校验、Kustomize 渲染与 Docker 构建 |
 | [`scripts/validate_workflows.py`](scripts/validate_workflows.py) | 确定性的 GitHub Actions YAML 校验 |
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK 量化脚本 |

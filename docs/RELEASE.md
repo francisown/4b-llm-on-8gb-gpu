@@ -5,7 +5,7 @@ Release date: **2026-10-21**
 - GitHub Release: <https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.4>
 - Tag: `v0.2.4`
 - Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4`
-- Digest: printed by the release workflow; see the package/release page.
+- Digest: `sha256:4453ef462ac426b6abe239819d41a4171454f7ebffacaf90ffb481a8f95e1365`
 
 ## Pull
 
@@ -43,7 +43,12 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
   tenant B remains 200.
 - Existing HPA/soak evidence is unchanged: HPA used CPU metrics + mock upstream;
   the 10-minute soak used the mock upstream. Neither is a model-throughput claim.
-- GHCR digest and workflow run IDs are recorded in the repository after publish.
+- CI: run 38 (`main`) and run 39 (`v0.2.4`) succeeded.
+- Release workflow: run 4 succeeded; GitHub Release published
+  `2026-10-21T06:01:37Z`.
+- GHCR: `docker pull ...:v0.2.4` succeeded; digest
+  `sha256:4453ef462ac426b6abe239819d41a4171454f7ebffacaf90ffb481a8f95e1365`;
+  the pulled image reports `GATEWAY_VERSION=0.2.4`.
 
 ## Deploy
 

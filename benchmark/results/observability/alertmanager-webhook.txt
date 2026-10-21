@@ -1,0 +1,30 @@
+date=2026-10-22T00:50:00+08:00
+scope=alertmanager notification delivery, not just alert routing
+
+receiver=local-webhook
+webhook_url=http://webhook:8080/alert
+send_resolved=true
+webhook_image=mendhak/http-https-echo:33
+
+# 1. Prometheus evaluated a temporary synthetic rule
+prometheus_alert=GatewaySyntheticRoutingTest state=firing expr=vector(1)
+
+# 2. Alertmanager accepted it and mapped it to a receiver
+alertmanager_route=GatewaySyntheticRoutingTest state=active receivers=[local-webhook]
+
+# 3. Alertmanager delivered real HTTP POSTs to the receiver
+delivery_firing=2026-10-21T16:44:17Z POST /alert 200 bytes=2636 user_agent=Alertmanager/0.28.1 alertname=GatewaySyntheticRoutingTest status=firing
+delivery_resolved=2026-10-21T16:48:46Z POST /alert 200 bytes=2652 user_agent=Alertmanager/0.28.1 alertname=GatewaySyntheticRoutingTest status=resolved
+
+# 4. Control: a manually injected alert took the same path, proving delivery
+# does not depend on Prometheus as the producer
+delivery_manual=2026-10-21T16:44:29Z POST /alert 200 bytes=2060 user_agent=Alertmanager/0.28.1 alertname=ManualProbeTest status=firing
+
+# 5. Cleanup
+synthetic_rule=removed
+prometheus_restart=done, production rules re-loaded
+remaining_rules=5
+
+# Not claimed
+# - No external pager (Slack/PagerDuty/Opsgenie) delivery.
+# - No TLS or auth on the webhook hop; it runs on the private compose network.

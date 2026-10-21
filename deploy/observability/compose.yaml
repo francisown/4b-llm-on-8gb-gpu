@@ -55,6 +55,11 @@ services:
       timeout: 3s
       retries: 10
 
+  webhook:
+    image: mendhak/http-https-echo:33
+    ports:
+      - "8080:8080"
+
   alertmanager:
     image: prom/alertmanager:v0.28.1
     command:
@@ -64,6 +69,9 @@ services:
       - "9093:9093"
     volumes:
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    depends_on:
+      webhook:
+        condition: service_started
 
   prometheus:
     image: prom/prometheus:v2.55.1

@@ -226,6 +226,7 @@ docker compose -f deploy/observability/compose.yaml up -d --build
 # Grafana:    http://localhost:3000  (admin/admin)
 # Prometheus: http://localhost:9090
 # Alertmanager: http://localhost:9093
+# Webhook:    http://localhost:8080  (告警接收端)
 # Jaeger:     http://localhost:16686
 # HTTPS:      https://localhost:9443  (自签证书；curl -k)
 # Gateway:    http://localhost:9000

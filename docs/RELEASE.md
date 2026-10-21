@@ -52,7 +52,9 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
   path 327.51 tok/s / p95 513 ms. Short functional validation only; the node
   later became `NotReady` (flannel/PLEG), so no long-run claim.
 - Alertmanager ready on 9093; Prometheus reports it as an active Alertmanager,
-  and a synthetic alert fired end-to-end (null receiver; no external delivery).
+  and a synthetic alert reached a real HTTP webhook receiver (`POST /alert`
+  200 on both the firing and the resolved transition, `send_resolved: true`),
+  with payloads recorded in the webhook container logs.
 - Rate limit on v0.2.4: auth disabled, rotating `X-API-Key` no longer creates a
   new bucket (same direct IP); auth enabled, tenant A 5×200 then 429 while
   tenant B remains 200.

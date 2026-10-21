@@ -58,7 +58,7 @@
 | **Qwen3.5-4B**（交付模型） | 自制 INT4-AWQ 把 4B 模型压到 | **3.568 GiB**（比 BF16 小 59%，比 FP8 小 32%） | [`benchmark/eval/README.md`](benchmark/eval/README.md) |
 | **Qwen3.5-4B** | 同一套 200 题上，四个版本总分完全相同 | **全部 141/200（70.5%）**，但 INT4 与 BF16 只有 **87.0%** 逐题一致 | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
 | **Qwen3.5-4B** | INT4-AWQ 在并发 4 下的输出吞吐 | **333.90 tok/s**，TTFT p50 **251.73 ms** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
-| **Gateway**（mock upstream） | 10 分钟闭环 soak | **11,717 请求，0 错误**，p95 **213.62 ms** | [`soak-c4-600s-v0.2.4.json`](benchmark/results/observability/soak-c4-600s-v0.2.4.json) |
+| **Gateway**（mock upstream） | 2 小时闭环 soak | **140,178 请求，0 错误**，p95 **214.82 ms**，p99 220.03 ms | [`soak-c4-7200s-v0.2.4.json`](benchmark/results/observability/soak-c4-7200s-v0.2.4.json) |
 
 第二行是这份工作里最容易被忽略、但最值钱的一条：**四个模型总分相同，不代表它们等价。** 200 题单选题不足以证明模型等价（Wilson 95% 区间 63.84%–76.39%），而 INT4 有 26 道题的选择与 BF16 不同。这个区分决定了你敢不敢在业务里换量化方案。
 
@@ -381,7 +381,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | vLLM 与核心机制、并发压测、FP8/INT4 量化、质量评测、KV Cache 与调度、生产网关、Docker 离线交付、成本模型 | 完成 |
 | Kubernetes 网关层 | **2026-10-21 已验证**：2 副本、Service、探针、PDB、零停机滚动/回滚、按 Pod 的 Prometheus、HPA 2→4→2；100 请求 0 错误，压测中强杀 Pod 的 300 请求 0 错误。见 [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) 与 [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes 调度 GPU | **WSL2 k3s 短 smoke 已验证**：节点广告 `nvidia.com/gpu: 1`；vLLM Pod 服务真实 Qwen3.5-4B-INT4-AWQ；2 个 gateway Pod；100 请求 0 错误、147.17 tok/s、p95 3.02s。性能明显低于宿主路径，不是生产/等价声明。见 [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
-| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、Alertmanager 路由、SLO/错误预算文档、10 分钟 gateway soak（11,717 请求、0 错误、p95 213.62 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 soak |
+| 可观测性与 SRE | Prometheus 抓取、按 Pod 指标、已配置的 Grafana dashboard、Alertmanager 路由、SLO/错误预算文档、2 小时 gateway soak（140,178 请求、0 错误、p95 214.82 ms）、c=16 背压、OTel/Jaeger tracing；尚无多小时 GPU/K8s soak |
 | CI/CD | CI（测试、清单/工作流/文档校验、Kustomize 渲染、Docker 构建）+ tag 触发的 GHCR 发布工作流（v0.2.4 已发布）；尚无镜像签名与自动部署 |
 | TensorRT-LLM | 未测量；对比协议与 harness 见 [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | 云与治理 | 未开始 |

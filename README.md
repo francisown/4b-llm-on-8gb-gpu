@@ -62,7 +62,7 @@ This repository is deliberately about **one 8 GB inference delivery path**.
 | **Qwen3.5-4B** (delivery model) | Self-made INT4-AWQ shrinks the 4B model to | **3.568 GiB** (59% smaller than BF16, 32% smaller than FP8) | [`benchmark/eval/README.md`](benchmark/eval/README.md) |
 | **Qwen3.5-4B** | Four variants score *identically* on the same 200 questions | **All 141/200 (70.5%)**, yet INT4 agrees with BF16 on only **87.0%** of questions | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
 | **Qwen3.5-4B** | INT4-AWQ output throughput at concurrency 4 | **333.90 tok/s**, TTFT p50 **251.73 ms** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
-| **Gateway** (mock upstream) | 10-minute closed-loop soak | **11,717 requests, 0 errors**, p95 **213.62 ms** | [`soak-c4-600s-v0.2.4.json`](benchmark/results/observability/soak-c4-600s-v0.2.4.json) |
+| **Gateway** (mock upstream) | 2-hour closed-loop soak | **140,178 requests, 0 errors**, p95 **214.82 ms**, p99 220.03 ms | [`soak-c4-7200s-v0.2.4.json`](benchmark/results/observability/soak-c4-7200s-v0.2.4.json) |
 
 The second row is the most valuable thing this project produced: **four models scoring the same does not make them equivalent.** 200 multiple-choice questions cannot establish equivalence anyway (Wilson 95% interval 63.84%–76.39%), and INT4 picks a different option on 26 of them. That distinction is what decides whether you dare swap a quantization scheme in production.
 
@@ -401,7 +401,7 @@ Model weights and datasets are not committed (see `.gitignore`).
 | vLLM internals, concurrency benchmarking, FP8/INT4 quantization, quality evaluation, KV cache & scheduling, production gateway, Docker offline delivery, cost model | Done |
 | Kubernetes gateway layer | **Verified 2026-10-21**: 2 replicas, Service, probes, PDB, zero-downtime rollout/rollback, per-pod Prometheus, HPA 2→4→2; 100 requests at 0 errors, 300 requests during a pod kill at 0 errors. See [`docs/K8S_VERIFICATION.md`](docs/K8S_VERIFICATION.md) and [`benchmark/hpa/README.md`](benchmark/hpa/README.md) |
 | Kubernetes GPU scheduling | **Verified on WSL2 k3s (short smoke)**: node advertises `nvidia.com/gpu: 1`; vLLM pod serves real Qwen3.5-4B-INT4-AWQ; 2 gateway pods; 100 in-cluster requests, 0 errors, 147.17 tok/s, p95 3.02 s. Performance is much lower than the host path; not a production/parity claim. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
-| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, Alertmanager routing, SLO/error-budget docs, a 10-minute gateway soak (11,717 requests, 0 errors, p95 213.62 ms), c=16 backpressure, and OTel/Jaeger tracing; no multi-hour soak yet |
+| Observability & SRE | Prometheus scraping, per-pod metrics, provisioned Grafana dashboard, Alertmanager routing, SLO/error-budget docs, a 2-hour gateway soak (140,178 requests, 0 errors, p95 214.82 ms), c=16 backpressure, and OTel/Jaeger tracing; no multi-hour GPU/K8s soak yet |
 | CI/CD | CI (tests, manifest/workflow/docs validation, Kustomize render, Docker build), a tag-triggered GHCR release workflow (v0.2.4 published); no image signing or automated deployment yet |
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |

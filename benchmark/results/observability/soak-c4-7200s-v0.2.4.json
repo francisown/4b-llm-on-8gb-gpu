@@ -1,0 +1,55 @@
+{
+  "url": "http://gateway:9000/chat",
+  "duration_s": 7200.186,
+  "concurrency": 4,
+  "max_tokens": 32,
+  "requests": 140178,
+  "success": 140178,
+  "rejected_429": 0,
+  "errors": 0,
+  "error_rate": 0.0,
+  "rejection_rate": 0.0,
+  "throughput_rps": 19.469,
+  "success_rps": 19.469,
+  "latency_ms": {
+    "mean": 205.46,
+    "p50": 204.84,
+    "p95": 214.82,
+    "p99": 220.03
+  },
+  "status_counts": {
+    "200": 140178
+  },
+  "health_before": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "compose-gateway",
+    "version": "0.2.4"
+  },
+  "health_after": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "compose-gateway",
+    "version": "0.2.4"
+  },
+  "status_before": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "compose-gateway",
+    "version": "0.2.4"
+  },
+  "status_after": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "compose-gateway",
+    "version": "0.2.4"
+  },
+  "rejection_samples": [],
+  "error_samples": []
+}

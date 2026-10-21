@@ -170,6 +170,22 @@ not comparable to vLLM.
 Raw: [`soak-c4-600s-v0.2.4.json`](../benchmark/results/observability/soak-c4-600s-v0.2.4.json).
 This is a 10-minute gateway soak, not a multi-hour model soak.
 
+### 2-hour soak (v0.2.4)
+
+| Metric | Result |
+|---|---:|
+| Duration / concurrency | 7200.186 s / 4 |
+| Requests | **140,178** |
+| Errors | **0** |
+| Throughput | 19.469 req/s |
+| Latency mean / p50 / p95 / p99 | 205.46 / 204.84 / 214.82 / 220.03 ms |
+| Health before / after | ok / ok |
+| Active / waiting after drain | **0 / 0** |
+
+Raw: [`soak-c4-7200s-v0.2.4.json`](../benchmark/results/observability/soak-c4-7200s-v0.2.4.json).
+This is a 2-hour gateway soak against the mock upstream, not a multi-hour
+GPU/model soak.
+
 ### Backpressure at concurrency 16
 
 | Metric | Result |
@@ -199,7 +215,9 @@ counted separately from unexpected errors. Raw:
   not isolated, and this is not a performance-parity claim. See
   [`benchmark/results/k8s-gpu/`](../benchmark/results/k8s-gpu/).
 - **No multi-node or multi-GPU result.**
-- **No long-duration soak or memory-leak result.**
+- **No multi-hour GPU/K8s soak or memory-leak profile.** The 2-hour soak is a
+  gateway test against the mock upstream; it is not a model or GPU endurance
+  result.
 - **No cloud cost quote.** The cost calculator is a capacity estimate, not an
   accounting system.
 

@@ -40,6 +40,8 @@ docker pull ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 - v0.2.4 2-minute mock soak: 2,329 requests, 0 errors, p95 215.82 ms.
 - v0.2.4 10-minute mock soak: 11,717 requests, 0 errors, 19.525 req/s,
   p95 213.62 ms.
+- v0.2.4 2-hour mock soak: 140,178 requests, 0 errors, 19.469 req/s,
+  p95 214.82 ms, p99 220.03 ms; gauges return to 0.
 - HPA re-run on v0.2.4 with CPU metrics + mock upstream: 2→4 in 45 s,
   4→2 in 90 s, 8,000 requests at c=32 with 0 errors, CPU 198%/60%.
 - WSL2 k3s GPU-in-K8s short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway

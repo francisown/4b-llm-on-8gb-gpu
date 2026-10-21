@@ -18,6 +18,8 @@
 - Re-run the HPA test on v0.2.4 (2→4 in 45 s, 4→2 in 90 s, 8,000
   requests/0 errors) and run a 10-minute v0.2.4 mock soak (11,717 requests,
   0 errors, p95 213.62 ms).
+- Run a 2-hour v0.2.4 mock soak: 140,178 requests, 0 errors, 19.469 req/s,
+  p95 214.82 ms; active/waiting return to 0.
 
 ## 0.2.3 — 2026-10-21
 

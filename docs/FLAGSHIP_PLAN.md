@@ -56,7 +56,7 @@ turns a quantized model into an observable, testable, and deployable service.
 - [x] Deploy a Grafana dashboard and document SLOs/error budget.
 - [x] Add TLS termination and Prometheus alert rules.
 - [x] Add OpenTelemetry tracing with Jaeger and a Grafana datasource.
-- [x] Add a repeatable gateway soak and run 2-minute and 10-minute tests (2,329 and 11,717 requests, 0 errors).
+- [x] Add a repeatable gateway soak and run 2-minute, 10-minute, and 2-hour tests (2,329 / 11,717 / 140,178 requests, 0 errors).
 
 ### 4. Container and Linux delivery
 
@@ -117,7 +117,7 @@ Verification evidence: [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md),
 | Alert rules | 5 rules loaded in Prometheus (upstream, errors, TTFT, queue wait, no-success) |
 | Alertmanager | Ready on 9093; Prometheus reports it as an active Alertmanager; null receiver (routing connectivity only) |
 | OTel/Jaeger | `inference-gateway` service; 5 traces; first trace 4 spans; no export errors |
-| Gateway soak (mock upstream) | v0.2.4 120 s: 2,329 requests, 0 errors, 19.389 req/s, p95 215.82 ms; v0.2.4 600 s: 11,717 requests, 0 errors, 19.525 req/s, p95 213.62 ms; gauges 0 after drain |
+| Gateway soak (mock upstream) | v0.2.4 120 s: 2,329 requests, 0 errors, 19.389 req/s, p95 215.82 ms; v0.2.4 600 s: 11,717 requests, 0 errors, p95 213.62 ms; v0.2.4 7200 s: 140,178 requests, 0 errors, 19.469 req/s, p95 214.82 ms; gauges 0 after drain |
 | Backpressure (c=16) | 621 success / 6,544 clean 429 / 0 other errors; gauges 0 after drain |
 | GPU scheduling (WSL2 k3s) | Demonstrated: node advertised `nvidia.com/gpu: 1`; GPU pod ran `nvidia-smi -L` |
 | GPU-in-K8s (WSL2 k3s) | Verified short smoke: vLLM pod `nvidia.com/gpu: 1`, 2 gateway replicas, 100 requests, 0 errors, 147.17 tok/s, p95 3.02 s; host path is 327.51 tok/s / 513 ms |

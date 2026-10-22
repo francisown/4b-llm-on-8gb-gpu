@@ -1,4 +1,4 @@
-﻿name: ci
+name: ci
 
 on:
   push:
@@ -36,12 +36,18 @@ jobs:
         run: python -m ruff check gateway tools tests
 
       - name: Type check (mypy)
-        run: python -m mypy gateway/gateway.py
+        run: python -m mypy gateway/gateway.py gateway/gw_*.py
+
+      - name: Dependency audit (report-only)
+        continue-on-error: true
+        run: |
+          python -m pip install pip-audit
+          pip-audit -r gateway/requirements.txt
 
       - name: Test with coverage floor
         run: |
           python -m pytest -q gateway \
-            --cov=gateway --cov-report=term-missing --cov-fail-under=80
+            --cov=gateway --cov-report=term-missing --cov-fail-under=82
 
       - name: Validate Kubernetes manifests
         run: python scripts/validate_manifests.py

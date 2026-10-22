@@ -1,402 +1,96 @@
-﻿"""A small production-facing gateway in front of a local vLLM server."""
+"""FastAPI gateway entrypoint.
+
+Implementation is split into four sibling modules:
+
+* ``gw_runtime``   - configuration, logging, metrics, request/response models
+* ``gw_admission`` - admission control and the in-process rate limiter
+* ``gw_auth``      - API-key authentication and client identity
+* ``gw_upstream``  - request building, context guard, SSE helpers, error translation
+
+``gateway.py`` keeps the app wiring and routes so ``uvicorn gateway:app`` and the
+existing offline test suite continue to work unchanged.
+"""
 
 from __future__ import annotations
 
 import asyncio
-from collections import deque
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-import hashlib
 import json
 import logging
-import math
-import os
 from pathlib import Path
-import secrets
-import sys
 import time
 import uuid
-from typing import Any, Literal
 
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
-from prometheus_client import (
-    CONTENT_TYPE_LATEST,
-    Counter,
-    Gauge,
-    Histogram,
-    generate_latest,
-)
-from pydantic import BaseModel, Field
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.background import BackgroundTask
 
+from gw_admission import AdmissionController, RateLimiter
+from gw_auth import enforce_rate_limit, require_api_key
+from gw_runtime import (
+    AUTH_FAILURE_LIMIT_PER_MINUTE,
+    CLIENT_DISCONNECTS_TOTAL,
+    GATEWAY_VERSION,
+    HEALTH_TIMEOUT_SECONDS,
+    MAX_CONCURRENT_REQUESTS,
+    MAX_QUEUED_REQUESTS,
+    MODEL_NAME,
+    POD_NAME,
+    QUEUE_TIMEOUT_SECONDS,
+    RATE_LIMIT_BACKEND,
+    RATE_LIMIT_MAX_IDENTITIES,
+    RATE_LIMIT_PER_MINUTE,
+    REDIS_URL,
+    REQUEST_DURATION_SECONDS,
+    REQUESTS_TOTAL,
+    TOKENS_TOTAL,
+    TTFT_SECONDS,
+    UPSTREAM_HEALTHY,
+    UPSTREAM_TIMEOUT_SECONDS,
+    VLLM_BASE_URL,
+    ChatRequest,
+    ChatResponse,
+    TokenUsage,
+    log_event,
+)
+from gw_upstream import (
+    build_payload,
+    enforce_context_window,
+    normalize_unicode,
+    parse_usage,
+    post_with_connect_retry,
+    send_stream_with_connect_retry,
+    sse_event,
+    translate_upstream_error,
+)
 
-VLLM_BASE_URL = os.getenv("VLLM_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
-MODEL_NAME = os.getenv("MODEL_NAME", "Qwen3.5-4B-INT4-AWQ-self")
-UPSTREAM_TIMEOUT_SECONDS = float(os.getenv("UPSTREAM_TIMEOUT_SECONDS", "60"))
-MAX_CONCURRENT_REQUESTS = int(os.getenv("GATEWAY_MAX_CONCURRENT", "4"))
-MAX_QUEUED_REQUESTS = int(os.getenv("GATEWAY_MAX_QUEUE", "4"))
-QUEUE_TIMEOUT_SECONDS = float(os.getenv("GATEWAY_QUEUE_TIMEOUT_SECONDS", "10"))
-HEALTH_TIMEOUT_SECONDS = float(os.getenv("HEALTH_TIMEOUT_SECONDS", "3"))
-UPSTREAM_CONNECT_RETRIES = max(0, int(os.getenv("UPSTREAM_CONNECT_RETRIES", "1")))
-RATE_LIMIT_PER_MINUTE = max(0, int(os.getenv("GATEWAY_RATE_LIMIT_PER_MINUTE", "0")))
-RATE_LIMIT_MAX_IDENTITIES = max(
-    1, int(os.getenv("GATEWAY_RATE_LIMIT_MAX_IDENTITIES", "10000"))
-)
-POD_NAME = os.getenv("POD_NAME", "local")
-GATEWAY_VERSION = os.getenv("GATEWAY_VERSION", "0.2.4")
-GATEWAY_API_KEY = os.getenv("GATEWAY_API_KEY", "")
-GATEWAY_API_KEYS = tuple(
-    key.strip() for key in os.getenv("GATEWAY_API_KEYS", "").split(",") if key.strip()
-)
 APP_DIR = Path(__file__).resolve().parent
 
-LOG_FIELDS = (
-    "request_id",
-    "mode",
-    "model",
-    "status_code",
-    "outcome",
-    "reason",
-    "queue_wait_ms",
-    "ttft_ms",
-    "latency_ms",
-    "error_type",
-)
 
+async def _close_upstream_on_disconnect(
+    request: Request,
+    upstream: httpx.Response,
+) -> None:
+    """Close a stalled upstream as soon as the client goes away.
 
-class JsonLogFormatter(logging.Formatter):
-    """Render application events as one JSON object per line."""
-
-    def format(self, record: logging.LogRecord) -> str:
-        payload: dict[str, Any] = {
-            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S%z"),
-            "level": record.levelname,
-            "logger": record.name,
-            "event": getattr(record, "event", record.getMessage()),
-        }
-        for field in LOG_FIELDS:
-            value = getattr(record, field, None)
-            if value is not None:
-                payload[field] = value
-        if record.exc_info:
-            payload["exception"] = self.formatException(record.exc_info)
-        return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-
-
-def configure_logger() -> logging.Logger:
-    application_logger = logging.getLogger("inference-gateway")
-    application_logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
-    application_logger.handlers.clear()
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(JsonLogFormatter())
-    application_logger.addHandler(handler)
-    application_logger.propagate = False
-    return application_logger
-
-
-logger = configure_logger()
-
-
-def log_event(level: int, event: str, **fields: Any) -> None:
-    logger.log(level, event, extra={"event": event, **fields})
-
-REQUESTS_TOTAL = Counter(
-    "inference_gateway_requests_total",
-    "Completed gateway requests by mode and outcome.",
-    ("mode", "outcome"),
-)
-REJECTIONS_TOTAL = Counter(
-    "inference_gateway_rejections_total",
-    "Requests rejected before reaching vLLM.",
-    ("reason",),
-)
-ACTIVE_REQUESTS = Gauge(
-    "inference_gateway_active_requests",
-    "Requests currently admitted to vLLM.",
-)
-WAITING_REQUESTS = Gauge(
-    "inference_gateway_waiting_requests",
-    "Requests waiting for an admission slot.",
-)
-QUEUE_WAIT_SECONDS = Histogram(
-    "inference_gateway_queue_wait_seconds",
-    "Time spent waiting for an admission slot.",
-    buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10),
-)
-REQUEST_DURATION_SECONDS = Histogram(
-    "inference_gateway_request_duration_seconds",
-    "End-to-end gateway request duration.",
-    ("mode",),
-    buckets=(0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 30, 60),
-)
-TTFT_SECONDS = Histogram(
-    "inference_gateway_ttft_seconds",
-    "Time to first streamed token.",
-    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10),
-)
-TOKENS_TOTAL = Counter(
-    "inference_gateway_tokens_total",
-    "Tokens processed by successful gateway requests.",
-    ("direction",),
-)
-CLIENT_DISCONNECTS_TOTAL = Counter(
-    "inference_gateway_client_disconnects_total",
-    "Streaming clients that disconnected before completion.",
-)
-AUTH_FAILURES_TOTAL = Counter(
-    "inference_gateway_auth_failures_total",
-    "Requests rejected because the API key was missing or invalid.",
-)
-RATE_LIMITED_TOTAL = Counter(
-    "inference_gateway_rate_limited_total",
-    "Requests rejected by the per-identity rate limit.",
-)
-UPSTREAM_HEALTHY = Gauge(
-    "inference_gateway_upstream_healthy",
-    "Whether the last /health probe could reach the vLLM upstream.",
-)
-GATEWAY_INFO = Gauge(
-    "inference_gateway_info",
-    "Static gateway identity labels.",
-    ("version", "pod"),
-)
-GATEWAY_INFO.labels(version=GATEWAY_VERSION, pod=POD_NAME).set(1)
-
-
-class ChatMessage(BaseModel):
-    role: Literal["user", "assistant"]
-    content: str = Field(min_length=1, max_length=20_000)
-
-
-class ChatRequest(BaseModel):
-    message: str = Field(min_length=1, max_length=20_000)
-    system_prompt: str | None = Field(default=None, max_length=10_000)
-    history: list[ChatMessage] = Field(default_factory=list, max_length=12)
-    max_tokens: int = Field(default=256, ge=1, le=2_048)
-    temperature: float = Field(default=0.7, ge=0.0, le=2.0)
-    enable_thinking: bool = False
-
-
-class TokenUsage(BaseModel):
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
-
-
-class ChatResponse(BaseModel):
-    request_id: str
-    model: str
-    answer: str
-    usage: TokenUsage
-    latency_ms: float
-
-
-class AdmissionLease:
-    def __init__(
-        self,
-        controller: "AdmissionController",
-        queue_wait_ms: float,
-    ) -> None:
-        self.controller = controller
-        self.queue_wait_ms = queue_wait_ms
-        self.released = False
-
-    async def release(self) -> None:
-        if self.released:
-            return
-        self.released = True
-        self.controller.semaphore.release()
-        async with self.controller.lock:
-            self.controller.active -= 1
-            self.controller.pending -= 1
-            self.controller.update_gauges()
-
-
-class AdmissionController:
-    """Bound active work and queued work before requests reach vLLM."""
-
-    def __init__(self, max_concurrent: int, max_queue: int, queue_timeout: float):
-        if max_concurrent < 1 or max_queue < 0 or queue_timeout <= 0:
-            raise ValueError("invalid gateway admission settings")
-        self.max_concurrent = max_concurrent
-        self.max_queue = max_queue
-        self.queue_timeout = queue_timeout
-        self.semaphore = asyncio.Semaphore(max_concurrent)
-        self.lock = asyncio.Lock()
-        self.pending = 0
-        self.active = 0
-
-    def update_gauges(self) -> None:
-        ACTIVE_REQUESTS.set(self.active)
-        WAITING_REQUESTS.set(self.pending - self.active)
-
-    async def acquire(self, request_id: str) -> AdmissionLease:
-        wait_started = time.perf_counter()
-        async with self.lock:
-            if self.pending >= self.max_concurrent + self.max_queue:
-                REJECTIONS_TOTAL.labels(reason="capacity").inc()
-                log_event(
-                    logging.WARNING,
-                    "request_rejected",
-                    request_id=request_id,
-                    status_code=429,
-                    outcome="rejected",
-                    reason="capacity",
-                    queue_wait_ms=0.0,
-                )
-                raise HTTPException(
-                    status_code=429,
-                    detail="gateway is busy; retry later",
-                    headers={"Retry-After": "2"},
-                )
-            self.pending += 1
-            self.update_gauges()
-
-        try:
-            await asyncio.wait_for(
-                self.semaphore.acquire(),
-                timeout=self.queue_timeout,
-            )
-        except asyncio.TimeoutError as exc:
-            async with self.lock:
-                self.pending -= 1
-                self.update_gauges()
-            REJECTIONS_TOTAL.labels(reason="queue_timeout").inc()
-            queue_wait_ms = (time.perf_counter() - wait_started) * 1_000
-            log_event(
-                logging.WARNING,
-                "request_rejected",
-                request_id=request_id,
-                status_code=429,
-                outcome="rejected",
-                reason="queue_timeout",
-                queue_wait_ms=round(queue_wait_ms, 1),
-            )
-            raise HTTPException(
-                status_code=429,
-                detail="gateway queue wait timed out",
-                headers={"Retry-After": "2"},
-            ) from exc
-        except BaseException:
-            async with self.lock:
-                self.pending -= 1
-                self.update_gauges()
-            raise
-
-        async with self.lock:
-            self.active += 1
-            self.update_gauges()
-        queue_wait_seconds = time.perf_counter() - wait_started
-        QUEUE_WAIT_SECONDS.observe(queue_wait_seconds)
-        return AdmissionLease(self, queue_wait_ms=queue_wait_seconds * 1_000)
-
-    async def snapshot(self) -> dict[str, int | float]:
-        async with self.lock:
-            return {
-                "active": self.active,
-                "waiting": self.pending - self.active,
-                "max_concurrent": self.max_concurrent,
-                "max_queue": self.max_queue,
-                "queue_timeout_seconds": self.queue_timeout,
-            }
-
-
-class RateLimiter:
-    """Per-identity sliding-window limit, kept in process memory.
-
-    This is intentionally a single-process limiter. With N replicas the
-    effective global limit is roughly N x the configured limit. The identity
-    map is bounded; once it is full, new identities share one overflow bucket
-    instead of growing memory without bound.
+    The SSE loop itself only notices a disconnect when the next upstream line
+    arrives. A stalled vLLM stream would otherwise hold an admission slot until
+    the read timeout. This watcher makes the disconnect independent of upstream
+    progress.
     """
-
-    def __init__(
-        self,
-        limit_per_minute: int,
-        max_identities: int = 10_000,
-        clock: Any = time.monotonic,
-    ):
-        self.limit = max(0, limit_per_minute)
-        self.window_seconds = 60.0
-        self.max_identities = max(1, max_identities)
-        self._clock = clock
-        self._events: dict[str, deque[float]] = {}
-        self._lock = asyncio.Lock()
-        self._last_cleanup = 0.0
-
-    def _prune(self, now: float) -> None:
-        cutoff = now - self.window_seconds
-        for identity, events in list(self._events.items()):
-            while events and events[0] <= cutoff:
-                events.popleft()
-            if not events:
-                del self._events[identity]
-        self._last_cleanup = now
-
-    async def check(self, identity: str) -> tuple[bool, int]:
-        if self.limit <= 0:
-            return True, 0
-        now = self._clock()
-        async with self._lock:
-            if now - self._last_cleanup >= self.window_seconds:
-                self._prune(now)
-            events = self._events.get(identity)
-            if events is None:
-                if len(self._events) >= self.max_identities:
-                    identity = "__overflow__"
-                    events = self._events.get(identity)
-                if events is None:
-                    events = deque()
-                    self._events[identity] = events
-            cutoff = now - self.window_seconds
-            while events and events[0] <= cutoff:
-                events.popleft()
-            if len(events) >= self.limit:
-                retry_after = max(1, math.ceil(self.window_seconds - (now - events[0])))
-                return False, retry_after
-            events.append(now)
-            return True, 0
-
-
-def build_payload(body: ChatRequest, *, stream: bool) -> dict[str, Any]:
-    messages: list[dict[str, str]] = []
-    if body.system_prompt:
-        messages.append({"role": "system", "content": body.system_prompt})
-    messages.extend(message.model_dump() for message in body.history)
-    messages.append({"role": "user", "content": body.message})
-    payload: dict[str, Any] = {
-        "model": MODEL_NAME,
-        "messages": messages,
-        "max_tokens": body.max_tokens,
-        "temperature": body.temperature,
-        "stream": stream,
-        "chat_template_kwargs": {"enable_thinking": body.enable_thinking},
-    }
-    if stream:
-        payload["stream_options"] = {"include_usage": True}
-    return payload
-
-
-def parse_usage(raw_usage: dict[str, Any] | None) -> TokenUsage:
-    raw_usage = raw_usage or {}
-    return TokenUsage(
-        prompt_tokens=int(raw_usage.get("prompt_tokens") or 0),
-        completion_tokens=int(raw_usage.get("completion_tokens") or 0),
-        total_tokens=int(raw_usage.get("total_tokens") or 0),
-    )
-
-
-def normalize_unicode(text: str) -> str:
-    """Replace isolated surrogates before encoding an SSE event as UTF-8."""
-    return text.encode("utf-16", "surrogatepass").decode("utf-16", "replace")
-
-
-def sse_event(event: str, payload: dict[str, Any]) -> bytes:
-    data = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    return f"event: {event}\ndata: {data}\n\n".encode("utf-8")
-
+    try:
+        while True:
+            if await request.is_disconnected():
+                await upstream.aclose()
+                return
+            await asyncio.sleep(0.25)
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        return
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -422,9 +116,23 @@ async def lifespan(app: FastAPI):
         MAX_QUEUED_REQUESTS,
         QUEUE_TIMEOUT_SECONDS,
     )
-    app.state.rate_limiter = RateLimiter(
-        RATE_LIMIT_PER_MINUTE, RATE_LIMIT_MAX_IDENTITIES
-    )
+    if RATE_LIMIT_BACKEND == "redis":
+        import redis.asyncio as redis
+
+        from gw_redis_limiter import RedisRateLimiter
+
+        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+        app.state.rate_limiter = RedisRateLimiter(
+            RATE_LIMIT_PER_MINUTE, redis_client
+        )
+        app.state.auth_failures = RedisRateLimiter(
+            AUTH_FAILURE_LIMIT_PER_MINUTE, redis_client
+        )
+    else:
+        app.state.rate_limiter = RateLimiter(
+            RATE_LIMIT_PER_MINUTE, RATE_LIMIT_MAX_IDENTITIES
+        )
+        app.state.auth_failures = RateLimiter(AUTH_FAILURE_LIMIT_PER_MINUTE)
     log_event(
         logging.INFO,
         "gateway_start",
@@ -432,6 +140,10 @@ async def lifespan(app: FastAPI):
         outcome="started",
     )
     yield
+    for limiter in (app.state.rate_limiter, app.state.auth_failures):
+        close = getattr(limiter, "close", None)
+        if close is not None:
+            await close()
     await app.state.health_http.aclose()
     await app.state.http.aclose()
 
@@ -461,6 +173,17 @@ async def index() -> FileResponse:
 async def live() -> dict[str, str]:
     """Liveness: this process is running, independent of the model server."""
     return {"status": "ok", "pod": POD_NAME, "version": GATEWAY_VERSION}
+
+
+@app.get("/ready")
+async def ready() -> dict[str, str]:
+    """Readiness: the gateway process can accept traffic.
+
+    Upstream dependency health is exposed separately at /health. Keeping
+    readiness process-local prevents a vLLM outage from removing every gateway
+    pod from the Service at once; /health still reports the dependency.
+    """
+    return {"status": "ready", "pod": POD_NAME, "version": GATEWAY_VERSION}
 
 
 @app.get("/health")
@@ -512,157 +235,6 @@ async def metrics() -> Response:
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
-def configured_api_keys() -> tuple[str, ...]:
-    """Return the accepted API keys without exposing them in logs or metrics."""
-    keys: list[str] = []
-    if GATEWAY_API_KEY:
-        keys.append(GATEWAY_API_KEY)
-    for key in GATEWAY_API_KEYS:
-        if key not in keys:
-            keys.append(key)
-    return tuple(keys)
-
-
-def require_api_key(
-    authorization: str | None = Header(default=None),
-    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
-) -> None:
-    """Optional bearer/X-API-Key authentication.
-
-    Authentication is disabled when neither GATEWAY_API_KEY nor
-    GATEWAY_API_KEYS is set, preserving the local/GPU demo path. Health,
-    liveness, and metrics stay unauthenticated so Kubernetes probes and
-    Prometheus can reach them.
-    """
-    keys = configured_api_keys()
-    if not keys:
-        return
-    provided = x_api_key or ""
-    if not provided and authorization:
-        scheme, _, token = authorization.partition(" ")
-        if scheme.lower() == "bearer":
-            provided = token.strip()
-    valid = False
-    if provided:
-        for key in keys:
-            if secrets.compare_digest(provided, key):
-                valid = True
-    if not valid:
-        AUTH_FAILURES_TOTAL.inc()
-        log_event(
-            logging.WARNING,
-            "request_rejected",
-            status_code=401,
-            outcome="unauthorized",
-            reason="auth",
-        )
-        raise HTTPException(
-            status_code=401,
-            detail="invalid or missing API key",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-
-def request_identity(
-    request: Request,
-    authorization: str | None,
-    x_api_key: str | None,
-) -> str:
-    key = x_api_key or ""
-    if not key and authorization:
-        scheme, _, token = authorization.partition(" ")
-        if scheme.lower() == "bearer":
-            key = token.strip()
-    # Only treat a key as an identity after authentication is configured.
-    # Otherwise clients could rotate arbitrary X-API-Key headers to bypass
-    # the per-IP limit.
-    if key and configured_api_keys():
-        # Do not keep raw tokens in the in-memory limiter.
-        return "key:" + hashlib.sha256(key.encode("utf-8")).hexdigest()
-    host = request.client.host if request.client else "unknown"
-    return "ip:" + host
-
-
-async def enforce_rate_limit(
-    request: Request,
-    authorization: str | None = Header(default=None),
-    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
-) -> None:
-    """Optional per-identity rate limit; disabled when the limit is 0."""
-    limiter = app.state.rate_limiter
-    if limiter.limit <= 0:
-        return
-    identity = request_identity(request, authorization, x_api_key)
-    allowed, retry_after = await limiter.check(identity)
-    if not allowed:
-        RATE_LIMITED_TOTAL.inc()
-        log_event(
-            logging.WARNING,
-            "request_rejected",
-            status_code=429,
-            outcome="rate_limited",
-            reason="rate_limit",
-        )
-        raise HTTPException(
-            status_code=429,
-            detail="rate limit exceeded",
-            headers={"Retry-After": str(retry_after)},
-        )
-
-
-async def post_with_connect_retry(
-    client: httpx.AsyncClient,
-    url: str,
-    *,
-    json: dict[str, Any],
-    headers: dict[str, str],
-    request_id: str,
-) -> httpx.Response:
-    """Retry only pre-send connection failures; never replay a read timeout."""
-    for attempt in range(UPSTREAM_CONNECT_RETRIES + 1):
-        try:
-            return await client.post(url, json=json, headers=headers)
-        except httpx.ConnectError:
-            if attempt >= UPSTREAM_CONNECT_RETRIES:
-                raise
-            log_event(
-                logging.WARNING,
-                "upstream_connect_retry",
-                request_id=request_id,
-                outcome="retry",
-                error_type="ConnectError",
-            )
-            await asyncio.sleep(0.1 * (2**attempt))
-    raise RuntimeError("unreachable retry loop")
-
-
-async def send_stream_with_connect_retry(
-    client: httpx.AsyncClient,
-    url: str,
-    *,
-    json: dict[str, Any],
-    headers: dict[str, str],
-    request_id: str,
-) -> httpx.Response:
-    """Build a fresh streaming request for each pre-send connection attempt."""
-    for attempt in range(UPSTREAM_CONNECT_RETRIES + 1):
-        request = client.build_request("POST", url, json=json, headers=headers)
-        try:
-            return await client.send(request, stream=True)
-        except httpx.ConnectError:
-            if attempt >= UPSTREAM_CONNECT_RETRIES:
-                raise
-            log_event(
-                logging.WARNING,
-                "upstream_connect_retry",
-                request_id=request_id,
-                outcome="retry",
-                error_type="ConnectError",
-            )
-            await asyncio.sleep(0.1 * (2**attempt))
-    raise RuntimeError("unreachable retry loop")
-
-
 @app.post(
     "/chat",
     response_model=ChatResponse,
@@ -670,9 +242,11 @@ async def send_stream_with_connect_retry(
 )
 async def chat(
     body: ChatRequest,
+    response: Response,
     x_request_id: str | None = Header(default=None),
 ) -> ChatResponse:
     request_id = x_request_id or str(uuid.uuid4())
+    enforce_context_window(body)
     payload = build_payload(body, stream=False)
     started = time.perf_counter()
     try:
@@ -681,44 +255,21 @@ async def chat(
         REQUESTS_TOTAL.labels(mode="non_stream", outcome="rejected").inc()
         raise
     try:
-        try:
-            upstream = await post_with_connect_retry(
-                app.state.http,
-                f"{VLLM_BASE_URL}/v1/chat/completions",
-                json=payload,
-                headers={"X-Request-ID": request_id},
-                request_id=request_id,
-            )
-        except httpx.TimeoutException as exc:
-            REQUESTS_TOTAL.labels(mode="non_stream", outcome="timeout").inc()
-            log_event(
-                logging.WARNING,
-                "request_failed",
-                request_id=request_id,
-                mode="non_stream",
-                model=MODEL_NAME,
-                status_code=504,
-                outcome="timeout",
-                queue_wait_ms=round(lease.queue_wait_ms, 1),
-                latency_ms=round((time.perf_counter() - started) * 1_000, 1),
-                error_type=type(exc).__name__,
-            )
-            raise HTTPException(status_code=504, detail="vLLM request timed out") from exc
-        except httpx.ConnectError as exc:
-            REQUESTS_TOTAL.labels(mode="non_stream", outcome="unavailable").inc()
-            log_event(
-                logging.WARNING,
-                "request_failed",
-                request_id=request_id,
-                mode="non_stream",
-                model=MODEL_NAME,
-                status_code=503,
-                outcome="unavailable",
-                queue_wait_ms=round(lease.queue_wait_ms, 1),
-                latency_ms=round((time.perf_counter() - started) * 1_000, 1),
-                error_type=type(exc).__name__,
-            )
-            raise HTTPException(status_code=503, detail="vLLM is unavailable") from exc
+        upstream = await post_with_connect_retry(
+            app.state.http,
+            f"{VLLM_BASE_URL}/v1/chat/completions",
+            json=payload,
+            headers={"X-Request-ID": request_id},
+            request_id=request_id,
+        )
+    except httpx.HTTPError as exc:
+        raise translate_upstream_error(
+            exc,
+            request_id=request_id,
+            mode="non_stream",
+            lease=lease,
+            started=started,
+        ) from exc
     finally:
         await lease.release()
 
@@ -780,6 +331,7 @@ async def chat(
         queue_wait_ms=round(lease.queue_wait_ms, 1),
         latency_ms=round(latency_ms, 1),
     )
+    response.headers["X-Request-ID"] = request_id
     return ChatResponse(
         request_id=request_id,
         model=data.get("model", MODEL_NAME),
@@ -796,6 +348,7 @@ async def chat_stream(
     x_request_id: str | None = Header(default=None),
 ) -> StreamingResponse:
     request_id = x_request_id or str(uuid.uuid4())
+    enforce_context_window(body)
     payload = build_payload(body, stream=True)
     started = time.perf_counter()
     try:
@@ -811,65 +364,60 @@ async def chat_stream(
             headers={"X-Request-ID": request_id},
             request_id=request_id,
         )
-    except httpx.TimeoutException as exc:
+    except httpx.HTTPError as exc:
         await lease.release()
-        REQUESTS_TOTAL.labels(mode="stream", outcome="timeout").inc()
-        log_event(
-            logging.WARNING,
-            "request_failed",
+        raise translate_upstream_error(
+            exc,
             request_id=request_id,
             mode="stream",
-            model=MODEL_NAME,
-            status_code=504,
-            outcome="timeout",
-            queue_wait_ms=round(lease.queue_wait_ms, 1),
-            latency_ms=round((time.perf_counter() - started) * 1_000, 1),
-            error_type=type(exc).__name__,
-        )
-        raise HTTPException(status_code=504, detail="vLLM request timed out") from exc
-    except httpx.ConnectError as exc:
-        await lease.release()
-        REQUESTS_TOTAL.labels(mode="stream", outcome="unavailable").inc()
-        log_event(
-            logging.WARNING,
-            "request_failed",
-            request_id=request_id,
-            mode="stream",
-            model=MODEL_NAME,
-            status_code=503,
-            outcome="unavailable",
-            queue_wait_ms=round(lease.queue_wait_ms, 1),
-            latency_ms=round((time.perf_counter() - started) * 1_000, 1),
-            error_type=type(exc).__name__,
-        )
-        raise HTTPException(status_code=503, detail="vLLM is unavailable") from exc
+            lease=lease,
+            started=started,
+        ) from exc
     except BaseException:
         await lease.release()
         raise
 
     if upstream.is_error:
-        detail = (await upstream.aread()).decode("utf-8", "replace")[:1_000]
-        await upstream.aclose()
-        await lease.release()
-        REQUESTS_TOTAL.labels(mode="stream", outcome="upstream_error").inc()
-        log_event(
-            logging.WARNING,
-            "request_failed",
-            request_id=request_id,
-            mode="stream",
-            model=MODEL_NAME,
-            status_code=upstream.status_code,
-            outcome="upstream_error",
-            queue_wait_ms=round(lease.queue_wait_ms, 1),
-            latency_ms=round((time.perf_counter() - started) * 1_000, 1),
-            error_type="UpstreamHTTPError",
-        )
-        raise HTTPException(status_code=upstream.status_code, detail=detail)
+        try:
+            detail = (await upstream.aread()).decode("utf-8", "replace")[:1_000]
+            REQUESTS_TOTAL.labels(mode="stream", outcome="upstream_error").inc()
+            log_event(
+                logging.WARNING,
+                "request_failed",
+                request_id=request_id,
+                mode="stream",
+                model=MODEL_NAME,
+                status_code=upstream.status_code,
+                outcome="upstream_error",
+                queue_wait_ms=round(lease.queue_wait_ms, 1),
+                latency_ms=round((time.perf_counter() - started) * 1_000, 1),
+                error_type="UpstreamHTTPError",
+            )
+            raise HTTPException(status_code=upstream.status_code, detail=detail)
+        except HTTPException:
+            raise
+        except httpx.HTTPError as exc:
+            raise translate_upstream_error(
+                exc,
+                request_id=request_id,
+                mode="stream",
+                lease=lease,
+                started=started,
+            ) from exc
+        finally:
+            try:
+                await upstream.aclose()
+            except Exception:
+                pass
+            await lease.release()
 
     async def events() -> AsyncIterator[bytes]:
         usage = TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
         first_token_ms: float | None = None
         completed = False
+        disconnect_task = asyncio.create_task(
+            _close_upstream_on_disconnect(request, upstream)
+        )
         yield sse_event("meta", {"request_id": request_id, "model": MODEL_NAME})
         try:
             async for line in upstream.aiter_lines():
@@ -917,6 +465,21 @@ async def chat_stream(
                         {"text": normalize_unicode(text), "channel": channel},
                     )
         except (httpx.HTTPError, json.JSONDecodeError) as exc:
+            if await request.is_disconnected():
+                CLIENT_DISCONNECTS_TOTAL.inc()
+                REQUESTS_TOTAL.labels(mode="stream", outcome="disconnected").inc()
+                log_event(
+                    logging.INFO,
+                    "client_disconnected",
+                    request_id=request_id,
+                    mode="stream",
+                    model=MODEL_NAME,
+                    outcome="disconnected",
+                    queue_wait_ms=round(lease.queue_wait_ms, 1),
+                    latency_ms=round((time.perf_counter() - started) * 1_000, 1),
+                    error_type=type(exc).__name__,
+                )
+                return
             REQUESTS_TOTAL.labels(mode="stream", outcome="stream_error").inc()
             log_event(
                 logging.WARNING,
@@ -948,7 +511,15 @@ async def chat_stream(
             )
             raise
         finally:
-            await upstream.aclose()
+            disconnect_task.cancel()
+            try:
+                await disconnect_task
+            except asyncio.CancelledError:
+                pass
+            try:
+                await upstream.aclose()
+            except Exception:
+                pass
             await lease.release()
 
         if completed:

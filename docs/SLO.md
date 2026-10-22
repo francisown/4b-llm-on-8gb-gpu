@@ -1,4 +1,4 @@
-﻿# Service-level objectives (reference workload)
+# Service-level objectives (reference workload)
 
 These SLOs apply to the **gateway + vLLM reference deployment**, not to every
 possible workload. They are written for the measured environment:

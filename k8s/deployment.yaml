@@ -1,4 +1,4 @@
-﻿apiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: inference-gateway
@@ -66,8 +66,11 @@ spec:
             timeoutSeconds: 2
             failureThreshold: 30
           readinessProbe:
+            # Process-local readiness. Upstream/model dependency health is
+            # exposed separately at /health; do not take every gateway pod out
+            # of the Service when vLLM is temporarily unavailable.
             httpGet:
-              path: /health
+              path: /ready
               port: http
             periodSeconds: 5
             timeoutSeconds: 3

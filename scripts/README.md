@@ -7,7 +7,7 @@ running it; many experiments need a GPU, a model directory, or a running vLLM.
 
 | Script | Purpose | Requirements |
 |---|---|---|
-| `verify_local.py` | Cost tests, gateway tests, Python syntax | Python only |
+| `verify_local.py` | Cost, paired-statistics, and gateway tests plus Python syntax | Python only |
 | `validate_manifests.py` | Kubernetes manifest contract checks | Python + PyYAML |
 | `validate_workflows.py` | GitHub Actions YAML checks | Python + PyYAML |
 | `validate_docs.py` | Markdown link and README/manifest-count checks | Python only |
@@ -24,12 +24,6 @@ running it; many experiments need a GPU, a model directory, or a running vLLM.
 historical experiment drivers. They assume the original model paths and WSL2
 environment; keep them for reproducibility but do not treat them as the
 supported quickstart.
-
-## Historical checks
-
-`check_wsl2_runner.sh` and the logs under `benchmark/results/runner-verify/`
-belong to the WSL2 runner investigation. The conclusion is documented in
-`docs/wsl2-runner-verification.md`.
 
 ## Conventions
 

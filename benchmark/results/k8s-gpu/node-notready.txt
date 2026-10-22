@@ -1,4 +1,4 @@
-﻿recovery_attempt=systemctl restart k3s; Ready briefly; NotReady again within ~5 minutes
+recovery_attempt=systemctl restart k3s; Ready briefly; NotReady again within ~5 minutes
 recovery_result=vLLM pod Unknown, gateway pods not Ready, endpoints empty
 node_ready=False
 node_condition=KubeletNotReady (PLEG/flannel subnet.env missing)

@@ -82,4 +82,4 @@ evidence file without recording why.
 A release is created by pushing a tag such as `v0.2.1`. The `release` workflow
 runs the tests and publishes the gateway image to GHCR. Update
 `GATEWAY_VERSION` and the image tag in `k8s/` in the same change. See
-[`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md).
+[`docs/RELEASE.md`](docs/RELEASE.md).

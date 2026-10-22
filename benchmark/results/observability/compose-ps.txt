@@ -1,4 +1,4 @@
-﻿NAME                                      IMAGE                             COMMAND                  SERVICE      CREATED              STATUS                        PORTS
+NAME                                      IMAGE                             COMMAND                  SERVICE      CREATED              STATUS                        PORTS
 ai-inference-observability-gateway-1      ai-inference-gateway:v0.2.4       "opentelemetry-instr…"   gateway      About a minute ago   Up About a minute (healthy)   0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp
 ai-inference-observability-grafana-1      grafana/grafana:11.2.0            "/run.sh"                grafana      3 hours ago          Up 3 hours                    0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
 ai-inference-observability-jaeger-1       jaegertracing/all-in-one:1.62.0   "/go/bin/all-in-one-…"   jaeger       2 hours ago          Up 2 hours                    0.0.0.0:4318->4318/tcp, [::]:4318->4318/tcp, 0.0.0.0:16686->16686/tcp, [::]:16686->16686/tcp

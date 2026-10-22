@@ -46,10 +46,9 @@ TensorRT-LLM number would require:
 
 None of those were completed in this verification run, so the honest status is
 "harness ready, result absent". The repository contains a reusable load
-generator ([`benchmark/k8s_load_test.py`](../benchmark/k8s_load_test.py)) and
-the existing direct OpenAI-compatible load script
-([`real_chat_load.py`](../real_chat_load.py)); the next step is to point them at
-a TensorRT-LLM OpenAI-compatible server and record the same fields.
+generator ([`benchmark/k8s_load_test.py`](../benchmark/k8s_load_test.py)); the
+next step is to point it at a TensorRT-LLM OpenAI-compatible server and record
+the same fields.
 
 ## Why the 54 tok/s custom-CUDA number is not a competitor row
 

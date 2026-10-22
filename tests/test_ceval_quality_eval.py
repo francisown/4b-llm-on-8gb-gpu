@@ -24,6 +24,11 @@ CEVAL_ZIP = Path("/mnt/e/AI-Inference-Lab/datasets/ceval.zip")
 class CEvalQualityTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        if not CEVAL_ZIP.is_file():
+            raise unittest.SkipTest(
+                f"C-Eval archive not present at {CEVAL_ZIP}; "
+                "set CEVAL_ZIP or run this test on the GPU host"
+            )
         cls.grouped = load_ceval_split(CEVAL_ZIP, "val")
 
     def test_validation_split_has_answers_and_expected_subjects(self) -> None:

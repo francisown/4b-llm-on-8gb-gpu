@@ -1,4 +1,4 @@
-﻿date=2026-10-21T23:12:49.4591956+08:00
+date=2026-10-21T23:12:49.4591956+08:00
 prometheus_alert=GatewaySyntheticRoutingTest firing
 alertmanager_alert=GatewaySyntheticRoutingTest active
 prometheus_alertmanagers=active http://alertmanager:9093/api/v2/alerts

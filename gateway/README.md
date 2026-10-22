@@ -1,21 +1,35 @@
-﻿# FastAPI inference gateway
+# FastAPI inference gateway
 
 This gateway sits between clients and an OpenAI-compatible vLLM server. It is
 the stateless service layer of the project; the GPU model server runs outside
 the container and, on this host, outside the Kubernetes cluster.
 
+## Layout
+
+| Module | Responsibility |
+|---|---|
+| `gateway.py` | FastAPI app, lifespan, routes, SSE response |
+| `gw_runtime.py` | environment config, JSON logging, Prometheus metrics, Pydantic models |
+| `gw_admission.py` | admission lease/controller and in-process rate limiter |
+| `gw_auth.py` | API-key auth, proxy-aware client identity, auth-failure limit |
+| `gw_upstream.py` | payload building, context guard, SSE helpers, upstream retries/error translation |
+
+`uvicorn gateway:app` and the pytest entrypoint did not change.
+
 ## What it implements
 
 - Pydantic request validation and propagation/generation of `X-Request-ID`;
 - optional `Authorization: Bearer` / `X-API-Key` authentication for chat endpoints;
-  `/live`, `/health`, and `/metrics` stay open for probes and Prometheus;
+  `/live`, `/ready`, `/health`, and `/metrics` stay open for probes and Prometheus;
 - separate connect/read/write/pool timeouts;
 - conversion of upstream connection, timeout, and HTTP errors;
-- a dependency-aware `/health` endpoint and a process-only `/live` endpoint;
+- a dependency-aware `/health` endpoint, a process-only `/live`, and a
+  process-local `/ready` used by the Kubernetes readiness probe;
 - one reusable asynchronous HTTP connection pool for chat traffic;
 - a browser chat UI at `/`, non-streaming `POST /chat`, and SSE streaming
   `POST /chat/stream` with TTFT and total latency;
-- upstream cancellation when the browser disconnects;
+- a disconnect watcher that closes a stalled upstream after the browser goes
+  away, instead of waiting for the next SSE line or the read timeout;
 - bounded admission control with active/queued counters and HTTP 429
   backpressure;
 - a `/gateway/status` endpoint for observing active and waiting requests;
@@ -47,7 +61,7 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-Expected result: **19 passed**. `smoke_test.py` remains the separate online test
+Expected result: **37 passed**. `smoke_test.py` remains the separate online test
 for a fully running gateway and vLLM server.
 
 ## Docker
@@ -95,8 +109,13 @@ allowing the container to reach vLLM on port 8000. If that route changes, set
 | `GATEWAY_VERSION` | `0.2.4` | Version exposed in headers/metrics |
 | `GATEWAY_API_KEY` | empty (auth disabled) | Optional bearer/X-API-Key token for `/chat` and `/chat/stream`; health/metrics stay open |
 | `GATEWAY_API_KEYS` | empty | Optional comma-separated additional keys; useful for per-tenant/per-key limits |
-| `GATEWAY_RATE_LIMIT_PER_MINUTE` | `0` (disabled) | Per-identity sliding-window limit; identity is an authenticated API key, otherwise the direct client IP |
+| `GATEWAY_RATE_LIMIT_PER_MINUTE` | `0` (disabled) | Per-identity sliding-window limit; identity is an authenticated API key, otherwise the client IP |
 | `GATEWAY_RATE_LIMIT_MAX_IDENTITIES` | `10000` | Bound on the in-memory identity map; new identities share an overflow bucket when full |
+| `GATEWAY_RATE_LIMIT_BACKEND` | `process` | `process` for one replica; `redis` for a shared limit across replicas |
+| `GATEWAY_REDIS_URL` | `redis://127.0.0.1:6379/0` | Redis URL used when `GATEWAY_RATE_LIMIT_BACKEND=redis` |
+| `GATEWAY_AUTH_FAILURE_LIMIT_PER_MINUTE` | `20` | Per-IP limit on failed API-key attempts; `0` disables it |
+| `GATEWAY_MAX_CONTEXT_TOKENS` | `2048` | Context window used by the pre-flight length guard; keep in sync with vLLM `--max-model-len` |
+| `GATEWAY_TRUST_PROXY_HEADERS` | `0` | Trust `X-Forwarded-For` / `X-Real-IP` for rate-limit identity; enable only behind a proxy that overwrites them |
 | `POD_NAME` | `local` | Pod identity; set from `metadata.name` in Kubernetes |
 | `LOG_LEVEL` | `INFO` | Application log level |
 
@@ -114,7 +133,9 @@ full evidence is in [`../docs/K8S_VERIFICATION.md`](../docs/K8S_VERIFICATION.md)
 - Admission control and rate limiting are process-local; with N replicas the
   effective global concurrency/limit is roughly `N ×` the configured value.
 - When authentication is disabled, the rate limiter keys on the direct client
-  IP. Behind a reverse proxy that IP is the proxy, so enable `GATEWAY_API_KEYS`
-  for real per-key limits rather than relying on forwarded headers.
+  IP. Behind a reverse proxy that IP is the proxy; set
+  `GATEWAY_TRUST_PROXY_HEADERS=1` only when that proxy overwrites
+  `X-Forwarded-For`/`X-Real-IP`, or enable `GATEWAY_API_KEYS` for per-key
+  limits.
 - The gateway does not retry read timeouts, because replaying an inference
   request can duplicate work.

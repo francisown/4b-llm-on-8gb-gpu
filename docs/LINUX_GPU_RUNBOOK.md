@@ -6,7 +6,7 @@ real NVIDIA device scheduling, a model PVC, and measured TTFT/throughput.
 
 Do not use WSL2 for this runbook. The WSL2 path was useful for proving that the
 GPU can be scheduled, but its k3s/containerd lifecycle became unstable under
-the real model workload (see [`K3S_GPU_EXPERIMENT.md`](K3S_GPU_EXPERIMENT.md)).
+the real model workload (see [`K8S_VERIFICATION.md`](K8S_VERIFICATION.md)).
 
 ## Target environment
 

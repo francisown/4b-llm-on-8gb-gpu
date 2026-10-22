@@ -1,4 +1,4 @@
-﻿# gateway v0.2.4; hpa-demo; target 60%; mock upstream
+# gateway v0.2.4; hpa-demo; target 60%; mock upstream
 # SuccessfulRescale 2026-10-21T06:25:25Z New size: 3
 # SuccessfulRescale 2026-10-21T06:25:40Z New size: 4
 # SuccessfulRescale 2026-10-21T06:27:10Z New size: 2 (all metrics below target)

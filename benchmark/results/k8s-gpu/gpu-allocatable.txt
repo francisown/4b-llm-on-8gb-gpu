@@ -1,4 +1,4 @@
-﻿  hugepages-2Mi:      0
+  hugepages-2Mi:      0
   memory:             16259752Ki
   nvidia.com/gpu:     1
   pods:               110

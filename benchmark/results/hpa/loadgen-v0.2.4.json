@@ -1,4 +1,4 @@
-﻿{
+{
   "url": "http://inference-gateway:9000/chat",
   "stream": false,
   "requests": 8000,

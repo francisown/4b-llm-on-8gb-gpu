@@ -1,4 +1,4 @@
-﻿date=2026-10-21T13:49:14.5714238+08:00
+date=2026-10-21T13:49:14.5714238+08:00
 services=inference-gateway, jaeger-all-in-one
 trace_limit=5
 trace_count=5

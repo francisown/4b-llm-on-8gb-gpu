@@ -1,4 +1,4 @@
-﻿date=2026-10-21T13:43:32.7224917+08:00
+date=2026-10-21T13:43:32.7224917+08:00
 gateway_health={"status":"ok","vllm":"ok","pod":"compose-gateway","version":"0.2.4"}
 
 grafana_version=11.2.0

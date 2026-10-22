@@ -1,4 +1,4 @@
-﻿"""Prepare and run a reproducible C-Eval validation-set quality benchmark.
+"""Prepare and run a reproducible C-Eval validation-set quality benchmark.
 
 The INT4-AWQ calibration used C-Eval *dev*. This evaluator deliberately uses
 the disjoint *val* split so the reported quality is not measured on calibration

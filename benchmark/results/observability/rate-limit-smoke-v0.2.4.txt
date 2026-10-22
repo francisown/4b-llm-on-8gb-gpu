@@ -1,4 +1,4 @@
-﻿date=2026-10-21T13:46:02.7104416+08:00
+date=2026-10-21T13:46:02.7104416+08:00
 gateway_version=0.2.4
 auth_disabled_rate_limit=5/min
 auth_disabled_tenant_a_statuses=200,200,200,200,200,429

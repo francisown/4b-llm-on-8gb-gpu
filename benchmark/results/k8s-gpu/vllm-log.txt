@@ -1,4 +1,4 @@
-﻿(APIServer pid=1) INFO:     10.42.0.79:59954 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.42.0.79:59954 - "POST /v1/chat/completions HTTP/1.1" 200 OK
 (APIServer pid=1) INFO:     10.42.0.78:34552 - "POST /v1/chat/completions HTTP/1.1" 200 OK
 (APIServer pid=1) INFO:     10.42.0.78:34572 - "POST /v1/chat/completions HTTP/1.1" 200 OK
 (APIServer pid=1) INFO:     10.42.0.79:59938 - "POST /v1/chat/completions HTTP/1.1" 200 OK

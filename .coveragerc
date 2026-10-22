@@ -1,0 +1,8 @@
+[run]
+# smoke_test.py and admission_load_test.py are online/demo drivers, not part
+# of the offline gateway unit-test surface. Do not let their 0% coverage pad
+# the denominator of the CI gate.
+omit =
+    gateway/test_*.py
+    gateway/smoke_test.py
+    gateway/admission_load_test.py

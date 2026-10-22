@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "description": "Small free-form regression set; not a leaderboard. Run against each quantized checkpoint with temperature=0.",
+  "cases": [
+    {
+      "id": "math_01",
+      "category": "math",
+      "prompt": "计算 17×23，只输出阿拉伯数字。",
+      "expected": ["391"],
+      "match": "exact"
+    },
+    {
+      "id": "math_02",
+      "category": "math",
+      "prompt": "某商品 80 元，先涨价 25%，再降价 20%，最终多少元？只输出数字。",
+      "expected": ["80"],
+      "match": "exact"
+    },
+    {
+      "id": "code_01",
+      "category": "code",
+      "prompt": "Python 表达式 [x*x for x in range(1,6,2)] 的值是什么？只输出标准列表表示。",
+      "expected": ["[1, 9, 25]", "[1,9,25]"],
+      "match": "exact"
+    },
+    {
+      "id": "code_02",
+      "category": "code",
+      "prompt": "SQL 中 COUNT(column) 会统计 NULL 吗？只回答“会”或“不会”。",
+      "expected": ["不会"],
+      "match": "exact"
+    },
+    {
+      "id": "format_01",
+      "category": "instruction",
+      "prompt": "把“推理工程”四个汉字倒序，只输出结果。",
+      "expected": ["程工理推"],
+      "match": "exact"
+    },
+    {
+      "id": "format_02",
+      "category": "instruction",
+      "prompt": "只输出一行合法 JSON，键依次为 name 和 score，值依次为 qwen 和 8。不要 Markdown。",
+      "expected": ["{\"name\":\"qwen\",\"score\":8}", "{\"name\": \"qwen\", \"score\": 8}"],
+      "match": "exact"
+    },
+    {
+      "id": "knowledge_01",
+      "category": "knowledge",
+      "prompt": "澳大利亚的首都是哪里？只输出中文城市名。",
+      "expected": ["堪培拉"],
+      "match": "exact"
+    },
+    {
+      "id": "knowledge_02",
+      "category": "knowledge",
+      "prompt": "SHA-256 摘要长度是多少比特？只输出数字。",
+      "expected": ["256"],
+      "match": "exact"
+    },
+    {
+      "id": "context_01",
+      "category": "long_context",
+      "prompt": "阅读记录：第001条 项目密钥为 AX-19-KQ。第002条 普通巡检。第003条 普通巡检。问题：第001条记录中的项目密钥是什么？只输出密钥。",
+      "expected": ["AX-19-KQ"],
+      "match": "exact"
+    },
+    {
+      "id": "reasoning_01",
+      "category": "reasoning",
+      "prompt": "所有 A 都是 B，所有 B 都是 C。能否必然推出所有 A 都是 C？只回答“能”或“不能”。",
+      "expected": ["能"],
+      "match": "exact"
+    }
+  ]
+}

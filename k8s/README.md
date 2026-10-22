@@ -1,4 +1,4 @@
-﻿# Kubernetes 部署：网关层已实测，WSL2 GPU-in-K8s 短验证
+# Kubernetes 部署：网关层已实测，WSL2 GPU-in-K8s 短验证
 
 这份 README 记录 **2026-10-21** 在本机 Docker Desktop Kubernetes 上真实跑过的结果，
 不是“清单写好了”的同义词。

@@ -68,7 +68,7 @@ def validate_gateway(errors: list[str]) -> None:
         errors.append("deployment: missing resource limits")
 
     probes = {
-        "readinessProbe": "/health",
+        "readinessProbe": "/ready",
         "livenessProbe": "/live",
         "startupProbe": "/live",
     }

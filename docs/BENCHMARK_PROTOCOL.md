@@ -8,7 +8,7 @@ If a number is not in this table, do not compare it with one that is.
 | Result | Model / runtime | Host | Input / output | Concurrency | Repeats | Evidence | Comparable? |
 |---|---|---|---|---|---:|---|---|
 | Quantization quality | BF16 / third-party FP8 / self FP8 v3 / INT4-AWQ; evaluation harness | RTX 5060 8 GB (BF16 layer-wise on CPU for quality only) | 200 C-Eval questions, max 8 output tokens, temperature 0 | 1 | 1 frozen set | `benchmark/eval/` | Only within this table |
-| Quantization performance | vLLM 0.29.0, 256 input / 128 output | RTX 5060 8 GB, WSL2 | 256 / 128 | 1 and 4 | 3 runs per configuration | `benchmark/results/quant-*.json` | Only against the same 256/128 protocol |
+| Quantization performance | vLLM 0.29.0, 256 input / 128 output | RTX 5060 8 GB, WSL2 | 256 / 128 | 1 and 4 | 3 runs ? 16 prompts per configuration | `benchmark/results/quant-*.json` | Only against the same 256/128 protocol |
 | K8s Service load | vLLM 0.29.0 + gateway, prompt "Explain in one sentence why KV cache matters." | Docker Desktop K8s gateway + host vLLM | prompt above / 64 output tokens | 4 | 1 run | `benchmark/results/k8s/service-load-c4.json` | Only against the same 64-token Service protocol |
 | Streaming TTFT | same as above, SSE | Docker Desktop K8s gateway, `port-forward` to one pod | prompt above / 64 output tokens | 4 | 1 run | `benchmark/results/k8s/stream-c4.json` | Single-pod; **not** Service-level |
 | Gateway soak | mock OpenAI-compatible upstream | Docker Compose, CPU only | fixed mock response, 32 output tokens | 4 | 1 run, 120 s | `benchmark/results/observability/soak-c4-120s.json` | Gateway stability only; **not** vLLM performance |
@@ -30,6 +30,10 @@ If a number is not in this table, do not compare it with one that is.
    54 tok/s number is not a competitor row for batched vLLM.
 6. TensorRT-LLM has no measured row. The harness and protocol are documented,
    but no number is invented.
+7. The quantization performance row uses 16 prompts per run. Its p95 is close
+   to the maximum observation and is not a population estimate; treat it as a
+   paired microbenchmark, not a capacity plan. A production decision needs more
+   prompts and a confidence interval.
 
 ## What to record for a new run
 

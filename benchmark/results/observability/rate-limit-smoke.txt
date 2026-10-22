@@ -1,4 +1,4 @@
-﻿date=2026-10-21T12:17:02.7403525+08:00
+date=2026-10-21T12:17:02.7403525+08:00
 rate_limit_per_minute=5
 tenant_a_statuses=200,200,200,200,200,429
 tenant_a_retry_header=retry-after: 59

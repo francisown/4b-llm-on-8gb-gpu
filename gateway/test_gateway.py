@@ -12,6 +12,23 @@ from prometheus_client import REGISTRY
 from starlette.requests import Request
 
 import gateway
+import gw_auth
+import gw_runtime
+from gw_redis_limiter import RedisRateLimiter
+
+
+class BrokenErrorResponse:
+    """An upstream error response whose body cannot be read."""
+
+    is_error = True
+    status_code = 500
+
+    async def aread(self) -> bytes:
+        request = httpx.Request("POST", "http://upstream.invalid/v1/chat/completions")
+        raise httpx.ReadError("error body read failed", request=request)
+
+    async def aclose(self) -> None:
+        return None
 
 
 class FakeUpstream:
@@ -52,6 +69,8 @@ class FakeUpstream:
             raise httpx.ConnectError("connection refused", request=request)
         if self.behavior == "timeout":
             raise httpx.ReadTimeout("upstream timed out", request=request)
+        if self.behavior == "read_error":
+            raise httpx.ReadError("upstream read failed", request=request)
         if self.behavior == "connect_error":
             raise httpx.ConnectError("connection refused", request=request)
         if self.behavior == "upstream_error":
@@ -104,8 +123,12 @@ class FakeUpstream:
             raise httpx.ConnectError("connection refused", request=request)
         if self.stream_behavior == "timeout":
             raise httpx.ReadTimeout("upstream timed out", request=request)
+        if self.stream_behavior == "read_error":
+            raise httpx.ReadError("upstream read failed", request=request)
         if self.stream_behavior == "connect_error":
             raise httpx.ConnectError("connection refused", request=request)
+        if self.stream_behavior == "broken_error":
+            return BrokenErrorResponse()  # type: ignore[return-value]
         if self.stream_behavior == "upstream_error":
             return httpx.Response(
                 500,
@@ -149,6 +172,15 @@ def test_live_and_healthy_upstream(
     assert client.get("/health").json()["status"] == "ok"
 
 
+def test_ready_is_process_local_when_upstream_is_down(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.behavior = "connect_error"
+    assert client.get("/ready").status_code == 200
+    assert client.get("/health").status_code == 503
+
+
 def test_response_carries_gateway_identity_headers(
     gateway_client: tuple[TestClient, FakeUpstream],
 ) -> None:
@@ -184,7 +216,7 @@ def test_api_key_is_optional_and_enforced_when_configured(
     client, _ = gateway_client
     assert client.post("/chat", json=request_body()).status_code == 200
 
-    monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "secret-key")
+    monkeypatch.setattr(gw_runtime, "GATEWAY_API_KEY", "secret-key")
     assert client.post("/chat", json=request_body()).status_code == 401
     assert client.post(
         "/chat",
@@ -208,10 +240,41 @@ def test_health_and_metrics_do_not_require_api_key(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client, _ = gateway_client
-    monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "secret-key")
+    monkeypatch.setattr(gw_runtime, "GATEWAY_API_KEY", "secret-key")
     assert client.get("/health").status_code == 200
     assert client.get("/live").status_code == 200
     assert client.get("/metrics").status_code == 200
+
+
+def test_repeated_bad_api_keys_are_rate_limited(
+    gateway_client: tuple[TestClient, FakeUpstream],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = gateway_client
+    monkeypatch.setattr(gw_runtime, "GATEWAY_API_KEY", "secret-key")
+    gateway.app.state.auth_failures = gateway.RateLimiter(2)
+
+    for _ in range(2):
+        response = client.post(
+            "/chat",
+            json=request_body(),
+            headers={"X-API-Key": "wrong"},
+        )
+        assert response.status_code == 401
+    blocked = client.post(
+        "/chat",
+        json=request_body(),
+        headers={"X-API-Key": "wrong"},
+    )
+    assert blocked.status_code == 429
+    assert "too many authentication failures" in blocked.json()["detail"]
+
+    # A correct key is not penalised by another client's failures.
+    assert client.post(
+        "/chat",
+        json=request_body(),
+        headers={"X-API-Key": "secret-key"},
+    ).status_code == 200
 
 
 class FakeClock:
@@ -246,13 +309,33 @@ def test_rate_limiter_bounds_identity_map() -> None:
     assert len(limiter._events) <= 3
 
 
+def test_request_identity_only_trusts_forwarded_headers_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    request = Request(
+        {
+            "type": "http",
+            "http_version": "1.1",
+            "method": "GET",
+            "path": "/",
+            "headers": [(b"x-forwarded-for", b"203.0.113.7, 10.0.0.1")],
+            "query_string": b"",
+            "client": ("127.0.0.1", 12345),
+        }
+    )
+    monkeypatch.setattr(gw_runtime, "TRUST_PROXY_HEADERS", False)
+    assert gw_auth.request_identity(request, None, None) == "ip:127.0.0.1"
+    monkeypatch.setattr(gw_runtime, "TRUST_PROXY_HEADERS", True)
+    assert gw_auth.request_identity(request, None, None) == "ip:203.0.113.7"
+
+
 def test_rate_limit_ignores_untrusted_key_when_auth_disabled(
     gateway_client: tuple[TestClient, FakeUpstream],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client, _ = gateway_client
-    monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "")
-    monkeypatch.setattr(gateway, "GATEWAY_API_KEYS", ())
+    monkeypatch.setattr(gw_runtime, "GATEWAY_API_KEY", "")
+    monkeypatch.setattr(gw_runtime, "GATEWAY_API_KEYS", ())
     monkeypatch.setattr(gateway.app.state, "rate_limiter", gateway.RateLimiter(2))
 
     headers_a = {"X-API-Key": "tenant-a"}
@@ -272,8 +355,8 @@ def test_rate_limit_is_per_authenticated_key(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client, _ = gateway_client
-    monkeypatch.setattr(gateway, "GATEWAY_API_KEY", "")
-    monkeypatch.setattr(gateway, "GATEWAY_API_KEYS", ("tenant-a", "tenant-b"))
+    monkeypatch.setattr(gw_runtime, "GATEWAY_API_KEY", "")
+    monkeypatch.setattr(gw_runtime, "GATEWAY_API_KEYS", ("tenant-a", "tenant-b"))
     monkeypatch.setattr(gateway.app.state, "rate_limiter", gateway.RateLimiter(2))
 
     headers_a = {"X-API-Key": "tenant-a"}
@@ -304,6 +387,7 @@ def test_chat_success_and_request_id_propagation(
         json=request_body(),
     )
     assert response.status_code == 200
+    assert response.headers["X-Request-ID"] == "pytest-001"
     assert response.json()["request_id"] == "pytest-001"
     assert response.json()["answer"] == "测试成功"
     assert response.json()["usage"]["total_tokens"] == 12
@@ -319,10 +403,24 @@ def test_invalid_request_returns_422_without_calling_upstream(
     assert fake.post_calls == []
 
 
+def test_context_window_guard_rejects_before_upstream(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    response = client.post(
+        "/chat",
+        json={"message": "中" * 3_000, "max_tokens": 16},
+    )
+    assert response.status_code == 422
+    assert "context window" in response.json()["detail"]
+    assert fake.post_calls == []
+
+
 @pytest.mark.parametrize(
     ("behavior", "expected_status", "expected_detail"),
     [
         ("timeout", 504, "vLLM request timed out"),
+        ("read_error", 502, "vLLM connection failed"),
         ("connect_error", 503, "vLLM is unavailable"),
         ("upstream_error", 500, "synthetic upstream failure"),
     ],
@@ -398,7 +496,7 @@ def test_json_formatter_emits_required_fields() -> None:
     record.ttft_ms = 12.5
     record.latency_ms = 45.0
 
-    payload = json.loads(gateway.JsonLogFormatter().format(record))
+    payload = json.loads(gw_runtime.JsonLogFormatter().format(record))
     assert payload["event"] == "request_complete"
     assert payload["request_id"] == "pytest-log-001"
     assert payload["status_code"] == 200
@@ -510,6 +608,34 @@ def test_stream_upstream_error_status_is_passed_through(
 
     assert response.status_code == 500
     assert "synthetic upstream failure" in response.json()["detail"]
+    assert gateway.app.state.admission.active == 0
+
+
+def test_stream_upstream_read_error_returns_502(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.stream_behavior = "read_error"
+
+    response = client.post("/chat/stream", json=request_body())
+
+    assert response.status_code == 502
+    assert "vLLM connection failed" in response.json()["detail"]
+    assert gateway.app.state.admission.active == 0
+
+
+def test_stream_error_body_read_failure_releases_admission_slot(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.stream_behavior = "broken_error"
+
+    response = client.post("/chat/stream", json=request_body())
+
+    assert response.status_code == 502
+    assert "vLLM connection failed" in response.json()["detail"]
+    assert gateway.app.state.admission.active == 0
+    assert gateway.app.state.admission.pending == 0
 
 
 def test_stream_malformed_chunk_yields_error_event(
@@ -632,3 +758,48 @@ def test_stream_lease_released_when_body_never_iterated(
 
     assert gateway.app.state.admission.active == 0
     assert gateway.app.state.admission.pending == 0
+
+class _DisconnectRequest:
+    async def is_disconnected(self) -> bool:
+        return True
+
+
+class _ClosableUpstream:
+    def __init__(self) -> None:
+        self.closed = False
+
+    async def aclose(self) -> None:
+        self.closed = True
+
+
+class _FakeRedis:
+    def __init__(self) -> None:
+        self.counts: dict[str, int] = {}
+
+    async def incr(self, key: str) -> int:
+        self.counts[key] = self.counts.get(key, 0) + 1
+        return self.counts[key]
+
+    async def expire(self, key: str, seconds: int) -> bool:
+        return True
+
+    async def ttl(self, key: str) -> int:
+        return 60
+
+    async def aclose(self) -> None:
+        return None
+
+
+def test_disconnect_watcher_closes_upstream() -> None:
+    upstream = _ClosableUpstream()
+    asyncio.run(gateway._close_upstream_on_disconnect(_DisconnectRequest(), upstream))  # type: ignore[arg-type]
+    assert upstream.closed
+
+
+def test_redis_limiter_is_shared_state_compatible() -> None:
+    limiter = RedisRateLimiter(2, _FakeRedis())
+    assert asyncio.run(limiter.check("tenant")) == (True, 0)
+    assert asyncio.run(limiter.check("tenant")) == (True, 0)
+    allowed, retry_after = asyncio.run(limiter.check("tenant"))
+    assert allowed is False
+    assert retry_after >= 1

@@ -1,4 +1,4 @@
-﻿# TLS termination for the gateway
+# TLS termination for the gateway
 
 ## What is implemented
 

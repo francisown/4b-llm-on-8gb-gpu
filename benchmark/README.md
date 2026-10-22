@@ -13,7 +13,6 @@ any number.
 | `results/k8s/` | K8s gateway load, pod kill, rollback, Prometheus queries, GPU probe | Authoritative for the gateway evidence |
 | `results/observability/` | Grafana/Prometheus smoke, auth smoke, soak, backpressure | Authoritative for the gateway/observability evidence |
 | `results/speculative/` | Speculative-decoding logs and metrics | Historical experiment archive |
-| `results/rebaseline/`, `results/runner-verify/` | Runner/rebaseline logs | Historical investigation archive |
 
 ## Scripts
 

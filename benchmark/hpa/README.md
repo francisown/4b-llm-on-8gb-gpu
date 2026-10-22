@@ -1,4 +1,4 @@
-﻿# HPA validation (Docker Desktop Kubernetes)
+# HPA validation (Docker Desktop Kubernetes)
 
 This is a real HPA test, isolated in the `hpa-demo` namespace. It uses a mock
 OpenAI-compatible upstream, so it validates **HPA mechanics and CPU-based

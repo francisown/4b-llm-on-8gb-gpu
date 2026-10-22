@@ -4,9 +4,8 @@ This directory holds 240+ raw result files. This page exists so you do not
 have to guess which one still counts.
 
 **Rule:** a file is *current* only if `README.md`, a file under `docs/`, or a
-script under `scripts/` reads it. Everything else was moved to `archive/` —
-kept because it documents how a number was reached, not because it is a claim
-you should quote.
+script under `scripts/` reads it. Historical runs that no current claim depends
+on were removed during the repository cleanup.
 
 ## Claim → evidence
 
@@ -29,16 +28,13 @@ you should quote.
 | Path | Contents | Status |
 |---|---|---|
 | `speculative/` (58 files) | Speculative-decoding sweep: baseline vs draft-model runs at c1/c4, GPU memory traces, per-run logs | Historical; the conclusion lives in `docs/PERFORMANCE_REPORT.md`, not in any single file |
-| `rebaseline/` (12 files) | Server logs and GPU state captured while re-establishing a clean baseline | Historical reference for "what the machine looked like" |
 | `observability/` (27 files) | Soaks, backpressure, TLS/alert/webhook smoke, Grafana/Jaeger responses | Mixed: several are current, several are pre-v0.2.4 snapshots |
 | `k8s/` (18 files) | In-cluster load, pod-kill, rollout evidence | Current for `docs/K8S_VERIFICATION.md` |
 | `k8s-gpu/` (10 files) | WSL2 k3s GPU-in-K8s smoke and the NotReady failure | Current, but explicitly *not* a stability claim |
 | `k8s-tls/` (6 files) | TLS endpoints, NetworkPolicy toggle matrix, applied manifests | Current |
 | `k8s-hpa-queue/` (2 files) | Queue-depth HPA setup and the c=32 scale trace | Current |
 | `hpa/` (5 files) | CPU HPA run on `hpa-demo` | Current for the CPU variant |
-| `runner-verify/` (3 files) | v1/v2 model-runner verification logs | Historical |
-| `archive/` (115 files) | Root-level results read by neither docs nor scripts: early sweeps, repeated measurements, superseded batches | Provenance only; nothing in `docs/` depends on them |
-| root (23 files) | Only files that a doc or script reads: the four real-vLLM soaks, the 3-run summary, the cost-calculator input, and the 18 `rbq-*` files the quantization CSV is rebuilt from | Current |
+| root | Only files that a doc or script reads: the real-vLLM soaks, the 3-run summary, the cost-calculator input, and the `rbq-*` files the quantization CSV is rebuilt from | Current |
 
 ## How to tell a file is stale
 

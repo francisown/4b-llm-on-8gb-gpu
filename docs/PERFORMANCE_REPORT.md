@@ -1,4 +1,4 @@
-﻿# Performance report: 8 GB inference delivery
+# Performance report: 8 GB inference delivery
 
 This is a concise, portfolio-facing report. Every number below is tied to a
 raw result file and a fixed environment. See
@@ -28,11 +28,22 @@ per-question behaviour.
 |---|---:|---:|---:|---:|---:|
 | BF16 reference | 8.701 GiB | 141/200 (70.5%) | 100.0% | — | — |
 | Third-party FP8 | 5.281 GiB | 141/200 (70.5%) | 96.5% | 3 | 3 |
-| Self-made FP8 v3 | 5.281 GiB | 141/200 (70.5%) | 98.0% | 2 | 2 |
-| Self-made INT4-AWQ v1 | **3.568 GiB** | 141/200 (70.5%) | **87.0%** | 11 | 11 |
+| Locally produced FP8 v3 | 5.281 GiB | 141/200 (70.5%) | 98.0% | 2 | 2 |
+| Locally produced INT4-AWQ v1 | **3.568 GiB** | 141/200 (70.5%) | **87.0%** | 11 | 11 |
 
 All four score 141/200, but INT4 disagrees with BF16 on 26 questions. Equal
 totals do not mean equal models.
+
+Paired statistics (`python tools/quality_stats.py`): accuracy is 70.5% (95%
+Wilson 63.8–76.4%) for every variant; agreement with BF16 is 96.5%
+(93.0–98.3%), 98.0% (95.0–99.2%), and 87.0% (81.6–91.0%) for third-party FP8,
+locally produced FP8 v3, and INT4-AWQ. McNemar's exact test is p=1.0 for all
+three (discordant pairs 3/3, 2/2, 11/11), so this set cannot distinguish
+accuracy; the agreement difference is the signal. Cohen's κ on the selected
+option is 0.953 / 0.973 / 0.826.
+
+“Locally produced” means the checkpoint was generated locally with
+`llm-compressor`; the AWQ and FP8 algorithms are library implementations.
 
 Raw data: [`benchmark/eval/`](../benchmark/eval/).
 

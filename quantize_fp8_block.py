@@ -1,4 +1,4 @@
-﻿"""Create a local FP8_BLOCK checkpoint from the Qwen3.5-4B BF16 model.
+"""Create a local FP8_BLOCK checkpoint from the Qwen3.5-4B BF16 model.
 
 This script deliberately uses llm-compressor's model-free PTQ entrypoint so the
 entire 4B model never has to fit in the RTX 5060's 8 GB VRAM at once.

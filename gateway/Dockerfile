@@ -1,4 +1,4 @@
-﻿ARG PYTHON_IMAGE=python:3.10-slim
+﻿ARG PYTHON_IMAGE=python:3.10-slim@sha256:6ff506466f8b1e981719b468cc0023b8ef000b983cdec0eafe119d01f379e31d
 FROM ${PYTHON_IMAGE}
 
 ARG PIP_INDEX_URL=https://pypi.org/simple
@@ -26,7 +26,7 @@ RUN python -m pip install \
     --timeout 120 \
     -r requirements-otel.txt
 
-COPY gateway.py index.html ./
+COPY gw_runtime.py gw_admission.py gw_upstream.py gw_auth.py gateway.py index.html ./
 
 USER app
 EXPOSE 9000

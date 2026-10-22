@@ -1,4 +1,4 @@
-﻿# Qwen3.5-4B-FP8 推测解码测评
+# Qwen3.5-4B-FP8 推测解码测评
 
 日期：2026-09-15
 
@@ -32,7 +32,7 @@ KV Cache 预算为 -1.03 GiB，无法在 8 GiB 显存中启动。
 >
 > 另外两条仍然成立：FlashInfer sampler 需要未安装的 `nvcc`；MTP + CUDA Graph 的 KV Cache 预算为 -1.03 GiB，8 GiB 装不下。
 >
-> 详见根目录 [`docs/wsl2-runner-verification.md`](../../../docs/wsl2-runner-verification.md)。
+> 详见 [`docs/K8S_VERIFICATION.md`](../../../docs/K8S_VERIFICATION.md) 和 [`docs/BENCHMARK_PROTOCOL.md`](../../../docs/BENCHMARK_PROTOCOL.md)。
 
 ## 结果
 

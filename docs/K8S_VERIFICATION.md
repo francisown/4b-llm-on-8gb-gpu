@@ -1,4 +1,4 @@
-﻿# Kubernetes verification: gateway layer and WSL2 GPU-in-K8s
+# Kubernetes verification: gateway layer and WSL2 GPU-in-K8s
 
 Verification date: **2026-10-21**
 Repository state: verification run on 2026-10-21; see git history for the exact commit.
@@ -27,7 +27,7 @@ vLLM ran inside the cluster.
 The deployment in `k8s/` sets:
 
 - 2 replicas, `maxUnavailable: 0`, `maxSurge: 1`;
-- startup `/live`, readiness `/health` (checks the vLLM dependency), liveness `/live`;
+- startup `/live`, readiness `/ready` (process-local), liveness `/live`; `/health` still checks the vLLM dependency;
 - `terminationGracePeriodSeconds: 30`, `preStop` sleep 5 s, Uvicorn graceful shutdown 20 s;
 - CPU/memory requests and limits, non-root user, read-only root filesystem, `/tmp` emptyDir;
 - PodDisruptionBudget `minAvailable: 1`;

@@ -65,7 +65,7 @@ MODELS = [
         "notes": "Compiled vLLM benchmark",
     },
     {
-        "model": "Self FP8 v3",
+        "model": "Locally produced FP8 v3",
         "precision": "FP8_BLOCK",
         "size": 5.281,
         "reduction": 39.3,
@@ -74,7 +74,7 @@ MODELS = [
         "notes": "Compiled vLLM benchmark; closest predictions to BF16",
     },
     {
-        "model": "Self INT4-AWQ v1",
+        "model": "Locally produced INT4-AWQ v1",
         "precision": "W4A16 INT4-AWQ",
         "size": 3.568,
         "reduction": 59.0,

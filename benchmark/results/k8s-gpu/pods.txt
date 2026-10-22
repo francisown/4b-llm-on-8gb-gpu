@@ -1,4 +1,4 @@
-﻿NAME                                 READY   STATUS      RESTARTS   AGE     IP           NODE              NOMINATED NODE   READINESS GATES
+NAME                                 READY   STATUS      RESTARTS   AGE     IP           NODE              NOMINATED NODE   READINESS GATES
 gateway-loadgen-q4cr8                0/1     Completed   0          54s     10.42.0.82   chinami-daca7eb   <none>           <none>
 inference-gateway-78bc5f8b97-59hdk   1/1     Running     0          4m22s   10.42.0.79   chinami-daca7eb   <none>           <none>
 inference-gateway-78bc5f8b97-6dl85   1/1     Running     0          4m22s   10.42.0.78   chinami-daca7eb   <none>           <none>

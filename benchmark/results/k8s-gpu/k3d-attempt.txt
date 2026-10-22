@@ -1,4 +1,4 @@
-﻿date=2026-10-21T23:24:28.5442520+08:00
+date=2026-10-21T23:24:28.5442520+08:00
 cluster=k3d gpu-k3d, k3s v1.35.5
 node_device_request=gpu all
 node_dev_dxg=present

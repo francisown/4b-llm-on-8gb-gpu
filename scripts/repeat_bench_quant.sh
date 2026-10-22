@@ -107,7 +107,7 @@ run_model() {
         --model "$model" --served-model-name "$name" --tokenizer "$model" \
         --dataset-name random \
         --random-input-len 256 --random-output-len 128 --random-range-ratio 0 \
-        --num-prompts 16 --num-warmups 2 --max-concurrency "$c" \
+        --num-prompts "${NUM_PROMPTS:-64}" --num-warmups 2 --max-concurrency "$c" \
         --request-rate inf --ignore-eos --temperature 0 \
         --metric-percentiles 50,95,99 --percentile-metrics ttft,tpot,itl,e2el \
         --save-result --disable-tqdm \

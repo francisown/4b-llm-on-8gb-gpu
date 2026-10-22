@@ -40,7 +40,16 @@ def main() -> None:
     validate_layout()
     run(
         "root deterministic unit tests",
-        [sys.executable, "-m", "unittest", "tests.test_cost_calculator"],
+        [
+            sys.executable,
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_*.py",
+        ],
     )
     run(
         "gateway offline tests",

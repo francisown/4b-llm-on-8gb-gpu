@@ -1,4 +1,4 @@
-﻿"""Quantize the local Qwen3.5-4B BF16 checkpoint to W4A16 INT4 with AWQ.
+"""Quantize the local Qwen3.5-4B BF16 checkpoint to W4A16 INT4 with AWQ.
 
 The calibration corpus is read directly from the C-Eval ZIP.  Only the dev
 split is used for calibration so validation/test rows remain available for

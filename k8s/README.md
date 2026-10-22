@@ -71,6 +71,7 @@ kubectl apply -k deploy/k8s-overlays/ghcr
 ```
 
 ```yaml
+# v0.2.4 predates the repository rename; the published package keeps this path.
 image: ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4
 imagePullPolicy: IfNotPresent
 ```

@@ -2,6 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../../k8s
+# v0.2.4 predates the repository rename: the published GHCR package still
+# lives under the legacy path. New releases use the renamed repository.
 images:
   - name: ai-inference-gateway
     newName: ghcr.io/francisown/8gb-llm-inference-delivery/gateway

@@ -2,9 +2,11 @@
 
 Release date: **2026-10-21**
 
-- GitHub Release: <https://github.com/francisown/8gb-llm-inference-delivery/releases/tag/v0.2.4>
+- GitHub Release: <https://github.com/francisown/4b-llm-on-8gb-gpu/releases/tag/v0.2.4>
 - Tag: `v0.2.4`
 - Image: `ghcr.io/francisown/8gb-llm-inference-delivery/gateway:v0.2.4`
+  (v0.2.4 predates the repository rename; the GHCR package keeps the legacy
+  path. New releases publish under the new repository name.)
 - Digest: `sha256:4453ef462ac426b6abe239819d41a4171454f7ebffacaf90ffb481a8f95e1365`
 
 ## Pull

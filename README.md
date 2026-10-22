@@ -3,7 +3,7 @@
   <a href="README.zh-CN.md">简体中文</a>
 </p>
 
-# 8GB LLM Inference Delivery
+# 4B LLM on 8GB GPU
 
 Quantize, benchmark, serve, and package a 4B model on a **single RTX 5060 with 8 GB**.
 

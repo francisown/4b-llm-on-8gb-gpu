@@ -172,7 +172,7 @@ That conclusion is itself a result: **the optimal configuration and the shippabl
 - Split `/live` (process) and `/health` (upstream dependency); `/gateway/status` for in-flight and queued counts
 - Health checks use `Connection: close` and disable keep-alive reuse, after a real `RemoteProtocolError` flap found on Kubernetes
 - Prometheus counters, gauges, and latency histograms; `X-Gateway-Pod` / `X-Gateway-Version` response headers; single-line JSON logs
-- **26 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, probe identity, optional API-key authentication, per-identity rate limiting, and the SSE streaming path (meta/token/done frames, malformed chunks, mid-stream timeout)
+- **28 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, probe identity, optional API-key authentication, per-identity rate limiting, the SSE streaming path (meta/token/done frames, malformed chunks, mid-stream timeout), admission-slot release when a client vanishes before the first chunk, and streams that end without a `[DONE]` sentinel
 - Non-root Docker image + Compose; Kubernetes Deployment with 2 replicas, PDB, zero-downtime rollout, and per-pod Prometheus scraping
 
 The local offline bundle packs the model, the vLLM/PyTorch/CUDA userspace environment, the gateway, Compose, one-click scripts, and SHA-256 manifests into **7.49 GiB**. It was exercised end to end on this host (image import, GPU check, model startup, browser chat), but it is not published, so a reader cannot independently verify it.
@@ -216,7 +216,7 @@ That conclusion is independent of the model generation, and it is the only thing
 ```bash
 # 1. Deterministic checks (no GPU, no model, no API key)
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # expect: 5 cost tests + 26 gateway tests
+python scripts/verify_local.py          # expect: 5 cost tests + 28 gateway tests
 python scripts/validate_manifests.py    # expect: 58 Kubernetes documents
 
 # 1b. Quality gates (the same commands CI runs)

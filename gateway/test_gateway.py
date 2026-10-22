@@ -8,6 +8,8 @@ from typing import Any
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from prometheus_client import REGISTRY
+from starlette.requests import Request
 
 import gateway
 
@@ -553,3 +555,80 @@ def test_stream_connect_failure_is_retried_before_failing(
     assert response.status_code == 200
     # One failed attempt, then a fresh request built for the retry.
     assert len(fake.stream_calls) == 2
+
+
+def test_stream_without_done_sentinel_is_counted_as_incomplete(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    """A stream that ends without [DONE] and without an error must still count.
+
+    Otherwise the request appears in neither `success` nor any failure outcome,
+    and the observed success ratio is biased upward.
+    """
+    client, fake = gateway_client
+    fake.stream_body = upstream_sse(
+        {"choices": [{"delta": {"content": "x"}}]},
+        done=False,
+    )
+    before = (
+        REGISTRY.get_sample_value(
+            "inference_gateway_requests_total",
+            {"mode": "stream", "outcome": "incomplete"},
+        )
+        or 0.0
+    )
+
+    response = client.post("/chat/stream", json=request_body())
+
+    assert response.status_code == 200
+    names = [name for name, _ in parse_sse(response.text)]
+    assert "done" not in names
+    after = (
+        REGISTRY.get_sample_value(
+            "inference_gateway_requests_total",
+            {"mode": "stream", "outcome": "incomplete"},
+        )
+        or 0.0
+    )
+    assert after == before + 1
+
+
+def test_stream_lease_released_when_body_never_iterated(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    """A client can vanish before the first chunk is pulled.
+
+    Starlette then closes the body iterator without ever starting it. An async
+    generator that never ran does not execute its `finally`, so a lease released
+    only inside `events()` would leak the admission slot permanently.
+    """
+    client, fake = gateway_client
+    fake.stream_body = upstream_sse({"choices": [{"delta": {"content": "x"}}]})
+
+    async def scenario() -> None:
+        scope = {
+            "type": "http",
+            "http_version": "1.1",
+            "method": "POST",
+            "path": "/chat/stream",
+            "headers": [],
+            "query_string": b"",
+        }
+        response = await gateway.chat_stream(
+            gateway.ChatRequest(**request_body()),
+            Request(scope),
+            None,
+        )
+        assert gateway.app.state.admission.active == 1
+        # Never pull a chunk: close the iterator the way Starlette does when the
+        # client disconnects first. Starlette then runs the response background
+        # task from its `finally`, which is what must release the lease.
+        await response.body_iterator.aclose()
+        assert gateway.app.state.admission.active == 1, "lease still held"
+        assert response.background is not None
+        await response.background()
+
+    asyncio.run(scenario())
+
+    assert gateway.app.state.admission.active == 0
+    assert gateway.app.state.admission.pending == 0

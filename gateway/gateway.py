@@ -29,6 +29,7 @@ from prometheus_client import (
     generate_latest,
 )
 from pydantic import BaseModel, Field
+from starlette.background import BackgroundTask
 
 
 VLLM_BASE_URL = os.getenv("VLLM_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
@@ -977,10 +978,36 @@ async def chat_stream(
                     "latency_ms": round(latency_ms, 1),
                 },
             )
+        else:
+            # The upstream closed the stream without a [DONE] sentinel and
+            # without raising. That is a real outcome (upstream crash, proxy
+            # truncation) and must be counted, otherwise the request vanishes
+            # from `requests_total` and the success ratio reads too high.
+            latency_ms = (time.perf_counter() - started) * 1_000
+            REQUESTS_TOTAL.labels(mode="stream", outcome="incomplete").inc()
+            log_event(
+                logging.WARNING,
+                "stream_incomplete",
+                request_id=request_id,
+                mode="stream",
+                model=MODEL_NAME,
+                status_code=200,
+                outcome="incomplete",
+                queue_wait_ms=round(lease.queue_wait_ms, 1),
+                ttft_ms=round(first_token_ms, 1) if first_token_ms else None,
+                latency_ms=round(latency_ms, 1),
+                error_type="MissingDoneSentinel",
+            )
 
+    # The lease must be released by the response, not only by the generator.
+    # A client that disconnects before the first chunk never starts `events()`,
+    # and an async generator that never ran does not execute its `finally`.
+    # Without this the admission slot leaks and the gateway eventually rejects
+    # everything. BackgroundTask runs on both completion and client disconnect.
     return StreamingResponse(
         events(),
         media_type="text/event-stream",
+        background=BackgroundTask(lease.release),
         headers={
             "Cache-Control": "no-cache",
             "X-Accel-Buffering": "no",

@@ -194,7 +194,7 @@ Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4�
 ```bash
 # 1. 确定性自测（不需要 GPU、模型或 API Key）
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # 预期：5 个成本测试 + 26 个网关测试
+python scripts/verify_local.py          # 预期：5 个成本测试 + 28 个网关测试
 python scripts/validate_manifests.py    # 预期：58 个 Kubernetes 文档
 
 # 1b. 质量门禁（与 CI 相同）

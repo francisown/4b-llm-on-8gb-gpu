@@ -20,7 +20,7 @@
 | FP8 / INT4-AWQ 量化 | 完成 | 两个量化脚本、自制模型、`INT4-AWQ实验记录.md` |
 | 量化质量评测 | 完成 | C-Eval `val` 200 题、四模型逐题结果、精度 × 体积 × 吞吐总表 |
 | KV Cache、调度与推测解码 | 完成 | 参数 sweep、Prefix Cache、Chunked Prefill、MTP/N-gram 报告 |
-| Python 生产网关 | 完成 | SSE、超时、错误、探针、背压、指标、JSON 日志、26 个 pytest |
+| Python 生产网关 | 完成 | SSE、超时、错误、探针、背压、指标、JSON 日志、28 个 pytest |
 | Docker 离线交付 | 完成并实机验收 | 模型、两个镜像、Compose、一键脚本、SHA-256 校验 |
 | 成本模型 | 完成 | `tools/cost_calculator.py` + 5 个单元测试 |
 | 正式网关测试、结构化日志 | 完成 | 19 个离线 pytest；关键应用事件为单行 JSON |

@@ -121,9 +121,9 @@ Delete and re-apply the Job to run it again (Job specs are mostly immutable).
 
 ## Result
 
-Two runs on 2026-10-22. The saturation run is the real evidence; the smoke run
-was used to confirm the signal path without loading the machine during a
-concurrent GPU soak.
+Two runs on 2026-10-22. Only the saturation run produced scale events; the
+smoke run just confirmed the signal path while the machine was busy with an
+unrelated GPU soak.
 
 ### Saturation run (c=32)
 

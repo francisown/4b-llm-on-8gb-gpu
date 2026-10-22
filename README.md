@@ -78,7 +78,7 @@ A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Co
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified (host vLLM) | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods; model server was outside the cluster |
 | **GPU-in-K8s vLLM + gateway (WSL2 k3s)** | Short smoke only | vLLM pod with `nvidia.com/gpu: 1` + 2 gateway pods; 100 in-cluster requests, 0 errors, **147.17 tok/s**, p95 3.02 s; stream TTFT p50 91.8 ms. After ~6 hours the k3s node became `NotReady` (flannel/PLEG), so this is **not** long-run stable serving. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 198%/60%; scale-up 45s, scale-down 90s; mock upstream, HPA mechanics only |
-| **Queue-depth HPA 2→4→6→2** | Verified | 12,188 requests at c=32, 0 errors; scales on `inference_gateway_waiting_requests` through Prometheus Adapter external metrics; mock upstream, gateway queue only |
+| **Queue-depth HPA** | Verified | 12,188 requests at c=32, 0 errors; replicas 2→4→6→5→4→3→2 on `inference_gateway_waiting_requests` via Prometheus Adapter external metrics; mock upstream, gateway queue only |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
 | **TensorRT-LLM comparison** | Not measured | TensorRT-LLM 1.2.1 support matrix does not cover Qwen3.5 or RTX 5060/SM120, and its CUDA/torch requirements differ; no unsupported benchmark is claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 

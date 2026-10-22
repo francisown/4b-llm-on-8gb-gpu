@@ -22,7 +22,7 @@
   p95 214.82 ms; active/waiting return to 0.
 - Run three real-vLLM v0.2.4 batches (325.71 tok/s mean, 0 errors) and a
   30-minute real-model soak (17,609 requests, 0 errors, p95 433.79 ms).
-- Run a **2-hour** real-model soak: 67,530 requests, 0 errors, 9.379 req/s,
+- Run a 2-hour real-model soak: 67,530 requests, 0 errors, 9.379 req/s,
   p95 458.12 ms, p99 639.09 ms; `active`/`waiting` return to 0. Longer window,
   fatter tail (p99 455.82 → 639.09 ms) with the same throughput.
 - Add a real Alertmanager webhook receiver (`mendhak/http-https-echo`) and
@@ -30,7 +30,8 @@
 - Add `k8s/tls-demo/`: nginx TLS termination behind a Service plus a
   NetworkPolicy whose enforcement is proven with an on/off/on toggle matrix.
 - Add `k8s/hpa-queue-demo/`: Prometheus Adapter external metric on
-  `inference_gateway_waiting_requests`, HPA scaling 2→3→2 on queue depth.
+  `inference_gateway_waiting_requests`. A c=32 run (12,188 requests, 0 errors)
+  moved replicas 2→4→6→5→4→3→2 on queue depth.
 - Add CI quality gates: ruff (E/F), mypy on `gateway/gateway.py`, and a 65%
   coverage floor (actual 71%).
 

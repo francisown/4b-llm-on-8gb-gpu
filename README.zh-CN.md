@@ -268,7 +268,6 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`benchmark/README.md`](benchmark/README.md) | 哪些 benchmark/eval 文件是权威结果，哪些是历史归档 |
 | [`scripts/README.md`](scripts/README.md) | 脚本清单：当前校验、实验驱动与历史工具 |
 | [`CHANGELOG.md`](CHANGELOG.md) | 版本变更与发布说明 |
-| [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | 当前旗舰计划与验证清单 |
 | [`benchmark/eval/`](benchmark/eval/) | 冻结的 200 题清单、四个模型的逐题原始结果、三向总表 |
 | [`benchmark/results/`](benchmark/results/) | 全部性能原始 JSON（并发 sweep、长上下文、推测解码、真实多轮对话） |
 | [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) | WSL2 k3s GPU-in-K8s vLLM + gateway 验证与原始结果 |
@@ -303,7 +302,6 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK 量化脚本 |
 | [`quantize_int4_awq.py`](quantize_int4_awq.py) | W4A16 INT4-AWQ 量化脚本（C-Eval 校准、逐层校准、CPU offload） |
 | [`ceval_quality_eval.py`](ceval_quality_eval.py) | 评测入口：固定题集、断点续跑、逐题原子保存 |
-| [`docs/int4-awq-experiment-log.md`](docs/int4-awq-experiment-log.md) | AWQ 实验记录，含踩坑与修复 |
 | [`tools/cost_calculator.py`](tools/cost_calculator.py) | 容量成本估算（直读 benchmark JSON） |
 
 ---

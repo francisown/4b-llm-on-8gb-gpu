@@ -115,7 +115,7 @@ bash scripts/verify_v2_runner.sh B     # 只跑新方案 V2 + pinned
 > 所以原结论的错误不是"选错了 runner"（事实上选哪个都一样），而是**把可用性问题和性能问题混为一谈**，并且把一个可配置项描述成了平台限制。这是两种不同性质的工程判断误差。
 >
 > **这处错误在仓库里出现了两次，均已加带日期的更正块：**
-> - [`INT4-AWQ实验记录.md`](int4-awq-experiment-log.md) 的「vLLM 运行配置与兼容处理」一节
+> - 原 `docs/int4-awq-experiment-log.md` 的「vLLM 运行配置与兼容处理」一节。该文件已删除：它记录的模型与量化脚本路径是 WSL 时期的 `/mnt/e/...`，现已全部失效，更正后的结论保留在本文。
 > - [`benchmark/results/speculative/README.md`](../benchmark/results/speculative/README.md) 的「公平测试条件」一节
 >
 > 两处都**不需要重跑实验**：相关对照组的被测变量分别是量化方案和 MTP 深度，runner 在所有组里都一致，对照关系有效——错的只是给出的理由。这一点在更正工程结论时很重要，别把"理由错了"误当成"数据废了"。
@@ -227,7 +227,7 @@ bash scripts/rebuild_baseline.sh qwen35     # 只重测三个 Qwen3.5-4B 量化�
 
 > **规矩：对外引用的性能数字，同批次内每配置至少跑 3 轮取均值。**
 
-**对外材料采用了哪一版数字**：根 README、`docs/project-notes.md`、`benchmark/eval/README.md`、两份一页纸都已更新为上面这组 3 轮均值。`benchmark/eval/quantization-final-comparison.csv` **仍是 2026-09-17 的数据，尚未更新**（已知遗留项）。
+**对外材料采用了哪一版数字**：根 README、`docs/project-notes.md`、`benchmark/eval/README.md`、两份一页纸都已更新为上面这组 3 轮均值。`benchmark/eval/quantization-final-comparison.csv` 由 `scripts/build_quantization_csv.py` 从 `benchmark/results/rbq-*-r{1,2,3}-c{1,4}.json` 重建，CI 以 `--check` 校验它与原始数据一致，已不再是手工维护的遗留项。
 
 **仍待收敛的问题**：为什么两个自制模型跨批低 6–7%。已排除热降频，候选是内核自动调优/预热状态差异，未验证。这属于"已知但不阻塞对外"的问题——因为对外数字已经统一到同一批次，不再混用。
 

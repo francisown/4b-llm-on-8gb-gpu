@@ -168,7 +168,7 @@ That conclusion is itself a result: **the optimal configuration and the shippabl
 - Split `/live` (process) and `/health` (upstream dependency); `/gateway/status` for in-flight and queued counts
 - Health checks use `Connection: close` and disable keep-alive reuse, after a real `RemoteProtocolError` flap found on Kubernetes
 - Prometheus counters, gauges, and latency histograms; `X-Gateway-Pod` / `X-Gateway-Version` response headers; single-line JSON logs
-- **19 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, probe identity, optional API-key authentication, and per-identity rate limiting
+- **26 pytest cases needing neither a model nor a GPU**, covering success, validation failure, upstream timeout / disconnect / HTTP error, capacity rejection, queue timeout, connect retry, probe identity, optional API-key authentication, per-identity rate limiting, and the SSE streaming path (meta/token/done frames, malformed chunks, mid-stream timeout)
 - Non-root Docker image + Compose; Kubernetes Deployment with 2 replicas, PDB, zero-downtime rollout, and per-pod Prometheus scraping
 
 The local offline bundle packs the model, the vLLM/PyTorch/CUDA userspace environment, the gateway, Compose, one-click scripts, and SHA-256 manifests into **7.49 GiB**. It was exercised end to end on this host (image import, GPU check, model startup, browser chat), but it is not published, so a reader cannot independently verify it.
@@ -289,7 +289,6 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`benchmark/README.md`](benchmark/README.md) | Which benchmark/eval files are authoritative and which are historical |
 | [`scripts/README.md`](scripts/README.md) | Script inventory: current checks, experiment drivers, and historical tools |
 | [`CHANGELOG.md`](CHANGELOG.md) | Versioned changes and release notes |
-| [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | Current flagship plan and verification checklist |
 | [`benchmark/eval/`](benchmark/eval/) | Frozen 200-question set, per-question results for four models, combined comparison table |
 | [`benchmark/results/`](benchmark/results/) | All raw evidence; start at [`INDEX.md`](benchmark/results/INDEX.md) to find the current file behind each claim |
 | [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) | WSL2 k3s GPU-in-K8s vLLM + gateway validation and raw results |
@@ -325,7 +324,6 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`quantize_fp8_block.py`](quantize_fp8_block.py) | FP8_BLOCK quantization script |
 | [`quantize_int4_awq.py`](quantize_int4_awq.py) | W4A16 INT4-AWQ quantization (C-Eval calibration, per-layer calibration, CPU offload) |
 | [`ceval_quality_eval.py`](ceval_quality_eval.py) | Evaluation entry point: frozen question set, resume support, atomic per-question saving |
-| [`docs/int4-awq-experiment-log.md`](docs/int4-awq-experiment-log.md) | AWQ experiment log, including the pitfalls and their fixes |
 | [`tools/cost_calculator.py`](tools/cost_calculator.py) | Capacity cost estimation (reads benchmark JSON directly) |
 
 ---

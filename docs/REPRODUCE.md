@@ -100,8 +100,8 @@ python quantize_int4_awq.py \
 ```
 
 The full vLLM startup and benchmark commands are in
-[`DEVELOPER_RUNBOOK.md`](DEVELOPER_RUNBOOK.md) and
-[`K8S_VERIFICATION.md`](K8S_VERIFICATION.md). Historical raw JSON under
+[`K8S_VERIFICATION.md`](K8S_VERIFICATION.md) and
+[`LINUX_GPU_RUNBOOK.md`](LINUX_GPU_RUNBOOK.md). Historical raw JSON under
 `benchmark/results/` predates the metadata checklist and may not include a git
 revision, GPU driver, or CUDA version; new runs must include them
 ([`BENCHMARK_PROTOCOL.md`](BENCHMARK_PROTOCOL.md)).

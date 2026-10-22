@@ -192,13 +192,13 @@ Kubernetes 路径另行于 2026-10-21 实测：集群内 100 请求、并发 4�
 ```bash
 # 1. 确定性自测（不需要 GPU、模型或 API Key）
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # 预期：5 个成本测试 + 19 个网关测试
+python scripts/verify_local.py          # 预期：5 个成本测试 + 26 个网关测试
 python scripts/validate_manifests.py    # 预期：58 个 Kubernetes 文档
 
 # 1b. 质量门禁（与 CI 相同）
 python -m ruff check gateway tools tests                    # 预期：All checks passed
 python -m mypy gateway/gateway.py                           # 预期：no issues found
-python -m pytest -q gateway --cov=gateway --cov-fail-under=65
+python -m pytest -q gateway --cov=gateway --cov-fail-under=80
 
 # 2. 从原始 JSON 复算吞吐与成本（在仓库根执行）
 python tools/cost_calculator.py \

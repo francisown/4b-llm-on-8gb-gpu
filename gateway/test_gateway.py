@@ -18,6 +18,11 @@ class FakeUpstream:
         self.connect_failures_remaining = 0
         self.post_calls: list[dict[str, Any]] = []
         self.health_calls: list[dict[str, str]] = []
+        # Streaming path: build_request + send(stream=True) is what
+        # send_stream_with_connect_retry calls, not post().
+        self.stream_behavior = "success"
+        self.stream_body = b""
+        self.stream_calls: list[dict[str, Any]] = []
 
     async def get(
         self,
@@ -68,6 +73,44 @@ class FakeUpstream:
             },
             request=request,
         )
+
+    def build_request(
+        self,
+        method: str,
+        url: str,
+        *,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Request:
+        return httpx.Request(method, url, json=json, headers=headers)
+
+    async def send(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool = False,
+    ) -> httpx.Response:
+        self.stream_calls.append(
+            {
+                "url": str(request.url),
+                "body": json.loads(request.content.decode("utf-8") or "{}"),
+                "stream": stream,
+            }
+        )
+        if self.connect_failures_remaining > 0:
+            self.connect_failures_remaining -= 1
+            raise httpx.ConnectError("connection refused", request=request)
+        if self.stream_behavior == "timeout":
+            raise httpx.ReadTimeout("upstream timed out", request=request)
+        if self.stream_behavior == "connect_error":
+            raise httpx.ConnectError("connection refused", request=request)
+        if self.stream_behavior == "upstream_error":
+            return httpx.Response(
+                500,
+                text="synthetic upstream failure",
+                request=request,
+            )
+        return httpx.Response(200, content=self.stream_body, request=request)
 
 
 @pytest.fixture
@@ -360,3 +403,153 @@ def test_json_formatter_emits_required_fields() -> None:
     assert payload["queue_wait_ms"] == 1.25
     assert payload["ttft_ms"] == 12.5
     assert payload["latency_ms"] == 45.0
+
+
+# --- streaming path (/chat/stream) ------------------------------------------
+# The stream branch consumes the upstream through build_request + send(stream=True),
+# which is a different code path from post(). These tests exist because that
+# branch had no coverage at all before 2026-10-22.
+
+
+def upstream_sse(*chunks: dict[str, Any], done: bool = True) -> bytes:
+    """Build an OpenAI-style SSE body, one data: line per chunk."""
+    lines = [f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n" for chunk in chunks]
+    if done:
+        lines.append("data: [DONE]\n\n")
+    return "".join(lines).encode("utf-8")
+
+
+def parse_sse(text: str) -> list[tuple[str | None, dict[str, Any]]]:
+    events: list[tuple[str | None, dict[str, Any]]] = []
+    for block in text.split("\n\n"):
+        if not block.strip():
+            continue
+        event_name: str | None = None
+        data: dict[str, Any] | None = None
+        for line in block.splitlines():
+            if line.startswith("event: "):
+                event_name = line[len("event: ") :]
+            elif line.startswith("data: "):
+                data = json.loads(line[len("data: ") :])
+        if data is not None:
+            events.append((event_name, data))
+    return events
+
+
+def test_stream_emits_meta_tokens_then_done(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.stream_body = upstream_sse(
+        {"choices": [{"delta": {"content": "你好"}}]},
+        {"choices": [{"delta": {"content": "世界"}}]},
+        {
+            "choices": [],
+            "usage": {"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7},
+        },
+    )
+
+    response = client.post("/chat/stream", json=request_body())
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    assert response.headers["X-Accel-Buffering"] == "no"
+    assert response.headers["X-Request-ID"]
+
+    events = parse_sse(response.text)
+    names = [name for name, _ in events]
+    assert names[0] == "meta"
+    assert names[-1] == "done"
+
+    tokens = [payload["text"] for name, payload in events if name == "token"]
+    assert tokens == ["你好", "世界"]
+    channels = [payload["channel"] for name, payload in events if name == "token"]
+    assert channels == ["answer", "answer"]
+
+    done = events[-1][1]
+    assert done["usage"]["total_tokens"] == 7
+    assert done["request_id"]
+    assert done["ttft_ms"] >= 0
+
+
+def test_stream_marks_upstream_payload_as_streaming(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.stream_body = upstream_sse({"choices": [{"delta": {"content": "x"}}]})
+
+    client.post("/chat/stream", json=request_body())
+
+    assert len(fake.stream_calls) == 1
+    assert fake.stream_calls[0]["stream"] is True
+    assert fake.stream_calls[0]["body"]["stream"] is True
+    assert fake.stream_calls[0]["url"].endswith("/v1/chat/completions")
+
+
+def test_stream_timeout_returns_504(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.stream_behavior = "timeout"
+
+    response = client.post("/chat/stream", json=request_body())
+
+    assert response.status_code == 504
+    assert "timed out" in response.json()["detail"]
+
+
+def test_stream_upstream_error_status_is_passed_through(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.stream_behavior = "upstream_error"
+
+    response = client.post("/chat/stream", json=request_body())
+
+    assert response.status_code == 500
+    assert "synthetic upstream failure" in response.json()["detail"]
+
+
+def test_stream_malformed_chunk_yields_error_event(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    # A data: line after the first frame that is not valid JSON.
+    fake.stream_body = (
+        b'data: {"choices":[{"delta":{"content":"ok"}}]}\n\n'
+        b"data: not-json\n\n"
+    )
+
+    response = client.post("/chat/stream", json=request_body())
+
+    assert response.status_code == 200
+    names = [name for name, _ in parse_sse(response.text)]
+    assert "error" in names
+    # The generator returns after the error frame, so no done frame follows.
+    assert "done" not in names
+
+
+def test_stream_releases_admission_slot(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.stream_body = upstream_sse({"choices": [{"delta": {"content": "x"}}]})
+
+    client.post("/chat/stream", json=request_body())
+
+    assert gateway.app.state.admission.active == 0
+    assert gateway.app.state.admission.pending == 0
+
+
+def test_stream_connect_failure_is_retried_before_failing(
+    gateway_client: tuple[TestClient, FakeUpstream],
+) -> None:
+    client, fake = gateway_client
+    fake.stream_body = upstream_sse({"choices": [{"delta": {"content": "x"}}]})
+    fake.connect_failures_remaining = 1
+
+    response = client.post("/chat/stream", json=request_body())
+
+    assert response.status_code == 200
+    # One failed attempt, then a fresh request built for the retry.
+    assert len(fake.stream_calls) == 2

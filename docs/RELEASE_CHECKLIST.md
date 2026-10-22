@@ -5,7 +5,7 @@ reproducible artifact and a rollback path that was tested before traffic moves.
 
 ## Pre-release
 
-- [ ] `python scripts/verify_local.py` passes (5 cost tests + 19 gateway tests).
+- [ ] `python scripts/verify_local.py` passes (5 cost tests + 26 gateway tests).
 - [ ] `python scripts/validate_manifests.py` passes.
 - [ ] `python scripts/validate_workflows.py` passes.
 - [ ] `kubectl kustomize k8s` and `kubectl kustomize k8s/observability` render.

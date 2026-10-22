@@ -212,13 +212,13 @@ That conclusion is independent of the model generation, and it is the only thing
 ```bash
 # 1. Deterministic checks (no GPU, no model, no API key)
 python -m pip install -r gateway/requirements-dev.txt pyyaml
-python scripts/verify_local.py          # expect: 5 cost tests + 19 gateway tests
+python scripts/verify_local.py          # expect: 5 cost tests + 26 gateway tests
 python scripts/validate_manifests.py    # expect: 58 Kubernetes documents
 
 # 1b. Quality gates (the same commands CI runs)
 python -m ruff check gateway tools tests                    # expect: All checks passed
 python -m mypy gateway/gateway.py                           # expect: no issues found
-python -m pytest -q gateway --cov=gateway --cov-fail-under=65
+python -m pytest -q gateway --cov=gateway --cov-fail-under=80
 
 # 2. Recompute throughput and cost from the raw JSON (run at repo root)
 python tools/cost_calculator.py \
@@ -291,7 +291,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 | [`CHANGELOG.md`](CHANGELOG.md) | Versioned changes and release notes |
 | [`docs/FLAGSHIP_PLAN.md`](docs/FLAGSHIP_PLAN.md) | Current flagship plan and verification checklist |
 | [`benchmark/eval/`](benchmark/eval/) | Frozen 200-question set, per-question results for four models, combined comparison table |
-| [`benchmark/results/`](benchmark/results/) | All raw performance JSON (concurrency sweeps, long context, speculative decoding, repeat comparisons) |
+| [`benchmark/results/`](benchmark/results/) | All raw evidence; start at [`INDEX.md`](benchmark/results/INDEX.md) to find the current file behind each claim |
 | [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) | WSL2 k3s GPU-in-K8s vLLM + gateway validation and raw results |
 | [`benchmark/hpa/README.md`](benchmark/hpa/README.md) | HPA 2→4→2 validation with mock upstream, metrics-server, and load Job |
 | [`benchmark/hpa-queue/README.md`](benchmark/hpa-queue/README.md) | Queue-depth HPA 2→4→6→2 through Prometheus Adapter external metrics |
@@ -340,6 +340,7 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 - 200 multiple-choice questions support only "no accuracy difference observed on these 200 questions." They are **not** sufficient to establish model equivalence; free-form text, code, long context, and real domain data each need separate evaluation.
 - The cost calculator is a capacity-cost estimate. It excludes idle fluctuation, networking, storage, labour, tax, redundancy, and margin, and **cannot stand in for a cloud API quote.**
 - **Pinned memory is supported on WSL2 — vLLM merely disables it by default.** Set `VLLM_WSL2_ENABLE_PIN_MEMORY=1` and the server logs `Using V2 Model Runner`. Measured, V2 and V1 are performance-equivalent (concurrency 1: −0.3%; concurrency 4: −0.1%). Separately, this machine has no full CUDA Toolkit, so FlashInfer's first-use JIT fails and `VLLM_USE_FLASHINFER_SAMPLER=0` is required. These are environment-specific settings, not general advice. Details in [`docs/wsl2-runner-verification.md`](docs/wsl2-runner-verification.md).
+- **The gateway is one 989-line module.** Eight routes, admission control, rate limiting, and the SSE path all read from the same file. It is a deliberate trade for a single-process service, not an oversight, but it is a real cost: adding a second upstream provider would mean editing three unrelated regions. Splitting it into a package would simultaneously change the Dockerfile `COPY`, the uvicorn entry point (`gateway:app`), and the pytest `sys.path`, so it is deferred rather than dismissed. The streaming path now has direct tests, which was the actual risk.
 
 ### On comparability of numbers (important)
 

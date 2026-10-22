@@ -14,7 +14,7 @@ python scripts/validate_docs.py
 python scripts/build_quantization_csv.py --check
 ```
 
-Expected: 5 cost tests, 19 gateway tests, 25 Kubernetes documents, 2 workflow
+Expected: 5 cost tests, 26 gateway tests, 58 Kubernetes documents, 2 workflow
 files, Markdown checks, and a CSV that matches the raw quantization evidence.
 
 ## 2. CPU-only gateway demo

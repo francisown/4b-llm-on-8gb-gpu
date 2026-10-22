@@ -41,7 +41,7 @@ jobs:
       - name: Test with coverage floor
         run: |
           python -m pytest -q gateway \
-            --cov=gateway --cov-report=term-missing --cov-fail-under=65
+            --cov=gateway --cov-report=term-missing --cov-fail-under=80
 
       - name: Validate Kubernetes manifests
         run: python scripts/validate_manifests.py

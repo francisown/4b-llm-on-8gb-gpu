@@ -31,12 +31,12 @@ cd gateway
 python -m pip install -r requirements-dev.txt
 python -m pytest -q
 # or, with the coverage floor CI enforces:
-python -m pytest -q --cov=gateway --cov-report=term-missing --cov-fail-under=65
+python -m pytest -q --cov=gateway --cov-report=term-missing --cov-fail-under=80
 ```
 
-Coverage currently sits at 71% overall (73% in `gateway.py`). The 65% floor is
-there to catch a real regression, not to force the number up; raising it
-without adding tests just moves the goalposts.
+Coverage currently sits at 84% overall (90% in `gateway.py`), including the
+streaming path. The 80% floor is there to catch a real regression, not to force
+the number up; raising it without adding tests just moves the goalposts.
 
 The tests use a fake vLLM upstream. Add a test for every new failure path,
 authentication rule, or observability contract. Keep `/live`, `/health`, and

@@ -78,6 +78,10 @@ A 7.49 GiB offline bundle containing the model, CUDA/vLLM userspace, gateway, Co
 | **Kubernetes gateway, 2 replicas + Prometheus** | Verified (host vLLM) | 100 in-cluster requests, 0 errors, **326.53 tok/s**; 300 requests during a pod kill, **0 errors**; Prometheus scraping both pods; model server was outside the cluster |
 | **GPU-in-K8s vLLM + gateway (WSL2 k3s)** | Short smoke only | vLLM pod with `nvidia.com/gpu: 1` + 2 gateway pods; 100 in-cluster requests, 0 errors, **147.17 tok/s**, p95 3.02 s; stream TTFT p50 91.8 ms. After ~6 hours the k3s node became `NotReady` (flannel/PLEG), so this is **not** long-run stable serving. See [`benchmark/results/k8s-gpu/`](benchmark/results/k8s-gpu/) |
 | **HPA 2→4 / 4→2** | Verified | 8,000 requests at c=32, 0 errors; CPU 198%/60%; scale-up 45s, scale-down 90s; mock upstream, HPA mechanics only |
+
+The Docker and Kubernetes rows read 325.71 and 326.53 tok/s. That 0.25% gap is
+smaller than this model's measured within-session range (0.1–0.6%), so read
+them as one number measured twice rather than as a Kubernetes improvement.
 | **Queue-depth HPA** | Verified | 12,188 requests at c=32, 0 errors; replicas 2→4→6→5→4→3→2 on `inference_gateway_waiting_requests` via Prometheus Adapter external metrics; mock upstream, gateway queue only |
 | **Rollout / rollback** | Verified | Bad `v2` image stuck in `ImagePullBackOff`; both old replicas kept serving; `rollout undo` recovered |
 | **TensorRT-LLM comparison** | Not measured | TensorRT-LLM 1.2.1 support matrix does not cover Qwen3.5 or RTX 5060/SM120, and its CUDA/torch requirements differ; no unsupported benchmark is claimed. See [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
@@ -342,54 +346,18 @@ python benchmark/soak_test.py --url http://127.0.0.1:9000/chat \
 
 ### On comparability of numbers (important)
 
-Performance figures in this repository are only trustworthy when they come from **the same batch, with at least 3 runs per configuration.**
+Performance figures here are only quotable when they come from **the same
+batch, with at least 3 runs per configuration.** The rule is not stylistic: a
+re-measurement on 2026-09-22 disagreed with the 2026-09-17 values by 6-7% for
+both self-made quantized models, while third-party FP8 moved under 3%. A
+whole-machine slowdown would have moved all three.
 
-**How that rule came about:** figures recorded on 2026-09-17 were re-measured on 2026-09-22 with identical parameters (`num_prompts`, concurrency, input/output lengths, `completed`, `failed` all verified element by element). They did not match — and **they did not fail to match uniformly**:
+Two consequences are visible in the tables above: a single run can be off by
+4.3% even within the same day, and "self-made FP8 v3 is faster than third-party
+FP8" has been retracted - two independent rounds agree the two are equivalent.
 
-| Configuration | Concurrency 1 | Concurrency 4 |
-|---|---:|---:|
-| Qwen3.5-4B **third-party FP8** | **+0.7%** | **+2.6%** |
-| Qwen3.5-4B self-made FP8 v3 | −7.2% | −5.7% |
-| Qwen3.5-4B self-made INT4-AWQ | −5.6% | −7.2% |
-| Qwen3-0.6B (concurrency 1/4/16/64) | −7.6% / −6.1% / +2.2% / −7.3% | |
-
-(Numbers are 3-run means. A positive percentage means the new value is higher. **This does not establish which batch is "more correct"** — only that the old values do not reproduce in the current environment.)
-
-**Third-party FP8 barely moved; both self-made quantized models came in 6–7% lower.** If the whole machine had simply slowed down, third-party FP8 would have dropped too. So this is not a single environmental factor — it correlates with the quantization kernel path (both self-made models run compressed-tensors + Marlin).
-
-**Hypothesis eliminated: thermal throttling.** The recorded GPU state was `throttle_reasons = 0x0000000000000000` (no throttling of any kind), 49–64 °C, 78–105 W against a 145 W limit, and an SM clock that rose from 2535 to 2752 MHz over the session. **"The GPU throttled" is dead.**
-
-**Cause still unknown:** the candidate is a difference in kernel autotuning or warmup state between batches. **Unverified**, so not used as a conclusion.
-
-**The difference is real, not a one-off fluctuation** — repeated measurement settled it:
-
-| Configuration | Within-session range over 3 samples |
-|---|---:|
-| Third-party FP8 (concurrency 1 / 4) | 1.3% / 0.1% |
-| Self-made FP8 v3 (concurrency 1 / 4) | 0.1% / 0.1% |
-| Self-made INT4 (concurrency 1 / 4) | 0.1% / 0.6% |
-
-A within-session range as small as 0.1%, yet a consistent 6–7% departure from the old values. **The old values are not "unlucky" — they simply do not reproduce under the current configuration.**
-
-**A methodology point this exposed:** a single run is unreliable, **even on the same day.** Earlier that day, a single run of self-made FP8 v3 at concurrency 4 gave 246.66, while the 3-run mean was 257.33 — a 4.3% deviation, far outside its own 0.1% within-session range. The first round of a session also tends to read low (third-party FP8 at concurrency 1: 71.5 on the first round vs 72.2 and 72.4 afterwards), which looks like a warmup effect.
-
-> **Resulting rule: any performance figure quoted externally is the mean of at least 3 runs per configuration, measured within one batch.** The tables above follow it.
-
-**How the relative relationships moved:**
-
-| Relationship | 2026-09-17 | 2026-09-22 (3-run means) |
-|---|---:|---:|
-| Self-made INT4 ÷ third-party FP8 (concurrency 1) | 1.53× | 1.43× |
-| Self-made INT4 ÷ third-party FP8 (concurrency 4) | 1.44× | 1.30× |
-| Self-made FP8 v3 ÷ third-party FP8 (concurrency 1) | 1.10× | 1.01× |
-| Self-made FP8 v3 ÷ third-party FP8 (concurrency 4) | 1.09× | **1.00×** |
-
-- INT4's advantage narrowed from about +52.6% / +43.7% to **+43.0% / +30.0%**, stable in direction and magnitude
-- "Self-made FP8 v3 is slightly faster than third-party FP8" **has been retracted.** Two independent rounds now agree: **the two are throughput-equivalent**, so the selection must rest on quality alone
-
-**Conclusions unaffected:** size reduction, the 200-question agreement rates, memory-budget arithmetic, and the reasoning behind parameter choices — none of these are throughput measurements, and none move between batches.
-
-The full investigation, the raw GPU state records, and every script are in [`docs/wsl2-runner-verification.md`](docs/wsl2-runner-verification.md).
+Full investigation, including the eliminated thermal-throttling hypothesis:
+[`docs/NUMBER_COMPARABILITY.md`](docs/NUMBER_COMPARABILITY.md).
 
 ---
 
@@ -419,4 +387,4 @@ Model weights and datasets are not committed (see `.gitignore`).
 | TensorRT-LLM | Not measured; comparison protocol and harness documented in [`docs/RUNTIME_COMPARISON.md`](docs/RUNTIME_COMPARISON.md) |
 | Cloud & governance | Not started |
 
-The v0.2.4 gateway was re-run against the real model: 20 requests at c=4 with 0 errors, 327.51 tok/s, stream TTFT p50 85.5 ms. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.
+The v0.2.4 gateway was re-run against the real model with 0 errors; that run is one of the three behind the 325.71 tok/s mean in the deployment table above, so it introduces no new number. If the offline bundle is republished, refresh its gateway image and SHA-256 manifests.

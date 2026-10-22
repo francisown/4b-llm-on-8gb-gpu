@@ -3,9 +3,10 @@
 This directory holds 240+ raw result files. This page exists so you do not
 have to guess which one still counts.
 
-**Rule:** a file is *current* only if `README.md` or a file under `docs/`
-links to it. Everything else is history — kept because it documents how a
-number was reached, not because it is a claim you should quote.
+**Rule:** a file is *current* only if `README.md`, a file under `docs/`, or a
+script under `scripts/` reads it. Everything else was moved to `archive/` —
+kept because it documents how a number was reached, not because it is a claim
+you should quote.
 
 ## Claim → evidence
 
@@ -36,7 +37,8 @@ number was reached, not because it is a claim you should quote.
 | `k8s-hpa-queue/` (2 files) | Queue-depth HPA setup and the c=32 scale trace | Current |
 | `hpa/` (5 files) | CPU HPA run on `hpa-demo` | Current for the CPU variant |
 | `runner-verify/` (3 files) | v1/v2 model-runner verification logs | Historical |
-| root (120 files) | Concurrency sweeps, quantization variants, quality JSON, repeat runs | Mostly historical; `qwen35-int4-awq-self-compiled-c4.json` is the current throughput input for `tools/cost_calculator.py` |
+| `archive/` (115 files) | Root-level results read by neither docs nor scripts: early sweeps, repeated measurements, superseded batches | Provenance only; nothing in `docs/` depends on them |
+| root (23 files) | Only files that a doc or script reads: the four real-vLLM soaks, the 3-run summary, the cost-calculator input, and the 18 `rbq-*` files the quantization CSV is rebuilt from | Current |
 
 ## How to tell a file is stale
 

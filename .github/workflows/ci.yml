@@ -78,6 +78,31 @@ jobs:
           context: .
           file: gateway/Dockerfile
           push: false
+          load: true
           tags: ai-inference-gateway:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Smoke test gateway container
+        run: |
+          python deploy/observability/mock_vllm.py &
+          MOCK_PID=$!
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/health >/dev/null; then break; fi
+            sleep 1
+          done
+          docker run -d --name gateway-ci -p 9000:9000 \
+            -e VLLM_BASE_URL=http://host.docker.internal:8000 \
+            --add-host host.docker.internal:host-gateway \
+            ai-inference-gateway:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:9000/live >/dev/null; then break; fi
+            sleep 1
+          done
+          GATEWAY_BASE_URL=http://127.0.0.1:9000 python gateway/smoke_test.py
+          docker rm -f gateway-ci
+          kill "$MOCK_PID"
+
+      - name: Stop smoke container on failure
+        if: failure()
+        run: docker rm -f gateway-ci || true

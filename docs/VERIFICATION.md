@@ -1,4 +1,4 @@
-# Verification
+﻿# Verification
 
 Current implementation: capability-module serving tree. All numbers below were
 produced on the current tree/evidence set; historical experiments were
@@ -14,9 +14,9 @@ python scripts/validate_workflows.py
 python scripts/validate_docs.py
 ```
 
-- tests: **100 passed / 7 skipped** without the C-Eval archive;
-- with `CEVAL_ZIP` set: **107 passed**;
-- coverage: **78.03%** without the C-Eval archive; **80.03%** with `CEVAL_ZIP`; CI floor 77%;
+- tests: **101 passed / 7 skipped** without the C-Eval archive;
+- with `CEVAL_ZIP` set: **108 passed**;
+- coverage: **78.13%** without the C-Eval archive; **80.1%** with `CEVAL_ZIP`; CI floor 77%;
 - ruff: pass;
 - mypy: `gateway/gateway.py src/llm8g`, 40 source files;
 - Kubernetes manifests: 48 documents;
@@ -59,15 +59,22 @@ Evidence: [`benchmark/results/soak-c4-600s-metrics-final.json`](../benchmark/res
 | 1 | 95.55 tok/s | 77.03 ms | 9.94 ms |
 | 4 | 309.55 tok/s | 271.66 ms | 10.88 ms |
 
-Evidence: [`r3-c1`](../benchmark/results/int4-r3-c1.json), [`r3-c4`](../benchmark/results/int4-r3-c4.json).
+The current files are one run per concurrency; repeat before claiming variance
+or a regression.
+
+Evidence: [`int4-c1`](../benchmark/results/int4-c1.json), [`int4-c4`](../benchmark/results/int4-c4.json).
 
 ## Quality
 
-- C-Eval 200 questions: **142/200 (71.0%)**;
-- vs the earlier INT4 v1 report: **99.5% per-question agreement**;
+- C-Eval 200 questions: **142/200 (71.0%)**, Wilson 95% **64.4–76.8%**;
+- vs the earlier INT4 v1 report: **99.5% agreement** (95% Wilson
+  **97.2–99.9%**), 1 fixed / 0 broken, McNemar p **1.0000**, κ **0.993**;
 - 32-case quant-quality smoke: **25/32 (78.1%)**, strict = relaxed.
 
-Evidence: [`C-Eval`](../benchmark/eval/int4-ceval-val-200.json), [`quant quality`](../benchmark/eval/int4-quant-quality.json).
+Evidence: [`C-Eval`](../benchmark/eval/int4-ceval-val-200.json),
+[`INT4 v1`](../benchmark/eval/self-int4-awq-v1-ceval-val-200.json),
+[`paired stats`](../benchmark/eval/int4-vs-v1-agreement.json),
+[`quant quality`](../benchmark/eval/int4-quant-quality.json).
 
 ## Docker
 

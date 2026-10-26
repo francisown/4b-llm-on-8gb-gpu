@@ -13,12 +13,14 @@ import os
 import shutil
 from pathlib import Path
 
+from .models import ArtifactManifest
 
-DEFAULT_MODEL = Path(os.environ.get("QWEN_BF16_DIR", "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b"))
+
+DEFAULT_MODEL = Path(os.environ.get("QWEN_BF16_DIR", "models/qwen3.5-4b"))
 DEFAULT_OUTPUT = Path(
     os.environ.get(
         "QWEN_FP8_OUTPUT",
-        "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b-fp8-self-v3",
+        "models/qwen3.5-4b-fp8-self-v3",
     )
 )
 
@@ -108,6 +110,13 @@ def main() -> None:
         device=args.device,
     )
     copy_supporting_files(source, output)
+    ArtifactManifest.from_directory(
+        output,
+        name=output.name,
+        source_model=source.name,
+        algorithm="FP8_BLOCK",
+        algorithm_version="llm-compressor 0.13.0",
+    ).write(output / "artifact-manifest.json")
     print(f"Completed: {output}")
 
 

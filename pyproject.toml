@@ -25,6 +25,7 @@ where = ["src"]
 llm8g = ["py.typed", "serving/static/*.html"]
 
 [tool.ruff]
+# Correctness rules only; CI lints the whole repository.
 line-length = 100
 target-version = "py310"
 

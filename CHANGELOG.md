@@ -18,7 +18,7 @@
 - Docker image built from a frozen `gateway/requirements-image.lock.txt`, then
   installed with `--no-deps`.
 - Release workflow added for manual GHCR builds.
-- Current verification: 100 passed / 7 skipped by default, 107 passed with
-  C-Eval, coverage 80.03% with C-Eval (78.03% without), real-vLLM 2-hour soak 69,687 requests / 0 errors,
+- Current verification: 101 passed / 7 skipped by default, 108 passed with
+  C-Eval, coverage 80.1% with C-Eval (78.13% without), real-vLLM 2-hour soak 69,687 requests / 0 errors,
   p95 445.26 ms; HPA 2→4→6→2 and TLS smoke pass.
 - Historical experiment data was removed from this clean branch.

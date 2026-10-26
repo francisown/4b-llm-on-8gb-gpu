@@ -59,9 +59,9 @@ python -m pip install -e ".[web,dev]"
 python -m pytest -q tests
 ```
 
-Expected result: **100 passed, 7 skipped** by default (the five skips are the
-external C-Eval archive tests); set `CEVAL_ZIP` to the frozen archive and the
-same suite runs **107 passed**. `smoke_test.py` remains the separate online test
+Expected result: **101 passed, 7 skipped** by default (the skips are external
+C-Eval archive tests); set `CEVAL_ZIP` to the frozen archive and the same suite
+runs **108 passed**. `smoke_test.py` remains the separate online test
 for a fully running gateway and vLLM server.
 
 ## Docker

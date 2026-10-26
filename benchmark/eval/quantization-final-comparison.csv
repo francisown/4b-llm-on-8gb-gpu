@@ -1,0 +1,5 @@
+model,precision,model_size_gib,size_reduction_vs_bf16_pct,ceval_correct,ceval_total,ceval_accuracy_pct,valid_prediction_pct,prediction_agreement_vs_bf16_pct,fixed_bf16_errors,regressed_bf16_correct,c1_output_tps,c1_ttft_p50_ms,c1_tpot_p50_ms,c4_output_tps,c4_ttft_p50_ms,c4_tpot_p50_ms,notes
+BF16 reference,BF16,8.701,0.0,141,200,70.5,100.0,100.0,0,0,,,,,,,Quality evaluated with Transformers GPU/CPU layer placement; checkpoint cannot run as a fully GPU-resident vLLM service on this 8 GB GPU
+Third-party FP8,FP8,5.281,39.3,141,200,70.5,100.0,96.5,3,3,72.02,47.92,13.57,256.83,159.49,14.41,Compiled vLLM benchmark
+Locally produced FP8 v3,FP8_BLOCK,5.281,39.3,141,200,70.5,100.0,98.0,2,2,72.76,48.11,13.46,257.33,159.9,14.39,Compiled vLLM benchmark; closest predictions to BF16
+Locally produced INT4-AWQ v1,W4A16 INT4-AWQ,3.568,59.0,141,200,70.5,100.0,87.0,11,11,102.99,72.24,9.21,333.9,251.73,10.07,Compiled vLLM benchmark; highest throughput and largest behavioral change

@@ -23,15 +23,17 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from datasets import Dataset  # type: ignore[import-not-found]
 
+from .models import ArtifactManifest
 
-DEFAULT_MODEL = Path(os.environ.get("QWEN_BF16_DIR", "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b"))
+
+DEFAULT_MODEL = Path(os.environ.get("QWEN_BF16_DIR", "models/qwen3.5-4b"))
 DEFAULT_OUTPUT = Path(
     os.environ.get(
         "QWEN_INT4_OUTPUT",
-        "/mnt/e/Desktop/qwen3.5/model/qwen3.5-4b-int4-awq-self-v1",
+        "models/qwen3.5-4b-int4-awq-self-v1",
     )
 )
-DEFAULT_CEVAL_ZIP = Path(os.environ.get("CEVAL_ZIP", "/mnt/e/AI-Inference-Lab/datasets/ceval.zip"))
+DEFAULT_CEVAL_ZIP = Path(os.environ.get("CEVAL_ZIP", "datasets/ceval.zip"))
 
 # Keep modules that either do not benefit enough from packing, are sensitive,
 # or are outside the text-only language model path in BF16.
@@ -254,6 +256,13 @@ def main() -> None:
         save_compressed=True,
     )
     copy_supporting_files(source, output)
+    ArtifactManifest.from_directory(
+        output,
+        name=output.name,
+        source_model=source.name,
+        algorithm="AWQ W4A16_ASYM",
+        algorithm_version="llm-compressor 0.13.0",
+    ).write(output / "artifact-manifest.json")
     print(f"Completed: {output}")
 
 

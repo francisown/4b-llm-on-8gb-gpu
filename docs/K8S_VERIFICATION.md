@@ -10,7 +10,8 @@ Verified on Docker Desktop Kubernetes `v1.36.1` with the final
 - startup `/live`, readiness `/ready`, liveness `/live`
 - `/health` checks the vLLM dependency
 - PDB, NetworkPolicy, HPA, Prometheus annotations present
-- image: `ai-inference-gateway:stable` (digest recorded in the evidence JSON)
+- image: `ai-inference-gateway:stable` (the evidence JSON records the exact
+  digest tested; a rebuild of the mutable `stable` tag may differ)
 
 Result:
 

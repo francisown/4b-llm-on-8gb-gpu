@@ -32,7 +32,10 @@ RUN python -m pip install \
 USER app
 EXPOSE 9000
 
-ENV OTEL_SDK_DISABLED=true
+ENV OTEL_SDK_DISABLED=true \
+    OTEL_TRACES_EXPORTER=none \
+    OTEL_METRICS_EXPORTER=none \
+    OTEL_LOGS_EXPORTER=none
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/live', timeout=2)"]

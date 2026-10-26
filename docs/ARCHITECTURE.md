@@ -78,10 +78,11 @@ statistics are pure functions.
 
 ## Quantization seam
 
-`ModelSpec` + `CalibrationManifest` -> quantized artifact + `ArtifactManifest`.
-The artifact manifest records input model, calibration hash, algorithm/version,
-file list/size, and runnability checks. `llm-compressor` is an adapter; the
-project does not reimplement AWQ/FP8 algorithms.
+`ModelSpec` + calibration data -> quantized artifact + `ArtifactManifest`.
+The quantization CLI writes `artifact-manifest.json` next to the output. It
+records the source model directory, algorithm/version, file list, sizes and
+SHA-256 hashes. `llm-compressor` is an adapter; the project does not reimplement
+AWQ/FP8 algorithms.
 
 ## Benchmark seam
 

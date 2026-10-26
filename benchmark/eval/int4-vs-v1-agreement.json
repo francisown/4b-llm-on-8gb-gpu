@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "current": "int4-ceval-val-200.json",
+  "baseline": "self-int4-awq-v1-ceval-val-200.json",
+  "stats": {
+    "model": "Current INT4 recheck vs INT4 v1",
+    "attempted": 200,
+    "correct": 142,
+    "accuracy": 0.71,
+    "accuracy_ci": [
+      0.6436252189922268,
+      0.7684597439293211
+    ],
+    "agreement": 0.995,
+    "agreement_ci": [
+      0.9722262956021069,
+      0.9991168312843989
+    ],
+    "fixed": 1,
+    "broken": 0,
+    "mcnemar_p": 1.0,
+    "kappa": 0.9933016277044676
+  }
+}

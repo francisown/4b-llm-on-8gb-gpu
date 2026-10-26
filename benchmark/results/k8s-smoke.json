@@ -2,6 +2,7 @@
   "schema_version": 1,
   "date": "2026-10-24",
   "scope": "local Docker Desktop Kubernetes smoke; not a performance run",
+  "note": "The digest identifies the exact build tested. The mutable stable tag may resolve to a newer local rebuild; re-run this smoke before quoting the digest.",
   "image": {
     "tag": "ai-inference-gateway:stable",
     "id": "sha256:f4a120c1b0ecf879e7efedd8ed78588ef2beb622b4055c7d21afb43a24cf0bcd",

@@ -1,7 +1,9 @@
-<p align="right">
+﻿<p align="right">
   <a href="README.md"><b>English</b></a> ·
   <a href="README.zh-CN.md">简体中文</a>
 </p>
+
+[![ci](https://github.com/francisown/4b-llm-on-8gb-gpu/actions/workflows/ci.yml/badge.svg)](https://github.com/francisown/4b-llm-on-8gb-gpu/actions/workflows/ci.yml)
 
 # 4B LLM on 8GB GPU
 
@@ -14,6 +16,12 @@ evidence.
 
 ![Gateway chat UI](docs/assets/gateway-ui.png)
 
+## Scope
+
+This is a **single-machine reference stack**, not a multi-tenant platform: one
+RTX 5060, one vLLM upstream, and one gateway. The HPA/TLS demos use a mock
+upstream and validate gateway mechanics, not model-serving high availability.
+
 ## Current verification
 
 | What | Result | Evidence |
@@ -21,11 +29,12 @@ evidence.
 | Gateway + real vLLM, 2-hour soak | **69,687 requests, 0 errors**, 9.68 rps, p50 **413.2 ms**, p95 **445.3 ms**, p99 **458.0 ms** | [`soak-c4-7200s-telemetry.json`](benchmark/results/soak-c4-7200s-telemetry.json) |
 | Soak telemetry | max active **4**, max waiting **1**, GPU memory **6.99–7.33 GiB**, GPU utilization **58–98%** | same file |
 | 10-minute gateway soak | **6,212 requests, 0 errors**, 10.35 rps, p95 **397.2 ms** | [`soak-c4-600s-metrics-final.json`](benchmark/results/soak-c4-600s-metrics-final.json) |
-| C-Eval 200 questions, INT4 checkpoint | **142/200 (71.0%)**, 99.5% per-question agreement with the v1 report | [`int4-ceval-val-200.json`](benchmark/eval/int4-ceval-val-200.json) |
+| C-Eval 200 questions, INT4 checkpoint | **142/200 (71.0%)**, 99.5% agreement with the INT4 v1 report | [new](benchmark/eval/int4-ceval-val-200.json) · [v1](benchmark/eval/self-int4-awq-v1-ceval-val-200.json) · [paired stats](benchmark/eval/int4-vs-v1-agreement.json) |
 | 32-case quant-quality smoke | **25/32 (78.1%)**, strict = relaxed | [`int4-quant-quality.json`](benchmark/eval/int4-quant-quality.json) |
-| Direct vLLM, INT4, c=1 / c=4 | **95.55 / 309.55 tok/s** | [`r3-c1`](benchmark/results/int4-r3-c1.json) · [`r3-c4`](benchmark/results/int4-r3-c4.json) |
+| Quantization comparison | BF16 **8.701 GiB** · FP8 **5.281 GiB** · INT4-AWQ **3.568 GiB**; BF16/FP8/INT4-v1 all **141/200** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
+| Direct vLLM, INT4, c=1 / c=4 | **95.55 / 309.55 tok/s** (one run each) | [`int4-c1`](benchmark/results/int4-c1.json) · [`int4-c4`](benchmark/results/int4-c4.json) |
 | Docker Desktop Kubernetes | 2 replicas, HPA 2→4→6→2, TLS `/live` + `/health` 200 | [`k8s`](benchmark/results/k8s-hpa-tls.json) · [`smoke`](benchmark/results/k8s-smoke.json) |
-| Deterministic suite | **100 passed / 7 skipped** by default; **107 passed** with `CEVAL_ZIP`; coverage **78.03%** without C-Eval, **80.03%** with it | `python -m pytest -q tests` |
+| Deterministic suite | **101 passed / 7 skipped** by default; **108 passed** with `CEVAL_ZIP`; coverage **78.13%** without C-Eval, **80.1%** with it | `python -m pytest -q tests` |
 
 Performance numbers are from one RTX 5060 and one vLLM 0.29.0 environment. The
 direct benchmark is a 16-prompt microbenchmark, not a capacity plan. The 200
@@ -120,6 +129,15 @@ Full GPU/vLLM path: [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 | C-Eval / quant-quality rechecks | Done |
 | GHCR image | Not published |
 | TensorRT-LLM comparison | Not measured |
+
+## Third-party assets
+
+Model weights and C-Eval data are not redistributed. Set `QWEN_BF16_DIR` and
+`CEVAL_ZIP` to local copies and follow the upstream terms for
+[Qwen3.5-4B](https://huggingface.co/Qwen) and
+[C-Eval](https://github.com/SJTU-LIT/ceval). The quantization CLI writes
+`artifact-manifest.json` into the output directory, recording file sizes,
+SHA-256 hashes, the source model directory name, and the algorithm/version.
 
 ## License
 

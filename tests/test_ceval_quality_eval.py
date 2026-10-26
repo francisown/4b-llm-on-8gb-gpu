@@ -20,7 +20,7 @@ from ceval_quality_eval import (  # noqa: E402
 
 
 CEVAL_ZIP = Path(
-    os.environ.get("CEVAL_ZIP", "/mnt/e/AI-Inference-Lab/datasets/ceval.zip")
+    os.environ.get("CEVAL_ZIP", "datasets/ceval.zip")
 )
 
 

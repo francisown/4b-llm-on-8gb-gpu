@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -45,6 +46,23 @@ class DomainPackageTests(unittest.TestCase):
             )
             self.assertEqual([row[0] for row in manifest.files], ["a.txt", "b.txt"])
             self.assertEqual(manifest.total_bytes, 2)
+
+    def test_artifact_manifest_writes_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "a.txt").write_text("a", encoding="utf-8")
+            manifest = ArtifactManifest.from_directory(
+                root,
+                name="demo",
+                source_model="base",
+                algorithm="fake",
+                algorithm_version="1",
+            )
+            path = root / "artifact-manifest.json"
+            manifest.write(path)
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(payload["source_model"], "base")
+            self.assertEqual(payload["files"][0][0], "a.txt")
 
     def test_protocol_comparison_is_exact(self) -> None:
         protocol = BenchmarkProtocol("p", "vllm", "1", "m", "gpu", 10, 5, 1, 3)

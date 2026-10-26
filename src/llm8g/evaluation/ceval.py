@@ -25,7 +25,7 @@ from .reporting import atomic_write_json
 import zipfile
 
 
-DEFAULT_ZIP = Path(os.environ.get("CEVAL_ZIP", "/mnt/e/AI-Inference-Lab/datasets/ceval.zip"))
+DEFAULT_ZIP = Path(os.environ.get("CEVAL_ZIP", "datasets/ceval.zip"))
 DEFAULT_MANIFEST = Path("benchmark/eval/ceval-val-200.json")
 CHOICES = ("A", "B", "C", "D")
 

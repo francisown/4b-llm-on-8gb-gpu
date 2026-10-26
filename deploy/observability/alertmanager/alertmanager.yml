@@ -1,0 +1,18 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: local-webhook
+  group_by: ["alertname"]
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 4h
+
+receivers:
+  - name: local-webhook
+    # Demo receiver: a local echo container records the delivered payload so we
+    # verify notification delivery, not just alert routing.
+    # Production needs a real pager (Slack/PagerDuty/Opsgenie) over TLS with auth.
+    webhook_configs:
+      - url: http://webhook:8080/alert
+        send_resolved: true

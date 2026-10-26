@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "image": "sha256:f4a120c1b0ecf879e7efedd8ed78588ef2beb622b4055c7d21afb43a24cf0bcd",
+  "namespace": "k8s-hpa-queue-demo",
+  "hpa": {
+    "name": "inference-gateway-queue",
+    "min_replicas": 2,
+    "max_replicas": 6,
+    "metric": "inference_gateway_waiting_requests",
+    "loadgen": {
+      "workers": 32,
+      "duration_seconds": 240
+    },
+    "scale_up": {
+      "2": "t=0s",
+      "4": "t=20s",
+      "6": "t=50s"
+    },
+    "scale_down_observed": {
+      "5": "t=110s",
+      "4": "t=140s",
+      "3": "t=170s",
+      "2": "after ~180s"
+    },
+    "max_replicas_observed": 6
+  },
+  "tls": {
+    "namespace": "k8s-tls-demo",
+    "service": "tls-proxy:443",
+    "live": 200,
+    "health": 200
+  },
+  "note": "HPA loadgen ran against the in-cluster mock vLLM, not the real 4B model."
+}

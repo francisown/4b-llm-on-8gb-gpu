@@ -1,0 +1,55 @@
+{
+  "url": "http://127.0.0.1:9026/chat",
+  "duration_s": 600.205,
+  "concurrency": 4,
+  "max_tokens": 32,
+  "requests": 6212,
+  "success": 6212,
+  "rejected_429": 0,
+  "errors": 0,
+  "error_rate": 0.0,
+  "rejection_rate": 0.0,
+  "throughput_rps": 10.35,
+  "success_rps": 10.35,
+  "latency_ms": {
+    "mean": 386.48,
+    "p50": 384.4,
+    "p95": 397.15,
+    "p99": 418.05
+  },
+  "status_counts": {
+    "200": 6212
+  },
+  "health_before": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "local",
+    "version": "stable"
+  },
+  "health_after": {
+    "status": "ok",
+    "vllm": "ok",
+    "pod": "local",
+    "version": "stable"
+  },
+  "status_before": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "local",
+    "version": "stable"
+  },
+  "status_after": {
+    "active": 0,
+    "waiting": 0,
+    "max_concurrent": 4,
+    "max_queue": 4,
+    "queue_timeout_seconds": 10.0,
+    "pod": "local",
+    "version": "stable"
+  },
+  "rejection_samples": [],
+  "error_samples": []
+}

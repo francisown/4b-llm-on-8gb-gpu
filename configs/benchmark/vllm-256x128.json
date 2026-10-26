@@ -1,0 +1,11 @@
+{
+  "name": "vllm-256x128",
+  "runtime": "vllm",
+  "runtime_version": "0.29.0",
+  "input_tokens": 256,
+  "output_tokens": 128,
+  "temperature": 0.0,
+  "enable_thinking": false,
+  "repetitions": 3,
+  "prompts_per_run": 16
+}

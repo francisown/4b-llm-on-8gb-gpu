@@ -1,0 +1,3080 @@
+{
+  "schema_version": 1,
+  "label": "int4",
+  "model": "Qwen3.5-4B-INT4-AWQ",
+  "base_url": "http://127.0.0.1:8000/v1",
+  "manifest": "benchmark\\eval\\ceval-val-200.json",
+  "cases_sha256": "8df8746b0c0f164212e8dd821f55cb6cbaacb31d3a73cd82db39b74dfd41c941",
+  "results": [
+    {
+      "case_id": "high_school_biology:13",
+      "subject": "high_school_biology",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.081658,
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 2,
+        "total_tokens": 137
+      }
+    },
+    {
+      "case_id": "environmental_impact_assessment_engineer:0",
+      "subject": "environmental_impact_assessment_engineer",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.073142,
+      "usage": {
+        "prompt_tokens": 124,
+        "completion_tokens": 2,
+        "total_tokens": 126
+      }
+    },
+    {
+      "case_id": "professional_tour_guide:4",
+      "subject": "professional_tour_guide",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.078729,
+      "usage": {
+        "prompt_tokens": 149,
+        "completion_tokens": 2,
+        "total_tokens": 151
+      }
+    },
+    {
+      "case_id": "computer_network:16",
+      "subject": "computer_network",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.065746,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 2,
+        "total_tokens": 84
+      }
+    },
+    {
+      "case_id": "discrete_mathematics:8",
+      "subject": "discrete_mathematics",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.078231,
+      "usage": {
+        "prompt_tokens": 113,
+        "completion_tokens": 2,
+        "total_tokens": 115
+      }
+    },
+    {
+      "case_id": "high_school_chinese:3",
+      "subject": "high_school_chinese",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.075496,
+      "usage": {
+        "prompt_tokens": 190,
+        "completion_tokens": 2,
+        "total_tokens": 192
+      }
+    },
+    {
+      "case_id": "marxism:5",
+      "subject": "marxism",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.062616,
+      "usage": {
+        "prompt_tokens": 114,
+        "completion_tokens": 2,
+        "total_tokens": 116
+      }
+    },
+    {
+      "case_id": "advanced_mathematics:3",
+      "subject": "advanced_mathematics",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.12108,
+      "usage": {
+        "prompt_tokens": 349,
+        "completion_tokens": 2,
+        "total_tokens": 351
+      }
+    },
+    {
+      "case_id": "education_science:9",
+      "subject": "education_science",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.067236,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 2,
+        "total_tokens": 87
+      }
+    },
+    {
+      "case_id": "high_school_chinese:10",
+      "subject": "high_school_chinese",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.084824,
+      "usage": {
+        "prompt_tokens": 160,
+        "completion_tokens": 2,
+        "total_tokens": 162
+      }
+    },
+    {
+      "case_id": "middle_school_mathematics:16",
+      "subject": "middle_school_mathematics",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.067164,
+      "usage": {
+        "prompt_tokens": 80,
+        "completion_tokens": 2,
+        "total_tokens": 82
+      }
+    },
+    {
+      "case_id": "college_chemistry:0",
+      "subject": "college_chemistry",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.077993,
+      "usage": {
+        "prompt_tokens": 100,
+        "completion_tokens": 2,
+        "total_tokens": 102
+      }
+    },
+    {
+      "case_id": "high_school_politics:1",
+      "subject": "high_school_politics",
+      "expected": "C",
+      "prediction": "D",
+      "correct": false,
+      "raw_answer": "D",
+      "latency_seconds": 0.076626,
+      "usage": {
+        "prompt_tokens": 180,
+        "completion_tokens": 2,
+        "total_tokens": 182
+      }
+    },
+    {
+      "case_id": "logic:11",
+      "subject": "logic",
+      "expected": "A",
+      "prediction": "D",
+      "correct": false,
+      "raw_answer": "D",
+      "latency_seconds": 0.102067,
+      "usage": {
+        "prompt_tokens": 293,
+        "completion_tokens": 2,
+        "total_tokens": 295
+      }
+    },
+    {
+      "case_id": "law:3",
+      "subject": "law",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.063891,
+      "usage": {
+        "prompt_tokens": 124,
+        "completion_tokens": 2,
+        "total_tokens": 126
+      }
+    },
+    {
+      "case_id": "legal_professional:10",
+      "subject": "legal_professional",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.09368,
+      "usage": {
+        "prompt_tokens": 190,
+        "completion_tokens": 2,
+        "total_tokens": 192
+      }
+    },
+    {
+      "case_id": "college_economics:26",
+      "subject": "college_economics",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.073164,
+      "usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 2,
+        "total_tokens": 112
+      }
+    },
+    {
+      "case_id": "advanced_mathematics:10",
+      "subject": "advanced_mathematics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.095725,
+      "usage": {
+        "prompt_tokens": 258,
+        "completion_tokens": 2,
+        "total_tokens": 260
+      }
+    },
+    {
+      "case_id": "physician:7",
+      "subject": "physician",
+      "expected": "D",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.05652,
+      "usage": {
+        "prompt_tokens": 76,
+        "completion_tokens": 2,
+        "total_tokens": 78
+      }
+    },
+    {
+      "case_id": "marxism:13",
+      "subject": "marxism",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.077811,
+      "usage": {
+        "prompt_tokens": 98,
+        "completion_tokens": 2,
+        "total_tokens": 100
+      }
+    },
+    {
+      "case_id": "middle_school_politics:19",
+      "subject": "middle_school_politics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.059882,
+      "usage": {
+        "prompt_tokens": 96,
+        "completion_tokens": 2,
+        "total_tokens": 98
+      }
+    },
+    {
+      "case_id": "computer_architecture:18",
+      "subject": "computer_architecture",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.086269,
+      "usage": {
+        "prompt_tokens": 122,
+        "completion_tokens": 2,
+        "total_tokens": 124
+      }
+    },
+    {
+      "case_id": "professional_tour_guide:20",
+      "subject": "professional_tour_guide",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.078954,
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 2,
+        "total_tokens": 91
+      }
+    },
+    {
+      "case_id": "art_studies:6",
+      "subject": "art_studies",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.060471,
+      "usage": {
+        "prompt_tokens": 97,
+        "completion_tokens": 2,
+        "total_tokens": 99
+      }
+    },
+    {
+      "case_id": "civil_servant:31",
+      "subject": "civil_servant",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.088259,
+      "usage": {
+        "prompt_tokens": 105,
+        "completion_tokens": 2,
+        "total_tokens": 107
+      }
+    },
+    {
+      "case_id": "fire_engineer:23",
+      "subject": "fire_engineer",
+      "expected": "A",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.059985,
+      "usage": {
+        "prompt_tokens": 109,
+        "completion_tokens": 2,
+        "total_tokens": 111
+      }
+    },
+    {
+      "case_id": "high_school_chinese:8",
+      "subject": "high_school_chinese",
+      "expected": "A",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.075165,
+      "usage": {
+        "prompt_tokens": 133,
+        "completion_tokens": 2,
+        "total_tokens": 135
+      }
+    },
+    {
+      "case_id": "business_administration:19",
+      "subject": "business_administration",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.077798,
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 2,
+        "total_tokens": 97
+      }
+    },
+    {
+      "case_id": "mao_zedong_thought:18",
+      "subject": "mao_zedong_thought",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.084722,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 2,
+        "total_tokens": 87
+      }
+    },
+    {
+      "case_id": "electrical_engineer:15",
+      "subject": "electrical_engineer",
+      "expected": "D",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.072732,
+      "usage": {
+        "prompt_tokens": 162,
+        "completion_tokens": 2,
+        "total_tokens": 164
+      }
+    },
+    {
+      "case_id": "high_school_physics:1",
+      "subject": "high_school_physics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.060433,
+      "usage": {
+        "prompt_tokens": 103,
+        "completion_tokens": 2,
+        "total_tokens": 105
+      }
+    },
+    {
+      "case_id": "tax_accountant:30",
+      "subject": "tax_accountant",
+      "expected": "A",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.095792,
+      "usage": {
+        "prompt_tokens": 182,
+        "completion_tokens": 2,
+        "total_tokens": 184
+      }
+    },
+    {
+      "case_id": "tax_accountant:24",
+      "subject": "tax_accountant",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.101417,
+      "usage": {
+        "prompt_tokens": 227,
+        "completion_tokens": 2,
+        "total_tokens": 229
+      }
+    },
+    {
+      "case_id": "business_administration:7",
+      "subject": "business_administration",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.065593,
+      "usage": {
+        "prompt_tokens": 127,
+        "completion_tokens": 2,
+        "total_tokens": 129
+      }
+    },
+    {
+      "case_id": "mao_zedong_thought:15",
+      "subject": "mao_zedong_thought",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.074372,
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 2,
+        "total_tokens": 97
+      }
+    },
+    {
+      "case_id": "physician:0",
+      "subject": "physician",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.076758,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 2,
+        "total_tokens": 88
+      }
+    },
+    {
+      "case_id": "urban_and_rural_planner:22",
+      "subject": "urban_and_rural_planner",
+      "expected": "B",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.062129,
+      "usage": {
+        "prompt_tokens": 105,
+        "completion_tokens": 2,
+        "total_tokens": 107
+      }
+    },
+    {
+      "case_id": "computer_network:5",
+      "subject": "computer_network",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.056363,
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 2,
+        "total_tokens": 91
+      }
+    },
+    {
+      "case_id": "college_physics:6",
+      "subject": "college_physics",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.088464,
+      "usage": {
+        "prompt_tokens": 147,
+        "completion_tokens": 2,
+        "total_tokens": 149
+      }
+    },
+    {
+      "case_id": "teacher_qualification:4",
+      "subject": "teacher_qualification",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.085054,
+      "usage": {
+        "prompt_tokens": 145,
+        "completion_tokens": 2,
+        "total_tokens": 147
+      }
+    },
+    {
+      "case_id": "plant_protection:0",
+      "subject": "plant_protection",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.079575,
+      "usage": {
+        "prompt_tokens": 98,
+        "completion_tokens": 2,
+        "total_tokens": 100
+      }
+    },
+    {
+      "case_id": "tax_accountant:40",
+      "subject": "tax_accountant",
+      "expected": "C",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.070296,
+      "usage": {
+        "prompt_tokens": 144,
+        "completion_tokens": 2,
+        "total_tokens": 146
+      }
+    },
+    {
+      "case_id": "middle_school_physics:6",
+      "subject": "middle_school_physics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.088491,
+      "usage": {
+        "prompt_tokens": 139,
+        "completion_tokens": 2,
+        "total_tokens": 141
+      }
+    },
+    {
+      "case_id": "law:17",
+      "subject": "law",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.076385,
+      "usage": {
+        "prompt_tokens": 131,
+        "completion_tokens": 2,
+        "total_tokens": 133
+      }
+    },
+    {
+      "case_id": "high_school_politics:14",
+      "subject": "high_school_politics",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.080587,
+      "usage": {
+        "prompt_tokens": 207,
+        "completion_tokens": 2,
+        "total_tokens": 209
+      }
+    },
+    {
+      "case_id": "high_school_politics:16",
+      "subject": "high_school_politics",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.080468,
+      "usage": {
+        "prompt_tokens": 125,
+        "completion_tokens": 2,
+        "total_tokens": 127
+      }
+    },
+    {
+      "case_id": "art_studies:19",
+      "subject": "art_studies",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.06091,
+      "usage": {
+        "prompt_tokens": 94,
+        "completion_tokens": 2,
+        "total_tokens": 96
+      }
+    },
+    {
+      "case_id": "sports_science:4",
+      "subject": "sports_science",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.058538,
+      "usage": {
+        "prompt_tokens": 90,
+        "completion_tokens": 2,
+        "total_tokens": 92
+      }
+    },
+    {
+      "case_id": "high_school_geography:11",
+      "subject": "high_school_geography",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.061249,
+      "usage": {
+        "prompt_tokens": 94,
+        "completion_tokens": 2,
+        "total_tokens": 96
+      }
+    },
+    {
+      "case_id": "environmental_impact_assessment_engineer:6",
+      "subject": "environmental_impact_assessment_engineer",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.079789,
+      "usage": {
+        "prompt_tokens": 123,
+        "completion_tokens": 2,
+        "total_tokens": 125
+      }
+    },
+    {
+      "case_id": "metrology_engineer:21",
+      "subject": "metrology_engineer",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.06608,
+      "usage": {
+        "prompt_tokens": 96,
+        "completion_tokens": 2,
+        "total_tokens": 98
+      }
+    },
+    {
+      "case_id": "plant_protection:9",
+      "subject": "plant_protection",
+      "expected": "D",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.077084,
+      "usage": {
+        "prompt_tokens": 94,
+        "completion_tokens": 2,
+        "total_tokens": 96
+      }
+    },
+    {
+      "case_id": "fire_engineer:29",
+      "subject": "fire_engineer",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.06056,
+      "usage": {
+        "prompt_tokens": 103,
+        "completion_tokens": 2,
+        "total_tokens": 105
+      }
+    },
+    {
+      "case_id": "operating_system:6",
+      "subject": "operating_system",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.077738,
+      "usage": {
+        "prompt_tokens": 128,
+        "completion_tokens": 2,
+        "total_tokens": 130
+      }
+    },
+    {
+      "case_id": "teacher_qualification:22",
+      "subject": "teacher_qualification",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.071876,
+      "usage": {
+        "prompt_tokens": 92,
+        "completion_tokens": 2,
+        "total_tokens": 94
+      }
+    },
+    {
+      "case_id": "discrete_mathematics:11",
+      "subject": "discrete_mathematics",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.091145,
+      "usage": {
+        "prompt_tokens": 174,
+        "completion_tokens": 2,
+        "total_tokens": 176
+      }
+    },
+    {
+      "case_id": "veterinary_medicine:20",
+      "subject": "veterinary_medicine",
+      "expected": "A",
+      "prediction": "D",
+      "correct": false,
+      "raw_answer": "D",
+      "latency_seconds": 0.069397,
+      "usage": {
+        "prompt_tokens": 158,
+        "completion_tokens": 2,
+        "total_tokens": 160
+      }
+    },
+    {
+      "case_id": "middle_school_chemistry:0",
+      "subject": "middle_school_chemistry",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.060527,
+      "usage": {
+        "prompt_tokens": 102,
+        "completion_tokens": 2,
+        "total_tokens": 104
+      }
+    },
+    {
+      "case_id": "high_school_physics:9",
+      "subject": "high_school_physics",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.075641,
+      "usage": {
+        "prompt_tokens": 140,
+        "completion_tokens": 2,
+        "total_tokens": 142
+      }
+    },
+    {
+      "case_id": "mao_zedong_thought:17",
+      "subject": "mao_zedong_thought",
+      "expected": "B",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.074666,
+      "usage": {
+        "prompt_tokens": 91,
+        "completion_tokens": 2,
+        "total_tokens": 93
+      }
+    },
+    {
+      "case_id": "middle_school_physics:4",
+      "subject": "middle_school_physics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.0651,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 2,
+        "total_tokens": 90
+      }
+    },
+    {
+      "case_id": "middle_school_geography:10",
+      "subject": "middle_school_geography",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.066836,
+      "usage": {
+        "prompt_tokens": 94,
+        "completion_tokens": 2,
+        "total_tokens": 96
+      }
+    },
+    {
+      "case_id": "college_programming:18",
+      "subject": "college_programming",
+      "expected": "C",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.088639,
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 2,
+        "total_tokens": 202
+      }
+    },
+    {
+      "case_id": "high_school_biology:6",
+      "subject": "high_school_biology",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.075329,
+      "usage": {
+        "prompt_tokens": 142,
+        "completion_tokens": 2,
+        "total_tokens": 144
+      }
+    },
+    {
+      "case_id": "middle_school_physics:13",
+      "subject": "middle_school_physics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.060802,
+      "usage": {
+        "prompt_tokens": 91,
+        "completion_tokens": 2,
+        "total_tokens": 93
+      }
+    },
+    {
+      "case_id": "advanced_mathematics:12",
+      "subject": "advanced_mathematics",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.062623,
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 2,
+        "total_tokens": 109
+      }
+    },
+    {
+      "case_id": "middle_school_history:4",
+      "subject": "middle_school_history",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.065645,
+      "usage": {
+        "prompt_tokens": 136,
+        "completion_tokens": 2,
+        "total_tokens": 138
+      }
+    },
+    {
+      "case_id": "college_chemistry:13",
+      "subject": "college_chemistry",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.074359,
+      "usage": {
+        "prompt_tokens": 97,
+        "completion_tokens": 2,
+        "total_tokens": 99
+      }
+    },
+    {
+      "case_id": "electrical_engineer:23",
+      "subject": "electrical_engineer",
+      "expected": "C",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.067346,
+      "usage": {
+        "prompt_tokens": 138,
+        "completion_tokens": 2,
+        "total_tokens": 140
+      }
+    },
+    {
+      "case_id": "logic:18",
+      "subject": "logic",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.089229,
+      "usage": {
+        "prompt_tokens": 158,
+        "completion_tokens": 2,
+        "total_tokens": 160
+      }
+    },
+    {
+      "case_id": "college_physics:2",
+      "subject": "college_physics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.087096,
+      "usage": {
+        "prompt_tokens": 128,
+        "completion_tokens": 2,
+        "total_tokens": 130
+      }
+    },
+    {
+      "case_id": "accountant:20",
+      "subject": "accountant",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.083222,
+      "usage": {
+        "prompt_tokens": 214,
+        "completion_tokens": 2,
+        "total_tokens": 216
+      }
+    },
+    {
+      "case_id": "education_science:24",
+      "subject": "education_science",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.059588,
+      "usage": {
+        "prompt_tokens": 78,
+        "completion_tokens": 2,
+        "total_tokens": 80
+      }
+    },
+    {
+      "case_id": "marxism:14",
+      "subject": "marxism",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.083896,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 2,
+        "total_tokens": 90
+      }
+    },
+    {
+      "case_id": "ideological_and_moral_cultivation:16",
+      "subject": "ideological_and_moral_cultivation",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.059186,
+      "usage": {
+        "prompt_tokens": 93,
+        "completion_tokens": 2,
+        "total_tokens": 95
+      }
+    },
+    {
+      "case_id": "high_school_chinese:12",
+      "subject": "high_school_chinese",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.073508,
+      "usage": {
+        "prompt_tokens": 173,
+        "completion_tokens": 2,
+        "total_tokens": 175
+      }
+    },
+    {
+      "case_id": "accountant:37",
+      "subject": "accountant",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.068277,
+      "usage": {
+        "prompt_tokens": 97,
+        "completion_tokens": 2,
+        "total_tokens": 99
+      }
+    },
+    {
+      "case_id": "high_school_chemistry:2",
+      "subject": "high_school_chemistry",
+      "expected": "C",
+      "prediction": "D",
+      "correct": false,
+      "raw_answer": "D",
+      "latency_seconds": 0.099071,
+      "usage": {
+        "prompt_tokens": 224,
+        "completion_tokens": 2,
+        "total_tokens": 226
+      }
+    },
+    {
+      "case_id": "chinese_language_and_literature:0",
+      "subject": "chinese_language_and_literature",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.086657,
+      "usage": {
+        "prompt_tokens": 106,
+        "completion_tokens": 2,
+        "total_tokens": 108
+      }
+    },
+    {
+      "case_id": "middle_school_mathematics:17",
+      "subject": "middle_school_mathematics",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.08023,
+      "usage": {
+        "prompt_tokens": 143,
+        "completion_tokens": 2,
+        "total_tokens": 145
+      }
+    },
+    {
+      "case_id": "marxism:12",
+      "subject": "marxism",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.057568,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 2,
+        "total_tokens": 87
+      }
+    },
+    {
+      "case_id": "law:18",
+      "subject": "law",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.084281,
+      "usage": {
+        "prompt_tokens": 210,
+        "completion_tokens": 2,
+        "total_tokens": 212
+      }
+    },
+    {
+      "case_id": "college_programming:16",
+      "subject": "college_programming",
+      "expected": "B",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.06333,
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 2,
+        "total_tokens": 97
+      }
+    },
+    {
+      "case_id": "electrical_engineer:32",
+      "subject": "electrical_engineer",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.066128,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 2,
+        "total_tokens": 85
+      }
+    },
+    {
+      "case_id": "urban_and_rural_planner:32",
+      "subject": "urban_and_rural_planner",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.059081,
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 2,
+        "total_tokens": 109
+      }
+    },
+    {
+      "case_id": "sports_science:5",
+      "subject": "sports_science",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.08152,
+      "usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 2,
+        "total_tokens": 112
+      }
+    },
+    {
+      "case_id": "college_physics:12",
+      "subject": "college_physics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.096626,
+      "usage": {
+        "prompt_tokens": 210,
+        "completion_tokens": 2,
+        "total_tokens": 212
+      }
+    },
+    {
+      "case_id": "operating_system:0",
+      "subject": "operating_system",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.060072,
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 2,
+        "total_tokens": 89
+      }
+    },
+    {
+      "case_id": "middle_school_chemistry:11",
+      "subject": "middle_school_chemistry",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.087932,
+      "usage": {
+        "prompt_tokens": 120,
+        "completion_tokens": 2,
+        "total_tokens": 122
+      }
+    },
+    {
+      "case_id": "civil_servant:0",
+      "subject": "civil_servant",
+      "expected": "D",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.075222,
+      "usage": {
+        "prompt_tokens": 157,
+        "completion_tokens": 2,
+        "total_tokens": 159
+      }
+    },
+    {
+      "case_id": "middle_school_biology:12",
+      "subject": "middle_school_biology",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.068999,
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 2,
+        "total_tokens": 97
+      }
+    },
+    {
+      "case_id": "clinical_medicine:6",
+      "subject": "clinical_medicine",
+      "expected": "B",
+      "prediction": "D",
+      "correct": false,
+      "raw_answer": "D",
+      "latency_seconds": 0.078099,
+      "usage": {
+        "prompt_tokens": 94,
+        "completion_tokens": 2,
+        "total_tokens": 96
+      }
+    },
+    {
+      "case_id": "middle_school_biology:14",
+      "subject": "middle_school_biology",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.059895,
+      "usage": {
+        "prompt_tokens": 97,
+        "completion_tokens": 2,
+        "total_tokens": 99
+      }
+    },
+    {
+      "case_id": "high_school_physics:0",
+      "subject": "high_school_physics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.098557,
+      "usage": {
+        "prompt_tokens": 236,
+        "completion_tokens": 2,
+        "total_tokens": 238
+      }
+    },
+    {
+      "case_id": "sports_science:12",
+      "subject": "sports_science",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.066394,
+      "usage": {
+        "prompt_tokens": 136,
+        "completion_tokens": 2,
+        "total_tokens": 138
+      }
+    },
+    {
+      "case_id": "high_school_geography:13",
+      "subject": "high_school_geography",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.080552,
+      "usage": {
+        "prompt_tokens": 197,
+        "completion_tokens": 2,
+        "total_tokens": 199
+      }
+    },
+    {
+      "case_id": "physician:44",
+      "subject": "physician",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.059081,
+      "usage": {
+        "prompt_tokens": 103,
+        "completion_tokens": 2,
+        "total_tokens": 105
+      }
+    },
+    {
+      "case_id": "physician:40",
+      "subject": "physician",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.060151,
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 2,
+        "total_tokens": 89
+      }
+    },
+    {
+      "case_id": "computer_architecture:19",
+      "subject": "computer_architecture",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.080293,
+      "usage": {
+        "prompt_tokens": 100,
+        "completion_tokens": 2,
+        "total_tokens": 102
+      }
+    },
+    {
+      "case_id": "electrical_engineer:7",
+      "subject": "electrical_engineer",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.084831,
+      "usage": {
+        "prompt_tokens": 127,
+        "completion_tokens": 2,
+        "total_tokens": 129
+      }
+    },
+    {
+      "case_id": "art_studies:3",
+      "subject": "art_studies",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.060079,
+      "usage": {
+        "prompt_tokens": 97,
+        "completion_tokens": 2,
+        "total_tokens": 99
+      }
+    },
+    {
+      "case_id": "education_science:3",
+      "subject": "education_science",
+      "expected": "C",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.060161,
+      "usage": {
+        "prompt_tokens": 100,
+        "completion_tokens": 2,
+        "total_tokens": 102
+      }
+    },
+    {
+      "case_id": "logic:2",
+      "subject": "logic",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.095,
+      "usage": {
+        "prompt_tokens": 185,
+        "completion_tokens": 2,
+        "total_tokens": 187
+      }
+    },
+    {
+      "case_id": "high_school_mathematics:16",
+      "subject": "high_school_mathematics",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.065908,
+      "usage": {
+        "prompt_tokens": 138,
+        "completion_tokens": 2,
+        "total_tokens": 140
+      }
+    },
+    {
+      "case_id": "high_school_chemistry:18",
+      "subject": "high_school_chemistry",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.060738,
+      "usage": {
+        "prompt_tokens": 104,
+        "completion_tokens": 2,
+        "total_tokens": 106
+      }
+    },
+    {
+      "case_id": "high_school_mathematics:2",
+      "subject": "high_school_mathematics",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.090202,
+      "usage": {
+        "prompt_tokens": 136,
+        "completion_tokens": 2,
+        "total_tokens": 138
+      }
+    },
+    {
+      "case_id": "ideological_and_moral_cultivation:14",
+      "subject": "ideological_and_moral_cultivation",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.058104,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 2,
+        "total_tokens": 83
+      }
+    },
+    {
+      "case_id": "high_school_history:10",
+      "subject": "high_school_history",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.060982,
+      "usage": {
+        "prompt_tokens": 103,
+        "completion_tokens": 2,
+        "total_tokens": 105
+      }
+    },
+    {
+      "case_id": "high_school_history:4",
+      "subject": "high_school_history",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.081027,
+      "usage": {
+        "prompt_tokens": 103,
+        "completion_tokens": 2,
+        "total_tokens": 105
+      }
+    },
+    {
+      "case_id": "logic:17",
+      "subject": "logic",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.084502,
+      "usage": {
+        "prompt_tokens": 153,
+        "completion_tokens": 2,
+        "total_tokens": 155
+      }
+    },
+    {
+      "case_id": "middle_school_physics:5",
+      "subject": "middle_school_physics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.086943,
+      "usage": {
+        "prompt_tokens": 117,
+        "completion_tokens": 2,
+        "total_tokens": 119
+      }
+    },
+    {
+      "case_id": "fire_engineer:16",
+      "subject": "fire_engineer",
+      "expected": "A",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.070147,
+      "usage": {
+        "prompt_tokens": 105,
+        "completion_tokens": 2,
+        "total_tokens": 107
+      }
+    },
+    {
+      "case_id": "legal_professional:15",
+      "subject": "legal_professional",
+      "expected": "D",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.099562,
+      "usage": {
+        "prompt_tokens": 234,
+        "completion_tokens": 2,
+        "total_tokens": 236
+      }
+    },
+    {
+      "case_id": "college_chemistry:16",
+      "subject": "college_chemistry",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.064796,
+      "usage": {
+        "prompt_tokens": 91,
+        "completion_tokens": 2,
+        "total_tokens": 93
+      }
+    },
+    {
+      "case_id": "computer_network:10",
+      "subject": "computer_network",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.07661,
+      "usage": {
+        "prompt_tokens": 76,
+        "completion_tokens": 2,
+        "total_tokens": 78
+      }
+    },
+    {
+      "case_id": "chinese_language_and_literature:3",
+      "subject": "chinese_language_and_literature",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.059273,
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 2,
+        "total_tokens": 109
+      }
+    },
+    {
+      "case_id": "middle_school_geography:9",
+      "subject": "middle_school_geography",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.066435,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 2,
+        "total_tokens": 86
+      }
+    },
+    {
+      "case_id": "basic_medicine:12",
+      "subject": "basic_medicine",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.074688,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 2,
+        "total_tokens": 83
+      }
+    },
+    {
+      "case_id": "middle_school_geography:3",
+      "subject": "middle_school_geography",
+      "expected": "C",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.059832,
+      "usage": {
+        "prompt_tokens": 92,
+        "completion_tokens": 2,
+        "total_tokens": 94
+      }
+    },
+    {
+      "case_id": "middle_school_mathematics:2",
+      "subject": "middle_school_mathematics",
+      "expected": "D",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.058866,
+      "usage": {
+        "prompt_tokens": 106,
+        "completion_tokens": 2,
+        "total_tokens": 108
+      }
+    },
+    {
+      "case_id": "advanced_mathematics:0",
+      "subject": "advanced_mathematics",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.081575,
+      "usage": {
+        "prompt_tokens": 134,
+        "completion_tokens": 2,
+        "total_tokens": 136
+      }
+    },
+    {
+      "case_id": "high_school_history:11",
+      "subject": "high_school_history",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.07064,
+      "usage": {
+        "prompt_tokens": 123,
+        "completion_tokens": 2,
+        "total_tokens": 125
+      }
+    },
+    {
+      "case_id": "education_science:14",
+      "subject": "education_science",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.06944,
+      "usage": {
+        "prompt_tokens": 132,
+        "completion_tokens": 2,
+        "total_tokens": 134
+      }
+    },
+    {
+      "case_id": "college_economics:45",
+      "subject": "college_economics",
+      "expected": "D",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.058336,
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 2,
+        "total_tokens": 91
+      }
+    },
+    {
+      "case_id": "plant_protection:15",
+      "subject": "plant_protection",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.071504,
+      "usage": {
+        "prompt_tokens": 151,
+        "completion_tokens": 2,
+        "total_tokens": 153
+      }
+    },
+    {
+      "case_id": "art_studies:27",
+      "subject": "art_studies",
+      "expected": "D",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.063749,
+      "usage": {
+        "prompt_tokens": 94,
+        "completion_tokens": 2,
+        "total_tokens": 96
+      }
+    },
+    {
+      "case_id": "legal_professional:4",
+      "subject": "legal_professional",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.102967,
+      "usage": {
+        "prompt_tokens": 215,
+        "completion_tokens": 2,
+        "total_tokens": 217
+      }
+    },
+    {
+      "case_id": "computer_architecture:10",
+      "subject": "computer_architecture",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.067036,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 2,
+        "total_tokens": 83
+      }
+    },
+    {
+      "case_id": "middle_school_biology:7",
+      "subject": "middle_school_biology",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.08191,
+      "usage": {
+        "prompt_tokens": 174,
+        "completion_tokens": 2,
+        "total_tokens": 176
+      }
+    },
+    {
+      "case_id": "high_school_physics:17",
+      "subject": "high_school_physics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.092597,
+      "usage": {
+        "prompt_tokens": 133,
+        "completion_tokens": 2,
+        "total_tokens": 135
+      }
+    },
+    {
+      "case_id": "plant_protection:10",
+      "subject": "plant_protection",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.074261,
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 2,
+        "total_tokens": 97
+      }
+    },
+    {
+      "case_id": "middle_school_history:19",
+      "subject": "middle_school_history",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.057835,
+      "usage": {
+        "prompt_tokens": 102,
+        "completion_tokens": 2,
+        "total_tokens": 104
+      }
+    },
+    {
+      "case_id": "college_programming:24",
+      "subject": "college_programming",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.060985,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 2,
+        "total_tokens": 88
+      }
+    },
+    {
+      "case_id": "probability_and_statistics:12",
+      "subject": "probability_and_statistics",
+      "expected": "B",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.13289,
+      "usage": {
+        "prompt_tokens": 345,
+        "completion_tokens": 2,
+        "total_tokens": 347
+      }
+    },
+    {
+      "case_id": "middle_school_chemistry:14",
+      "subject": "middle_school_chemistry",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.079378,
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 2,
+        "total_tokens": 91
+      }
+    },
+    {
+      "case_id": "computer_architecture:13",
+      "subject": "computer_architecture",
+      "expected": "C",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.079214,
+      "usage": {
+        "prompt_tokens": 117,
+        "completion_tokens": 2,
+        "total_tokens": 119
+      }
+    },
+    {
+      "case_id": "middle_school_chemistry:6",
+      "subject": "middle_school_chemistry",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.07821,
+      "usage": {
+        "prompt_tokens": 139,
+        "completion_tokens": 2,
+        "total_tokens": 141
+      }
+    },
+    {
+      "case_id": "urban_and_rural_planner:23",
+      "subject": "urban_and_rural_planner",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.080873,
+      "usage": {
+        "prompt_tokens": 172,
+        "completion_tokens": 2,
+        "total_tokens": 174
+      }
+    },
+    {
+      "case_id": "college_chemistry:4",
+      "subject": "college_chemistry",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.089028,
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 2,
+        "total_tokens": 137
+      }
+    },
+    {
+      "case_id": "high_school_history:12",
+      "subject": "high_school_history",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.070671,
+      "usage": {
+        "prompt_tokens": 151,
+        "completion_tokens": 2,
+        "total_tokens": 153
+      }
+    },
+    {
+      "case_id": "clinical_medicine:20",
+      "subject": "clinical_medicine",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.089274,
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 2,
+        "total_tokens": 97
+      }
+    },
+    {
+      "case_id": "clinical_medicine:10",
+      "subject": "clinical_medicine",
+      "expected": "A",
+      "prediction": "D",
+      "correct": false,
+      "raw_answer": "D",
+      "latency_seconds": 0.060572,
+      "usage": {
+        "prompt_tokens": 101,
+        "completion_tokens": 2,
+        "total_tokens": 103
+      }
+    },
+    {
+      "case_id": "high_school_chemistry:0",
+      "subject": "high_school_chemistry",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.087817,
+      "usage": {
+        "prompt_tokens": 150,
+        "completion_tokens": 2,
+        "total_tokens": 152
+      }
+    },
+    {
+      "case_id": "metrology_engineer:15",
+      "subject": "metrology_engineer",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.080772,
+      "usage": {
+        "prompt_tokens": 109,
+        "completion_tokens": 2,
+        "total_tokens": 111
+      }
+    },
+    {
+      "case_id": "middle_school_politics:9",
+      "subject": "middle_school_politics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.088711,
+      "usage": {
+        "prompt_tokens": 170,
+        "completion_tokens": 2,
+        "total_tokens": 172
+      }
+    },
+    {
+      "case_id": "basic_medicine:11",
+      "subject": "basic_medicine",
+      "expected": "C",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.059648,
+      "usage": {
+        "prompt_tokens": 90,
+        "completion_tokens": 2,
+        "total_tokens": 92
+      }
+    },
+    {
+      "case_id": "professional_tour_guide:27",
+      "subject": "professional_tour_guide",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.076653,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 2,
+        "total_tokens": 90
+      }
+    },
+    {
+      "case_id": "middle_school_biology:17",
+      "subject": "middle_school_biology",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.077731,
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 2,
+        "total_tokens": 109
+      }
+    },
+    {
+      "case_id": "teacher_qualification:31",
+      "subject": "teacher_qualification",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.075864,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 2,
+        "total_tokens": 87
+      }
+    },
+    {
+      "case_id": "operating_system:2",
+      "subject": "operating_system",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.063844,
+      "usage": {
+        "prompt_tokens": 94,
+        "completion_tokens": 2,
+        "total_tokens": 96
+      }
+    },
+    {
+      "case_id": "operating_system:13",
+      "subject": "operating_system",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.079949,
+      "usage": {
+        "prompt_tokens": 80,
+        "completion_tokens": 2,
+        "total_tokens": 82
+      }
+    },
+    {
+      "case_id": "ideological_and_moral_cultivation:18",
+      "subject": "ideological_and_moral_cultivation",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.076177,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 2,
+        "total_tokens": 84
+      }
+    },
+    {
+      "case_id": "college_physics:15",
+      "subject": "college_physics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.06173,
+      "usage": {
+        "prompt_tokens": 123,
+        "completion_tokens": 2,
+        "total_tokens": 125
+      }
+    },
+    {
+      "case_id": "business_administration:23",
+      "subject": "business_administration",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.06875,
+      "usage": {
+        "prompt_tokens": 111,
+        "completion_tokens": 2,
+        "total_tokens": 113
+      }
+    },
+    {
+      "case_id": "middle_school_politics:1",
+      "subject": "middle_school_politics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.084075,
+      "usage": {
+        "prompt_tokens": 153,
+        "completion_tokens": 2,
+        "total_tokens": 155
+      }
+    },
+    {
+      "case_id": "middle_school_history:12",
+      "subject": "middle_school_history",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.068575,
+      "usage": {
+        "prompt_tokens": 151,
+        "completion_tokens": 2,
+        "total_tokens": 153
+      }
+    },
+    {
+      "case_id": "legal_professional:13",
+      "subject": "legal_professional",
+      "expected": "C",
+      "prediction": "D",
+      "correct": false,
+      "raw_answer": "D",
+      "latency_seconds": 0.093397,
+      "usage": {
+        "prompt_tokens": 183,
+        "completion_tokens": 2,
+        "total_tokens": 185
+      }
+    },
+    {
+      "case_id": "middle_school_history:15",
+      "subject": "middle_school_history",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.080032,
+      "usage": {
+        "prompt_tokens": 156,
+        "completion_tokens": 2,
+        "total_tokens": 158
+      }
+    },
+    {
+      "case_id": "college_economics:14",
+      "subject": "college_economics",
+      "expected": "B",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.058535,
+      "usage": {
+        "prompt_tokens": 91,
+        "completion_tokens": 2,
+        "total_tokens": 93
+      }
+    },
+    {
+      "case_id": "computer_network:7",
+      "subject": "computer_network",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.058562,
+      "usage": {
+        "prompt_tokens": 97,
+        "completion_tokens": 2,
+        "total_tokens": 99
+      }
+    },
+    {
+      "case_id": "fire_engineer:14",
+      "subject": "fire_engineer",
+      "expected": "D",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.069321,
+      "usage": {
+        "prompt_tokens": 160,
+        "completion_tokens": 2,
+        "total_tokens": 162
+      }
+    },
+    {
+      "case_id": "modern_chinese_history:12",
+      "subject": "modern_chinese_history",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.071828,
+      "usage": {
+        "prompt_tokens": 122,
+        "completion_tokens": 2,
+        "total_tokens": 124
+      }
+    },
+    {
+      "case_id": "veterinary_medicine:6",
+      "subject": "veterinary_medicine",
+      "expected": "D",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.07154,
+      "usage": {
+        "prompt_tokens": 102,
+        "completion_tokens": 2,
+        "total_tokens": 104
+      }
+    },
+    {
+      "case_id": "probability_and_statistics:6",
+      "subject": "probability_and_statistics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.087826,
+      "usage": {
+        "prompt_tokens": 244,
+        "completion_tokens": 2,
+        "total_tokens": 246
+      }
+    },
+    {
+      "case_id": "college_economics:28",
+      "subject": "college_economics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.065121,
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 2,
+        "total_tokens": 137
+      }
+    },
+    {
+      "case_id": "basic_medicine:13",
+      "subject": "basic_medicine",
+      "expected": "D",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.071112,
+      "usage": {
+        "prompt_tokens": 98,
+        "completion_tokens": 2,
+        "total_tokens": 100
+      }
+    },
+    {
+      "case_id": "sports_science:16",
+      "subject": "sports_science",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.075169,
+      "usage": {
+        "prompt_tokens": 112,
+        "completion_tokens": 2,
+        "total_tokens": 114
+      }
+    },
+    {
+      "case_id": "veterinary_medicine:1",
+      "subject": "veterinary_medicine",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.072152,
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 2,
+        "total_tokens": 91
+      }
+    },
+    {
+      "case_id": "clinical_medicine:14",
+      "subject": "clinical_medicine",
+      "expected": "C",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.076259,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 2,
+        "total_tokens": 88
+      }
+    },
+    {
+      "case_id": "middle_school_politics:8",
+      "subject": "middle_school_politics",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.078557,
+      "usage": {
+        "prompt_tokens": 116,
+        "completion_tokens": 2,
+        "total_tokens": 118
+      }
+    },
+    {
+      "case_id": "modern_chinese_history:18",
+      "subject": "modern_chinese_history",
+      "expected": "D",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.070442,
+      "usage": {
+        "prompt_tokens": 105,
+        "completion_tokens": 2,
+        "total_tokens": 107
+      }
+    },
+    {
+      "case_id": "high_school_politics:18",
+      "subject": "high_school_politics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.06981,
+      "usage": {
+        "prompt_tokens": 154,
+        "completion_tokens": 2,
+        "total_tokens": 156
+      }
+    },
+    {
+      "case_id": "probability_and_statistics:17",
+      "subject": "probability_and_statistics",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.11151,
+      "usage": {
+        "prompt_tokens": 324,
+        "completion_tokens": 2,
+        "total_tokens": 326
+      }
+    },
+    {
+      "case_id": "accountant:1",
+      "subject": "accountant",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.066293,
+      "usage": {
+        "prompt_tokens": 131,
+        "completion_tokens": 2,
+        "total_tokens": 133
+      }
+    },
+    {
+      "case_id": "chinese_language_and_literature:1",
+      "subject": "chinese_language_and_literature",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.078788,
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 2,
+        "total_tokens": 109
+      }
+    },
+    {
+      "case_id": "teacher_qualification:13",
+      "subject": "teacher_qualification",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.076956,
+      "usage": {
+        "prompt_tokens": 92,
+        "completion_tokens": 2,
+        "total_tokens": 94
+      }
+    },
+    {
+      "case_id": "high_school_geography:17",
+      "subject": "high_school_geography",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.060108,
+      "usage": {
+        "prompt_tokens": 100,
+        "completion_tokens": 2,
+        "total_tokens": 102
+      }
+    },
+    {
+      "case_id": "probability_and_statistics:8",
+      "subject": "probability_and_statistics",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.082582,
+      "usage": {
+        "prompt_tokens": 145,
+        "completion_tokens": 2,
+        "total_tokens": 147
+      }
+    },
+    {
+      "case_id": "college_programming:27",
+      "subject": "college_programming",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.086289,
+      "usage": {
+        "prompt_tokens": 129,
+        "completion_tokens": 2,
+        "total_tokens": 131
+      }
+    },
+    {
+      "case_id": "discrete_mathematics:2",
+      "subject": "discrete_mathematics",
+      "expected": "D",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.08667,
+      "usage": {
+        "prompt_tokens": 172,
+        "completion_tokens": 2,
+        "total_tokens": 174
+      }
+    },
+    {
+      "case_id": "professional_tour_guide:22",
+      "subject": "professional_tour_guide",
+      "expected": "C",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.060946,
+      "usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 2,
+        "total_tokens": 112
+      }
+    },
+    {
+      "case_id": "environmental_impact_assessment_engineer:18",
+      "subject": "environmental_impact_assessment_engineer",
+      "expected": "B",
+      "prediction": "C",
+      "correct": false,
+      "raw_answer": "C",
+      "latency_seconds": 0.057856,
+      "usage": {
+        "prompt_tokens": 100,
+        "completion_tokens": 2,
+        "total_tokens": 102
+      }
+    },
+    {
+      "case_id": "law:20",
+      "subject": "law",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.075754,
+      "usage": {
+        "prompt_tokens": 126,
+        "completion_tokens": 2,
+        "total_tokens": 128
+      }
+    },
+    {
+      "case_id": "chinese_language_and_literature:6",
+      "subject": "chinese_language_and_literature",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.07201,
+      "usage": {
+        "prompt_tokens": 120,
+        "completion_tokens": 2,
+        "total_tokens": 122
+      }
+    },
+    {
+      "case_id": "discrete_mathematics:7",
+      "subject": "discrete_mathematics",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.075166,
+      "usage": {
+        "prompt_tokens": 103,
+        "completion_tokens": 2,
+        "total_tokens": 105
+      }
+    },
+    {
+      "case_id": "tax_accountant:39",
+      "subject": "tax_accountant",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.070714,
+      "usage": {
+        "prompt_tokens": 108,
+        "completion_tokens": 2,
+        "total_tokens": 110
+      }
+    },
+    {
+      "case_id": "civil_servant:34",
+      "subject": "civil_servant",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.0843,
+      "usage": {
+        "prompt_tokens": 98,
+        "completion_tokens": 2,
+        "total_tokens": 100
+      }
+    },
+    {
+      "case_id": "high_school_chemistry:1",
+      "subject": "high_school_chemistry",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.084456,
+      "usage": {
+        "prompt_tokens": 142,
+        "completion_tokens": 2,
+        "total_tokens": 144
+      }
+    },
+    {
+      "case_id": "high_school_geography:18",
+      "subject": "high_school_geography",
+      "expected": "B",
+      "prediction": "B",
+      "correct": true,
+      "raw_answer": "B",
+      "latency_seconds": 0.089586,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 2,
+        "total_tokens": 86
+      }
+    },
+    {
+      "case_id": "modern_chinese_history:0",
+      "subject": "modern_chinese_history",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.063263,
+      "usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 2,
+        "total_tokens": 109
+      }
+    },
+    {
+      "case_id": "middle_school_geography:0",
+      "subject": "middle_school_geography",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.058461,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 2,
+        "total_tokens": 83
+      }
+    },
+    {
+      "case_id": "veterinary_medicine:19",
+      "subject": "veterinary_medicine",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.096102,
+      "usage": {
+        "prompt_tokens": 179,
+        "completion_tokens": 2,
+        "total_tokens": 181
+      }
+    },
+    {
+      "case_id": "high_school_biology:1",
+      "subject": "high_school_biology",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.07929,
+      "usage": {
+        "prompt_tokens": 122,
+        "completion_tokens": 2,
+        "total_tokens": 124
+      }
+    },
+    {
+      "case_id": "basic_medicine:15",
+      "subject": "basic_medicine",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.072842,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 2,
+        "total_tokens": 84
+      }
+    },
+    {
+      "case_id": "environmental_impact_assessment_engineer:9",
+      "subject": "environmental_impact_assessment_engineer",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.080799,
+      "usage": {
+        "prompt_tokens": 127,
+        "completion_tokens": 2,
+        "total_tokens": 129
+      }
+    },
+    {
+      "case_id": "metrology_engineer:2",
+      "subject": "metrology_engineer",
+      "expected": "D",
+      "prediction": "D",
+      "correct": true,
+      "raw_answer": "D",
+      "latency_seconds": 0.087194,
+      "usage": {
+        "prompt_tokens": 108,
+        "completion_tokens": 2,
+        "total_tokens": 110
+      }
+    },
+    {
+      "case_id": "mao_zedong_thought:11",
+      "subject": "mao_zedong_thought",
+      "expected": "A",
+      "prediction": "A",
+      "correct": true,
+      "raw_answer": "A",
+      "latency_seconds": 0.08793,
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 2,
+        "total_tokens": 97
+      }
+    },
+    {
+      "case_id": "high_school_mathematics:6",
+      "subject": "high_school_mathematics",
+      "expected": "D",
+      "prediction": "A",
+      "correct": false,
+      "raw_answer": "A",
+      "latency_seconds": 0.099369,
+      "usage": {
+        "prompt_tokens": 118,
+        "completion_tokens": 2,
+        "total_tokens": 120
+      }
+    },
+    {
+      "case_id": "accountant:22",
+      "subject": "accountant",
+      "expected": "D",
+      "prediction": "B",
+      "correct": false,
+      "raw_answer": "B",
+      "latency_seconds": 0.077128,
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 2,
+        "total_tokens": 89
+      }
+    },
+    {
+      "case_id": "business_administration:28",
+      "subject": "business_administration",
+      "expected": "C",
+      "prediction": "C",
+      "correct": true,
+      "raw_answer": "C",
+      "latency_seconds": 0.066125,
+      "usage": {
+        "prompt_tokens": 112,
+        "completion_tokens": 2,
+        "total_tokens": 114
+      }
+    }
+  ],
+  "summary": {
+    "attempted": 200,
+    "valid_predictions": 200,
+    "correct": 142,
+    "accuracy": 0.71,
+    "invalid_prediction_rate": 0.0,
+    "mean_latency_seconds": 0.07532754999999997,
+    "by_subject": {
+      "high_school_biology": {
+        "attempted": 3,
+        "valid": 3,
+        "correct": 3
+      },
+      "environmental_impact_assessment_engineer": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "professional_tour_guide": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "computer_network": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "discrete_mathematics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "high_school_chinese": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "marxism": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "advanced_mathematics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "education_science": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "middle_school_mathematics": {
+        "attempted": 3,
+        "valid": 3,
+        "correct": 2
+      },
+      "college_chemistry": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "high_school_politics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "logic": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "law": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "legal_professional": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 1
+      },
+      "college_economics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "physician": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "middle_school_politics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "computer_architecture": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "art_studies": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "civil_servant": {
+        "attempted": 3,
+        "valid": 3,
+        "correct": 2
+      },
+      "fire_engineer": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 1
+      },
+      "business_administration": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "mao_zedong_thought": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "electrical_engineer": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 1
+      },
+      "high_school_physics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "tax_accountant": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 1
+      },
+      "urban_and_rural_planner": {
+        "attempted": 3,
+        "valid": 3,
+        "correct": 2
+      },
+      "college_physics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "teacher_qualification": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "plant_protection": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "middle_school_physics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "sports_science": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "high_school_geography": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "metrology_engineer": {
+        "attempted": 3,
+        "valid": 3,
+        "correct": 3
+      },
+      "operating_system": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "veterinary_medicine": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "middle_school_chemistry": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "middle_school_geography": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "college_programming": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "middle_school_history": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "accountant": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "ideological_and_moral_cultivation": {
+        "attempted": 3,
+        "valid": 3,
+        "correct": 3
+      },
+      "high_school_chemistry": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "chinese_language_and_literature": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "middle_school_biology": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "clinical_medicine": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 1
+      },
+      "high_school_mathematics": {
+        "attempted": 3,
+        "valid": 3,
+        "correct": 0
+      },
+      "high_school_history": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 4
+      },
+      "basic_medicine": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 2
+      },
+      "probability_and_statistics": {
+        "attempted": 4,
+        "valid": 4,
+        "correct": 3
+      },
+      "modern_chinese_history": {
+        "attempted": 3,
+        "valid": 3,
+        "correct": 2
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "scope": "local Docker Desktop Kubernetes smoke; not a performance run",
+  "image": {
+    "tag": "ai-inference-gateway:stable",
+    "id": "sha256:f4a120c1b0ecf879e7efedd8ed78588ef2beb622b4055c7d21afb43a24cf0bcd",
+    "size_bytes": 257670997,
+    "created": "2026-10-24T08:13:53Z",
+    "pod_image_id": "sha256:a243fb6d68ffacbcfe05dd498ae603f2f0f056c2a1cb2d8fce78fe321bc6a8b1"
+  },
+  "cluster": {
+    "context": "docker-desktop",
+    "kubernetes": "v1.36.1",
+    "node": "desktop-control-plane",
+    "namespace": "ai-inference",
+    "gateway_replicas": 2
+  },
+  "upstream": {
+    "kind": "mock-vllm",
+    "service": "http://mock-vllm:8000",
+    "note": "OpenAI-compatible mock used to exercise the HTTP/SSE path; not a model benchmark"
+  },
+  "checks": {
+    "live": {
+      "status": 200,
+      "version": "stable"
+    },
+    "health": {
+      "status": 200,
+      "vllm": "ok",
+      "version": "stable"
+    },
+    "smoke_test": "PASS",
+    "smoke_scope": [
+      "browser page",
+      "/live and /ready",
+      "/chat",
+      "/chat/stream SSE",
+      "request validation 422",
+      "/metrics"
+    ],
+    "api_key_ui": true
+  },
+  "resilience": {
+    "rolling_restart": "2/2 Ready",
+    "pod_kill": "both gateway pods deleted with --wait=false",
+    "recovery": "2/2 Ready after replacement",
+    "smoke_after_recovery": "PASS"
+  }
+}

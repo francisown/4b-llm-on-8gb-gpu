@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-tls-demo
+  labels:
+    app.kubernetes.io/part-of: ai-inference-lab
+    # The NetworkPolicy selects this label. Kubernetes sets it automatically
+    # on 1.21+, but declaring it keeps the intent visible.
+    kubernetes.io/metadata.name: k8s-tls-demo

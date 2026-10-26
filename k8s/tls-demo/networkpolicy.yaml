@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gateway-allow-same-namespace
+  namespace: k8s-tls-demo
+  labels:
+    app: gateway-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: inference-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    # Only pods in this namespace may reach the gateway port. Everything else
+    # (another namespace, the host via a service IP) is denied.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: k8s-tls-demo
+      ports:
+        - protocol: TCP
+          port: 9000

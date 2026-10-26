@@ -1,0 +1,13 @@
+# 这个仓库的 shell 脚本要在 WSL2 里执行，必须是 LF。
+# 不加这行的话，Git for Windows 的 autocrlf 会把检出后的 .sh 变成 CRLF，
+# 在 WSL 里执行会直接报 `bad interpreter: /usr/bin/env bash^M`。
+* text=auto eol=lf
+
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+*.png binary
+*.jpg binary
+*.xlsx binary
+*.zip binary

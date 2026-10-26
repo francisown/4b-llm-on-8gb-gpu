@@ -1,0 +1,144 @@
+name: ai-inference-observability
+
+services:
+  mock-vllm:
+    image: python:3.10-slim
+    command: ["python", "/app/mock_vllm.py"]
+    volumes:
+      - ./mock_vllm.py:/app/mock_vllm.py:ro
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: gateway/Dockerfile
+    image: ai-inference-gateway:stable
+    ports:
+      - "9000:9000"
+    environment:
+      VLLM_BASE_URL: http://mock-vllm:8000
+      MODEL_NAME: mock-qwen
+      GATEWAY_MAX_CONCURRENT: "4"
+      GATEWAY_MAX_QUEUE: "4"
+      GATEWAY_QUEUE_TIMEOUT_SECONDS: "10"
+      GATEWAY_VERSION: "stable"
+      POD_NAME: compose-gateway
+      GATEWAY_API_KEY: "${GATEWAY_API_KEY:-}"
+      GATEWAY_API_KEYS: "${GATEWAY_API_KEYS:-}"
+      GATEWAY_RATE_LIMIT_PER_MINUTE: "${GATEWAY_RATE_LIMIT_PER_MINUTE:-0}"
+      GATEWAY_RATE_LIMIT_MAX_IDENTITIES: "${GATEWAY_RATE_LIMIT_MAX_IDENTITIES:-10000}"
+      GATEWAY_RATE_LIMIT_BACKEND: "${GATEWAY_RATE_LIMIT_BACKEND:-process}"
+      GATEWAY_REDIS_URL: "${GATEWAY_REDIS_URL:-redis://redis:6379/0}"
+      GATEWAY_AUTH_FAILURE_LIMIT_PER_MINUTE: "${GATEWAY_AUTH_FAILURE_LIMIT_PER_MINUTE:-20}"
+      GATEWAY_MAX_CONTEXT_TOKENS: "${GATEWAY_MAX_CONTEXT_TOKENS:-2048}"
+      GATEWAY_TRUST_PROXY_HEADERS: "${GATEWAY_TRUST_PROXY_HEADERS:-0}"
+      OTEL_SDK_DISABLED: "false"
+      OTEL_SERVICE_NAME: inference-gateway
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+    depends_on:
+      mock-vllm:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/live')"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  webhook:
+    image: mendhak/http-https-echo:33
+    ports:
+      - "8080:8080"
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    depends_on:
+      webhook:
+        condition: service_started
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    depends_on:
+      gateway:
+        condition: service_healthy
+      alertmanager:
+        condition: service_started
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus:
+        condition: service_started
+
+  tls-proxy:
+    image: nginx:1.27-alpine
+    ports:
+      - "9443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+  jaeger-init:
+    image: busybox:1.36
+    command: ["sh", "-c", "chown -R 10001:10001 /badger"]
+    volumes:
+      - jaeger-data:/badger
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    depends_on:
+      jaeger-init:
+        condition: service_completed_successfully
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      SPAN_STORAGE_TYPE: badger
+      BADGER_EPHEMERAL: "false"
+      BADGER_DIRECTORY_VALUE: /badger/data
+      BADGER_DIRECTORY_KEY: /badger/key
+    volumes:
+      - jaeger-data:/badger
+
+volumes:
+  jaeger-data:

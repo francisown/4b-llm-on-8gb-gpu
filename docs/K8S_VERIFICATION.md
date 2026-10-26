@@ -1,7 +1,9 @@
 # Kubernetes verification
 
 Verified on 2026-10-26 on Docker Desktop Kubernetes `v1.36.1` with
-`ai-inference-gateway:stable` (digest `sha256:b3bd991c...`).
+`ai-inference-gateway:stable` (digest `sha256:b3bd991c...`). The base ConfigMap
+points at `host.docker.internal:8000`; this smoke used the in-cluster
+`mock-vllm` service, as do the HPA/TLS demos.
 
 ## Gateway layer
 

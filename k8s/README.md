@@ -12,8 +12,10 @@ gateway; vLLM runs outside the cluster with GPU access.
 | `k8s/hpa-queue-demo/` | queue-depth HPA with Prometheus Adapter and mock vLLM |
 | `k8s/tls-demo/` | Nginx TLS termination and NetworkPolicy with mock vLLM |
 
-The HPA and TLS demos use a mock upstream. They validate gateway mechanics, not
-4B-model serving or GPU scheduling.
+The base ConfigMap points at `host.docker.internal:8000` for a host vLLM. The
+HPA/TLS demos and the recorded Kubernetes smoke use an in-cluster `mock-vllm`
+service; use a real vLLM or change `VLLM_BASE_URL` for the base path. The demos
+validate gateway mechanics, not 4B-model serving or GPU scheduling.
 
 ## Local Docker Desktop
 

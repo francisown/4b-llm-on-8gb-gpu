@@ -70,4 +70,6 @@ python quant_quality_eval.py run \
 ```
 
 The 200-question set is small; per-question agreement and the paired statistics
-are the primary signal, not a single accuracy total.
+are the primary signal, not a single accuracy total. Raw reference JSON keeps
+the original host paths; model identity is in
+`int4-artifact-manifest.json`.

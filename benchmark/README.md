@@ -29,4 +29,6 @@ current runs.
 - Do not treat 16-prompt microbenchmarks as capacity plans.
 - The direct vLLM files are one run per concurrency; repeat before claiming
   variance or a regression.
+- Raw vLLM JSON keeps the original host model paths; use
+  `benchmark/eval/int4-artifact-manifest.json` for model identity.
 - Keep the raw file and the protocol summary together.

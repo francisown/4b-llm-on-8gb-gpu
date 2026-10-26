@@ -33,7 +33,7 @@ Expected:
 
 - 101 passed / 7 skipped without the C-Eval archive;
 - 108 passed with `CEVAL_ZIP` set;
-- coverage 78.13% without C-Eval (80.1% with `CEVAL_ZIP`);
+- coverage 78.13% without C-Eval (80.17% with `CEVAL_ZIP`);
 - 48 Kubernetes documents, 2 workflows, valid docs links.
 
 ## 2. Docker

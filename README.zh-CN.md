@@ -27,7 +27,7 @@
 | 量化对比 | BF16 **8.701 GiB** · FP8 **5.281 GiB** · INT4-AWQ **3.568 GiB**；BF16/FP8/INT4-v1 均为 **141/200** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
 | 直接 vLLM，INT4，c=1 / c=4 | **95.55 / 309.55 tok/s**（各单次运行） | [`int4-c1`](benchmark/results/int4-c1.json) · [`int4-c4`](benchmark/results/int4-c4.json) |
 | Docker Desktop Kubernetes | 2 副本，HPA 2→4→6→2，TLS `/live` + `/health` 200 | [`k8s`](benchmark/results/k8s-hpa-tls.json) · [`smoke`](benchmark/results/k8s-smoke.json) |
-| 确定性测试 | 默认 **101 passed / 7 skipped**；设置 `CEVAL_ZIP` 后 **108 passed**；覆盖率无 C-Eval 为 **78.13%**，含 C-Eval 为 **80.1%** | `python -m pytest -q tests` |
+| 确定性测试 | 默认 **101 passed / 7 skipped**；设置 `CEVAL_ZIP` 后 **108 passed**；覆盖率无 C-Eval 为 **78.13%**，含 C-Eval 为 **80.17%** | `python -m pytest -q tests` |
 
 性能数字来自单张 RTX 5060 和单一 vLLM 0.29.0 环境。直接 benchmark 是 16 prompts 微基准，不是容量规划。200 题 C-Eval 只能说明“在这 200 题上没观察到准确率差异”，不等于模型等价。
 

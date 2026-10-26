@@ -41,7 +41,7 @@ assets section in the README.
 - 32-case quant-quality: 25/32;
 - Docker Desktop K8s: 2 replicas, HPA 2→4→6→2, TLS `/live` + `/health` 200;
 - tests: 101 passed / 7 skipped by default; 108 passed with `CEVAL_ZIP`;
-- coverage: 80.1% with C-Eval (78.13% without).
+- coverage: 80.17% with C-Eval (78.13% without).
 
 Evidence: [`soak`](../benchmark/results/soak-c4-7200s-telemetry.json),
 [`C-Eval`](../benchmark/eval/int4-ceval-val-200.json),

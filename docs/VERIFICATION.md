@@ -16,7 +16,7 @@ python scripts/validate_docs.py
 
 - tests: **101 passed / 7 skipped** without the C-Eval archive;
 - with `CEVAL_ZIP` set: **108 passed**;
-- coverage: **78.13%** without the C-Eval archive; **80.1%** with `CEVAL_ZIP`; CI floor 77%;
+- coverage: **78.13%** without the C-Eval archive; **80.17%** with `CEVAL_ZIP`; CI floor 77%;
 - ruff: pass;
 - mypy: `gateway/gateway.py src/llm8g`, 40 source files;
 - Kubernetes manifests: 48 documents;

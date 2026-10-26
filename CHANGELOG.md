@@ -21,6 +21,6 @@
 - Published image: `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest`
   (`sha-255690f`, digest `sha256:d6615e0c...`).
 - Current verification: 101 passed / 7 skipped by default, 108 passed with
-  C-Eval, coverage 80.1% with C-Eval (78.13% without), real-vLLM 2-hour soak 69,687 requests / 0 errors,
+  C-Eval, coverage 80.17% with C-Eval (78.13% without), real-vLLM 2-hour soak 69,687 requests / 0 errors,
   p95 445.26 ms; HPA 2→4→6→2 and TLS smoke pass.
 - Historical experiment data was removed from this clean branch.

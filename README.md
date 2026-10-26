@@ -34,7 +34,7 @@ upstream and validate gateway mechanics, not model-serving high availability.
 | Quantization comparison | BF16 **8.701 GiB** · FP8 **5.281 GiB** · INT4-AWQ **3.568 GiB**; BF16/FP8/INT4-v1 all **141/200** | [`quantization-final-comparison.csv`](benchmark/eval/quantization-final-comparison.csv) |
 | Direct vLLM, INT4, c=1 / c=4 | **95.55 / 309.55 tok/s** (one run each) | [`int4-c1`](benchmark/results/int4-c1.json) · [`int4-c4`](benchmark/results/int4-c4.json) |
 | Docker Desktop Kubernetes | 2 replicas, HPA 2→4→6→2, TLS `/live` + `/health` 200 | [`k8s`](benchmark/results/k8s-hpa-tls.json) · [`smoke`](benchmark/results/k8s-smoke.json) |
-| Deterministic suite | **101 passed / 7 skipped** by default; **108 passed** with `CEVAL_ZIP`; coverage **78.13%** without C-Eval, **80.1%** with it | `python -m pytest -q tests` |
+| Deterministic suite | **101 passed / 7 skipped** by default; **108 passed** with `CEVAL_ZIP`; coverage **78.13%** without C-Eval, **80.17%** with it | `python -m pytest -q tests` |
 
 Performance numbers are from one RTX 5060 and one vLLM 0.29.0 environment. The
 direct benchmark is a 16-prompt microbenchmark, not a capacity plan. The 200

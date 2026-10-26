@@ -1,6 +1,6 @@
 # Release
 
-Status: **release candidate**.
+Status: **published**.
 
 ## Artifact
 
@@ -18,9 +18,12 @@ rebuild.
 | Field | Value |
 |---|---|
 | Package version | `1.0.0` (metadata only) |
-| Source commit | see `git rev-parse HEAD` in this snapshot |
+| Source commit | `255690f5a145f4dea020058259aecd9d84b8cd05` |
 | Local image tag | `ai-inference-gateway:stable` |
-| Registry channel | `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest` |
+| Registry image | `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest` |
+| Registry digest | `sha256:d6615e0c4c3216af0e767eb9028f25dd6804a26a74ea0d57bd5301a199d69ca2` |
+| SHA tag | `sha-255690f` |
+| Release run | [40273218982](https://github.com/francisown/4b-llm-on-8gb-gpu/actions/runs/40273218982) |
 | Model | Qwen3.5-4B-INT4-AWQ-self-v1, 3.568 GiB |
 | Artifact manifest | `artifact-manifest.json`, emitted by the quantization CLI |
 | GPU / runtime | RTX 5060 8 GB / vLLM 0.29.0 |
@@ -48,15 +51,18 @@ Evidence: [`soak`](../benchmark/results/soak-c4-7200s-telemetry.json),
 
 ## Publish
 
-The release workflow is `.github/workflows/release.yml`. Run it manually
-(Actions → release → Run workflow) after pushing `main`. It builds from the
-repository root and publishes:
+The image was published from `main` by workflow run
+[40273218982](https://github.com/francisown/4b-llm-on-8gb-gpu/actions/runs/40273218982).
+The workflow is `.github/workflows/release.yml`; run it manually
+(Actions → release → Run workflow) to republish. It builds from the repository
+root, runs the verification gates, and publishes:
 
 ```text
 ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest
+ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:sha-255690f
 ```
 
-It also publishes a SHA tag for traceability.
+It also generates SBOM and provenance attestations.
 
 ## Known limits
 
@@ -65,6 +71,7 @@ It also publishes a SHA tag for traceability.
 - direct vLLM benchmark is one run per concurrency; repeat before claiming
   variance or a regression;
 - FP8 and INT4 v1 rows are frozen reference measurements, not reruns;
-- image is not signed and the lock is version-pinned, not hash-pinned;
+- image is not signed; SBOM and provenance attestations are included, but the
+  lock is version-pinned, not hash-pinned;
 - model weights and C-Eval data are not redistributed;
 - the gateway does not terminate TLS itself.

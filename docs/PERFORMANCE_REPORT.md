@@ -109,7 +109,10 @@ Regenerate the reference table with `python tools/quality_stats.py`.
 - the Dockerfile installs the lock, then the package with `--no-deps`;
 - the quantization CLI writes `artifact-manifest.json` into the output directory;
 - the local K8s overlay uses the locally built `stable` tag; the GHCR overlay
-  uses `latest` after publication;
+  uses `latest`;
+- the published registry image is
+  `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest`, digest
+  `sha256:d6615e0c4c3216af0e767eb9028f25dd6804a26a74ea0d57bd5301a199d69ca2`;
 - the model weights and C-Eval archive are not redistributed; see the
   third-party assets section in the repository README.
 

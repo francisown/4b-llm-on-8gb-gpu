@@ -86,7 +86,8 @@ docker build -f gateway/Dockerfile -t ai-inference-gateway:stable .
 - dependency lock: `gateway/requirements-image.lock.txt`;
 - container smoke: `/live`, `/health`, `/chat`, `/chat/stream`, `/metrics`;
 - optional API key: no key → 401, correct key → 200;
-- image is **not published to GHCR**.
+- registry image: `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest`;
+- published manifest digest: `sha256:d6615e0c4c3216af0e767eb9028f25dd6804a26a74ea0d57bd5301a199d69ca2`.
 
 ## Kubernetes
 
@@ -103,7 +104,6 @@ Evidence: [`k8s smoke`](../benchmark/results/k8s-smoke.json), [`HPA/TLS`](../ben
 
 ## Not verified in this clean branch
 
-- GHCR image push (no credentials; image not pushed);
 - real 4B vLLM inside Kubernetes (HPA/TLS use mock);
 - offline bundle (not included in this branch);
 - TensorRT-LLM comparison.

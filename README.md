@@ -112,7 +112,7 @@ Full GPU/vLLM path: [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 - The 32-case quality set is a local regression smoke, not a benchmark.
 - The 200-question C-Eval set is small; per-question agreement is more useful than a single accuracy total.
 - HPA and TLS runs use the in-cluster mock vLLM, not the 4B model.
-- The local image is not published to GHCR in this repository snapshot.
+- The image is published as `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest`; pin the digest for reproducible deployments.
 - Authentication is optional; the gateway itself does not terminate TLS.
 - Admission control and the default rate limiter are process-local; Redis is optional.
 - Quantization is performed by `llm-compressor` and vLLM; the algorithms are not reimplemented here.
@@ -127,7 +127,7 @@ Full GPU/vLLM path: [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 | Kubernetes gateway layer | Verified on Docker Desktop; HPA/TLS smoke passed |
 | Real vLLM + 4B INT4 | 2-hour soak, 0 errors |
 | C-Eval / quant-quality rechecks | Done |
-| GHCR image | Not published |
+| GHCR image | Published (`latest`, `sha-255690f`) |
 | TensorRT-LLM comparison | Not measured |
 
 ## Third-party assets

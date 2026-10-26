@@ -31,5 +31,5 @@
     "live": 200,
     "health": 200
   },
-  "note": "HPA loadgen ran against the in-cluster mock vLLM, not the real 4B model."
+  "note": "HPA loadgen ran against the in-cluster mock vLLM, not the real 4B model. The HPA/TLS mechanics were recorded with the pre-rebuild stable image; the current gateway smoke digest is in k8s-smoke.json."
 }

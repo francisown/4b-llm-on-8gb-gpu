@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "date": "2026-10-24",
+  "date": "2026-10-26",
   "scope": "local Docker Desktop Kubernetes smoke; not a performance run",
-  "note": "The digest identifies the exact build tested. The mutable stable tag may resolve to a newer local rebuild; re-run this smoke before quoting the digest.",
+  "note": "Current rerun with the stable rebuild; the digest identifies this build. The upstream is the in-cluster mock-vllm service.",
   "image": {
     "tag": "ai-inference-gateway:stable",
-    "id": "sha256:f4a120c1b0ecf879e7efedd8ed78588ef2beb622b4055c7d21afb43a24cf0bcd",
-    "size_bytes": 257670997,
-    "created": "2026-10-24T08:13:53Z",
-    "pod_image_id": "sha256:a243fb6d68ffacbcfe05dd498ae603f2f0f056c2a1cb2d8fce78fe321bc6a8b1"
+    "id": "sha256:b3bd991c5607d8409c318de1e98b18cc82ea507d2bf35b131199648c1bc59c03",
+    "size_bytes": 257272480,
+    "created": "2026-10-26T05:08:26Z",
+    "pod_image_id": "sha256:b3bd991c5607d8409c318de1e98b18cc82ea507d2bf35b131199648c1bc59c03"
   },
   "cluster": {
     "context": "docker-desktop",
@@ -45,7 +45,7 @@
   },
   "resilience": {
     "rolling_restart": "2/2 Ready",
-    "pod_kill": "both gateway pods deleted with --wait=false",
+    "pod_kill": "both current gateway pods deleted with --wait=false",
     "recovery": "2/2 Ready after replacement",
     "smoke_after_recovery": "PASS"
   }

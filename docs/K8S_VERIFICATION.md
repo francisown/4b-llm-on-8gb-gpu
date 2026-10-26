@@ -1,7 +1,7 @@
 # Kubernetes verification
 
-Verified on Docker Desktop Kubernetes `v1.36.1` with the final
-`ai-inference-gateway:stable` image.
+Verified on 2026-10-26 on Docker Desktop Kubernetes `v1.36.1` with
+`ai-inference-gateway:stable` (digest `sha256:b3bd991c...`).
 
 ## Gateway layer
 
@@ -10,8 +10,7 @@ Verified on Docker Desktop Kubernetes `v1.36.1` with the final
 - startup `/live`, readiness `/ready`, liveness `/live`
 - `/health` checks the vLLM dependency
 - PDB, NetworkPolicy, HPA, Prometheus annotations present
-- image: `ai-inference-gateway:stable` (the evidence JSON records the exact
-  digest tested; a rebuild of the mutable `stable` tag may differ)
+- image: `ai-inference-gateway:stable`, digest `sha256:b3bd991c...`
 
 Result:
 
@@ -38,7 +37,9 @@ Observed:
 | ~50 s | 6 |
 | load removed | 6 → 5 → 4 → 3 → 2 |
 
-The HPA run uses the in-cluster mock upstream, not the 4B model.
+The HPA run uses the in-cluster mock upstream, not the 4B model. The HPA/TLS
+mechanics were recorded with the pre-rebuild stable image; the current gateway
+smoke digest is in `k8s-smoke.json`.
 
 Evidence: [`benchmark/results/k8s-hpa-tls.json`](../benchmark/results/k8s-hpa-tls.json).
 

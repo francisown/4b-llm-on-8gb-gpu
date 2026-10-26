@@ -111,7 +111,7 @@ Full GPU/vLLM path: [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 
 - The 32-case quality set is a local regression smoke, not a benchmark.
 - The 200-question C-Eval set is small; per-question agreement is more useful than a single accuracy total.
-- HPA and TLS runs use the in-cluster mock vLLM, not the 4B model.
+- The Kubernetes smoke, HPA, and TLS runs use the in-cluster mock vLLM, not the 4B model.
 - The image is published as `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest`; pin the digest for reproducible deployments.
 - Authentication is optional; the gateway itself does not terminate TLS.
 - Admission control and the default rate limiter are process-local; Redis is optional.

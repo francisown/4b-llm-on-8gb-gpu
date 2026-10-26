@@ -98,7 +98,7 @@ Docker Desktop Kubernetes `v1.36.1`, final image:
 - rolling restart and dual-pod kill recover to 2/2;
 - HPA queue-depth: 2 → 4 at ~20 s → 6 at ~50 s, then 6 → 5 → 4 → 3 → 2;
 - TLS demo: HTTPS `/live` and `/health` both 200;
-- HPA/TLS use in-cluster mock vLLM, not the 4B model.
+- The gateway smoke, HPA, and TLS use in-cluster mock vLLM, not the 4B model.
 
 Evidence: [`k8s smoke`](../benchmark/results/k8s-smoke.json), [`HPA/TLS`](../benchmark/results/k8s-hpa-tls.json).
 

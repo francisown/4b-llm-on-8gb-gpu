@@ -101,7 +101,7 @@ docker compose -f gateway/compose.yaml up -d --build
 
 - 32 题质量集是本地回归 smoke，不是 benchmark；
 - 200 题 C-Eval 样本很小，逐题一致率比总准确率更有意义；
-- HPA/TLS 使用集群内 mock vLLM，不是 4B 模型；
+- Kubernetes smoke、HPA/TLS 使用集群内 mock vLLM，不是 4B 模型；
 - 镜像已发布到 `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest`；生产部署请钉 digest；
 - 认证可选，gateway 本身不做 TLS；
 - 默认限流和准入是进程内；Redis 可选；

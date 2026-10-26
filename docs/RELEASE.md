@@ -23,9 +23,10 @@ rebuild.
 | Registry image | `ghcr.io/francisown/4b-llm-on-8gb-gpu/gateway:latest` |
 | Registry digest | `sha256:d6615e0c4c3216af0e767eb9028f25dd6804a26a74ea0d57bd5301a199d69ca2` |
 | SHA tag | `sha-255690f` |
+| Release tag | [`2026.10.26`](https://github.com/francisown/4b-llm-on-8gb-gpu/releases/tag/2026.10.26) |
 | Release run | [40273218982](https://github.com/francisown/4b-llm-on-8gb-gpu/actions/runs/40273218982) |
 | Model | Qwen3.5-4B-INT4-AWQ-self-v1, 3.568 GiB |
-| Artifact manifest | `artifact-manifest.json`, emitted by the quantization CLI |
+| Artifact manifest | [`benchmark/eval/int4-artifact-manifest.json`](../benchmark/eval/int4-artifact-manifest.json) |
 | GPU / runtime | RTX 5060 8 GB / vLLM 0.29.0 |
 | Benchmark protocol | 16 prompts, 256/128, c=1 and c=4 (one run each); soak c=4 / 32 output |
 | Restart | Compose or the K8s overlays in this repository |

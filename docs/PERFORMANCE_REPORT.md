@@ -74,6 +74,7 @@ Evidence:
 
 - [`int4-ceval-val-200.json`](../benchmark/eval/int4-ceval-val-200.json)
 - [`int4-vs-v1-agreement.json`](../benchmark/eval/int4-vs-v1-agreement.json)
+- [`int4-artifact-manifest.json`](../benchmark/eval/int4-artifact-manifest.json)
 - [`int4-quant-quality.json`](../benchmark/eval/int4-quant-quality.json)
 
 ## Quantization comparison

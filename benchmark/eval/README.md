@@ -10,6 +10,7 @@ the quantization comparison, and the paired statistics that tie them together.
 | `int4-ceval-val-200.json` | 200-question C-Eval, current INT4 build |
 | `int4-quant-quality.json` | 32-case local quant-quality smoke |
 | `int4-vs-v1-agreement.json` | Paired statistics: current INT4 vs INT4 v1 |
+| `int4-artifact-manifest.json` | SHA-256 inventory of the INT4 model artifact |
 | `ceval-val-200.json` | frozen C-Eval manifest |
 | `freeform-cases.json` | free-form regression cases |
 

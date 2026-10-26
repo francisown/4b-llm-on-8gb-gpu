@@ -74,6 +74,7 @@ Evidence: [`int4-c1`](../benchmark/results/int4-c1.json), [`int4-c4`](../benchma
 Evidence: [`C-Eval`](../benchmark/eval/int4-ceval-val-200.json),
 [`INT4 v1`](../benchmark/eval/self-int4-awq-v1-ceval-val-200.json),
 [`paired stats`](../benchmark/eval/int4-vs-v1-agreement.json),
+[`artifact manifest`](../benchmark/eval/int4-artifact-manifest.json),
 [`quant quality`](../benchmark/eval/int4-quant-quality.json).
 
 ## Docker

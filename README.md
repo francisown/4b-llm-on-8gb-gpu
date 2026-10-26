@@ -128,6 +128,7 @@ Full GPU/vLLM path: [`docs/REPRODUCE.md`](docs/REPRODUCE.md).
 | Real vLLM + 4B INT4 | 2-hour soak, 0 errors |
 | C-Eval / quant-quality rechecks | Done |
 | GHCR image | Published (`latest`, `sha-255690f`) |
+| Release | [2026.10.26](https://github.com/francisown/4b-llm-on-8gb-gpu/releases/tag/2026.10.26) |
 | TensorRT-LLM comparison | Not measured |
 
 ## Third-party assets
@@ -137,7 +138,9 @@ Model weights and C-Eval data are not redistributed. Set `QWEN_BF16_DIR` and
 [Qwen3.5-4B](https://huggingface.co/Qwen) and
 [C-Eval](https://github.com/SJTU-LIT/ceval). The quantization CLI writes
 `artifact-manifest.json` into the output directory, recording file sizes,
-SHA-256 hashes, the source model directory name, and the algorithm/version.
+SHA-256 hashes, the source model directory name, and the algorithm/version. The
+current INT4 inventory is
+[`benchmark/eval/int4-artifact-manifest.json`](benchmark/eval/int4-artifact-manifest.json).
 
 ## License
 
